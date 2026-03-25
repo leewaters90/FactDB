@@ -1,9 +1,12 @@
 """
 Device design seed data — engineering facts for FactDB.
 
-Covers the two embedded/IoT product domains:
+Covers:
   • Weather Station — sensors, power, communications, enclosure, calibration
   • Robot Vacuum Cleaner — navigation, drive, suction, power, software
+  • Mechatronics Projects — servo/stepper motors, Kalman filter, soil/CO2/PM2.5
+    sensing, MOSFET switching, ESP32 SoC, RFID, G-code, inverse kinematics, CT
+    current sensing
 
 Facts are structured identically to ``seed_data.py`` so they can be loaded
 by the same seeder machinery.
@@ -1109,6 +1112,383 @@ DEVICE_FACTS: list[dict] = [
         "confidence_score": 0.97,
         "tags": ["IMU", "gyroscope", "accelerometer", "inertial", "navigation", "robot-vacuum", "electrical"],
     },
+
+    # ================================================================
+    # MECHATRONICS PROJECT SHARED FACTS
+    # ================================================================
+
+    # ----------------------------------------------------------------
+    # Actuation — Servo and Stepper Motors
+    # ----------------------------------------------------------------
+    {
+        "title": "RC Servo Motor PWM Control",
+        "domain": "electrical",
+        "category": "actuators",
+        "subcategory": "servo motors",
+        "detail_level": "fundamental",
+        "content": (
+            "An RC servo motor is commanded by a PWM signal with a 50 Hz "
+            "frame rate; pulse width 1–2 ms maps to shaft angle 0–180°."
+        ),
+        "extended_content": (
+            "Standard servo protocol: 1 ms = 0°, 1.5 ms = 90° (neutral), "
+            "2 ms = 180°.  Internal feedback loop (potentiometer + H-bridge) "
+            "maintains position against load.  Torque ratings: micro servo "
+            "1–2 kg·cm, standard 3–6 kg·cm, high-torque 10–25 kg·cm.  Servo "
+            "signal voltage is 3.3–5 V; operating voltage typically 4.8–7.4 V. "
+            "Most MCU PWM timers generate servo pulses directly (Arduino: "
+            "Servo.h, STM32 TIM_OC, ESP32 ledc).  For continuous-rotation servos, "
+            "1.5 ms = stop, <1.5 ms = CW, >1.5 ms = CCW — useful for low-cost "
+            "drive wheels.  Backlash (0.1–0.5°) limits positioning accuracy."
+        ),
+        "units": "Pulse width: µs (1000–2000 µs); angle: degrees",
+        "source": "Futaba Servo Specifications; Arduino Servo Library Reference",
+        "confidence_score": 0.98,
+        "tags": ["servo", "PWM", "actuator", "motor", "mechatronics", "electrical"],
+    },
+    {
+        "title": "Stepper Motor Drive — Full Step and Microstepping",
+        "domain": "electrical",
+        "category": "actuators",
+        "subcategory": "stepper motors",
+        "detail_level": "intermediate",
+        "content": (
+            "A stepper motor rotates a fixed angle (step angle) for each "
+            "electrical pulse.  Step angle = 360° / (steps per rev); "
+            "microstepping subdivides this further for smoother motion."
+        ),
+        "extended_content": (
+            "Common step angles: 1.8° (200 steps/rev, NEMA 17/23) and 0.9° "
+            "(400 steps/rev).  Drive modes: full step (1 coil), half step "
+            "(0.9° for 1.8° motor), 1/8 step, 1/16 step, 1/32 step "
+            "(microstepping — reduces resonance, improves resolution).  "
+            "Position = step count × (360° / (steps/rev × microstep_factor)). "
+            "No feedback required (open-loop), but missed steps are not detected. "
+            "Drivers: A4988 (up to 1/16 step), DRV8825 (up to 1/32 step).  "
+            "Torque falls with speed; acceleration ramps (trapezoidal or "
+            "S-curve) prevent stall.  Typical NEMA 17: 2 A, 40 N·cm holding "
+            "torque, used in CNC machines, 3D printers, and plotters."
+        ),
+        "formula": "θ_step = 360° / (steps_per_rev × microstep_divisor)",
+        "units": "degrees per step",
+        "source": "Jones, Microstepping: Myths and Realities, Microchip Tech Note; Pololu A4988 Datasheet",
+        "confidence_score": 0.97,
+        "tags": ["stepper", "motor", "microstepping", "CNC", "actuator", "mechatronics", "electrical"],
+    },
+
+    # ----------------------------------------------------------------
+    # Sensing — Soil Moisture, Gas, Particles
+    # ----------------------------------------------------------------
+    {
+        "title": "Capacitive Soil Moisture Sensing",
+        "domain": "electrical",
+        "category": "sensors",
+        "subcategory": "soil sensing",
+        "detail_level": "fundamental",
+        "content": (
+            "Capacitive soil moisture sensors measure the dielectric permittivity "
+            "of soil, which increases with water content, producing a voltage "
+            "output proportional to volumetric water content (VWC)."
+        ),
+        "extended_content": (
+            "Probe is inserted into soil; oscillator frequency or output voltage "
+            "shifts with soil capacitance.  Typical output: 1.2–3.0 V spanning "
+            "dry to saturated soil; calibration required per soil type.  "
+            "Advantage over resistive probes: no electrolytic corrosion of "
+            "electrodes, longer service life.  Calibration equation: "
+            "VWC = a·V_out + b (linear approximation, a and b soil-specific). "
+            "Operating depth: sensor prongs typically 3–8 cm; multiple sensors "
+            "at different depths characterise the moisture profile.  Temperature "
+            "compensation needed above 30 °C (permittivity of water falls "
+            "slightly with temperature)."
+        ),
+        "units": "V (output voltage) or % VWC (volumetric water content)",
+        "source": "Decagon Devices, 5TE Soil Moisture Sensor Application Note; METER Group",
+        "confidence_score": 0.96,
+        "tags": ["soil-moisture", "capacitive", "sensor", "agriculture", "IoT", "mechatronics", "electrical"],
+    },
+    {
+        "title": "NDIR CO₂ Sensor — Non-Dispersive Infrared",
+        "domain": "electrical",
+        "category": "sensors",
+        "subcategory": "gas sensing",
+        "detail_level": "intermediate",
+        "content": (
+            "NDIR (Non-Dispersive Infrared) sensors measure CO₂ concentration "
+            "by detecting absorption of infrared radiation at 4.26 µm (CO₂ "
+            "absorption band) using Beer–Lambert law: I = I₀ · e^(−α·c·L)."
+        ),
+        "extended_content": (
+            "Light source (IR LED or broad-band lamp) illuminates the gas sample "
+            "over path length L; a wavelength-selective detector at 4.26 µm "
+            "measures transmitted intensity I.  Concentration c is derived from "
+            "the absorbance.  Typical modules (SCD41, MH-Z19B): range "
+            "400–5000 ppm, accuracy ±50 ppm + 5%, I²C or UART output.  Warm-"
+            "up time 30–120 s.  Pressure and temperature correction needed at "
+            "altitude or non-standard conditions.  ABC (Automatic Baseline "
+            "Correction) compensates for long-term drift by assuming outdoor "
+            "fresh-air CO₂ ≈ 400 ppm."
+        ),
+        "formula": "I = I₀ · exp(−α · c · L)",
+        "units": "ppm (parts per million)",
+        "source": "Sensirion SCD41 Datasheet; ISO 17521:2016",
+        "confidence_score": 0.97,
+        "tags": ["CO2", "NDIR", "gas-sensor", "air-quality", "mechatronics", "electrical"],
+    },
+    {
+        "title": "PM2.5 Optical Particle Counter",
+        "domain": "electrical",
+        "category": "sensors",
+        "subcategory": "particle sensing",
+        "detail_level": "intermediate",
+        "content": (
+            "Optical particle counters (OPC) measure particulate matter "
+            "concentration by detecting light scattered by individual particles "
+            "passing through a laser beam, correlating pulse count and amplitude "
+            "to PM2.5 and PM10 mass concentrations."
+        ),
+        "extended_content": (
+            "Laser diode illuminates a detection volume; photodetector (PD) "
+            "measures scattered light pulses.  Mie scattering theory governs "
+            "relationship between particle size, refractive index, and scatter "
+            "intensity.  Low-cost sensors (PMS5003, SPS30): 0.3–10 µm range, "
+            "output PM1.0/PM2.5/PM10 in µg/m³ via UART or I²C.  Accuracy "
+            "strongly depends on particle composition and humidity; at RH > 75% "
+            "hygroscopic growth inflates readings.  Cross-sensitivity: smoke, "
+            "fog, and sea spray give false PM readings.  Used in IoT air quality "
+            "monitors and HVAC systems."
+        ),
+        "units": "µg/m³ (micrograms per cubic metre)",
+        "source": "Plantower PMS5003 Datasheet; Sensirion SPS30 Product Summary; EPA PM2.5 NAAQS",
+        "confidence_score": 0.96,
+        "tags": ["PM2.5", "particle", "air-quality", "optical", "sensor", "mechatronics", "electrical"],
+    },
+
+    # ----------------------------------------------------------------
+    # Signal Processing — Kalman Filter
+    # ----------------------------------------------------------------
+    {
+        "title": "Kalman Filter for Sensor Fusion",
+        "domain": "systems",
+        "category": "signal processing",
+        "subcategory": "state estimation",
+        "detail_level": "advanced",
+        "content": (
+            "The Kalman filter is an optimal recursive estimator that combines "
+            "noisy sensor measurements with a dynamic system model to produce "
+            "a minimum-variance estimate of the system state."
+        ),
+        "extended_content": (
+            "Prediction step: x̂⁻ = F·x̂_{k-1} + B·u_{k-1}; "
+            "P⁻ = F·P·Fᵀ + Q.  "
+            "Update step: K = P⁻·Hᵀ·(H·P⁻·Hᵀ + R)⁻¹; "
+            "x̂ = x̂⁻ + K·(z − H·x̂⁻); P = (I − K·H)·P⁻.  "
+            "Q = process noise covariance (model uncertainty); "
+            "R = measurement noise covariance; K = Kalman gain.  "
+            "Extended Kalman Filter (EKF) linearises nonlinear systems via "
+            "Jacobians.  Applications: IMU attitude fusion (gyro + accel), "
+            "GPS + dead-reckoning, drone altitude hold (barometer + sonar).  "
+            "Tuning Q/R ratio determines the balance between sensor trust and "
+            "model trust."
+        ),
+        "formula": (
+            "K = P⁻Hᵀ(HP⁻Hᵀ + R)⁻¹ ;  "
+            "x̂ = x̂⁻ + K(z − Hx̂⁻) ;  "
+            "P = (I − KH)P⁻"
+        ),
+        "source": "Kalman, R.E. (1960). A new approach to linear filtering. ASME J. Basic Eng.; Welch & Bishop, UNC TR 95-041",
+        "confidence_score": 0.99,
+        "tags": ["Kalman-filter", "estimation", "sensor-fusion", "IMU", "drone", "mechatronics", "systems"],
+    },
+
+    # ----------------------------------------------------------------
+    # Power Electronics — MOSFET switch
+    # ----------------------------------------------------------------
+    {
+        "title": "N-Channel MOSFET as a Low-Side Power Switch",
+        "domain": "electrical",
+        "category": "power electronics",
+        "subcategory": "switching",
+        "detail_level": "intermediate",
+        "content": (
+            "An N-channel MOSFET switches a load on and off from a logic-level "
+            "MCU signal by controlling V_GS.  When V_GS > V_th the MOSFET "
+            "enters the triode (on) region; when V_GS < V_th it is off."
+        ),
+        "extended_content": (
+            "Low-side switch configuration: drain connected to load, source to "
+            "GND; gate driven from MCU GPIO via series resistor (100 Ω – 10 kΩ). "
+            "Selection criteria: V_DS(max) > supply + transient spikes, "
+            "I_D(max) > worst-case load current, R_DS(on) low to minimise "
+            "conduction loss (P = I²·R_DS(on)).  Gate capacitance C_iss "
+            "sets switching speed; fast switching (< 1 µs) reduces transition "
+            "losses.  Inductive loads (solenoids, motors) require a flyback "
+            "diode (D from drain to supply rail) to suppress V_DS spikes when "
+            "the MOSFET turns off.  Typical devices: IRLZ44N (logic-level, "
+            "55 V, 47 A), AO3400 (20 V, 5.7 A, SOT-23)."
+        ),
+        "source": "Sedra & Smith, Microelectronic Circuits, 7th ed.; Texas Instruments AN-7836",
+        "confidence_score": 0.98,
+        "tags": ["MOSFET", "switch", "power", "load-switching", "mechatronics", "electrical"],
+    },
+
+    # ----------------------------------------------------------------
+    # Microcontroller / SoC — ESP32
+    # ----------------------------------------------------------------
+    {
+        "title": "ESP32 WiFi + BLE System-on-Chip",
+        "domain": "electrical",
+        "category": "microcontrollers",
+        "subcategory": "SoC",
+        "detail_level": "intermediate",
+        "content": (
+            "The ESP32 is a dual-core 32-bit Xtensa LX6 SoC integrating "
+            "802.11 b/g/n WiFi and Bluetooth 4.2 (Classic + BLE) in a single "
+            "chip, widely used in IoT and mechatronics projects."
+        ),
+        "extended_content": (
+            "Key specs: 240 MHz dual-core, 520 KB SRAM, 34 programmable GPIO, "
+            "3× UART, 2× I²C, 4× SPI, 16× 12-bit ADC channels, 2× DAC, "
+            "2× I²S, LED PWM (LEDC) 16 channels, hall sensor, touch sensor.  "
+            "WiFi: station + AP + hybrid modes; WPA/WPA2/WPA3 security.  "
+            "BLE: Generic Attribute Profile (GATT) stack built-in.  "
+            "Deep sleep current: 10–150 µA (varies with wakeup source).  "
+            "Development: ESP-IDF (C/C++), Arduino ESP32, MicroPython.  "
+            "ESP32-S3 variant adds AI accelerator and USB OTG.  "
+            "3.3 V I/O; 5 V tolerant on select pins; flash via USB UART bridge."
+        ),
+        "source": "Espressif ESP32 Technical Reference Manual v5; ESP32 Datasheet v3.4",
+        "confidence_score": 0.98,
+        "tags": ["ESP32", "WiFi", "BLE", "MCU", "SoC", "IoT", "mechatronics", "electrical"],
+    },
+
+    # ----------------------------------------------------------------
+    # RFID / NFC
+    # ----------------------------------------------------------------
+    {
+        "title": "RFID/NFC Reader — ISO 14443 / 15693 Interface",
+        "domain": "electrical",
+        "category": "wireless communication",
+        "subcategory": "RFID",
+        "detail_level": "intermediate",
+        "content": (
+            "RFID (Radio Frequency Identification) readers communicate with "
+            "passive tags by inductively powering them and exchanging data at "
+            "13.56 MHz (HF RFID / NFC, ISO 14443A/B or ISO 15693)."
+        ),
+        "extended_content": (
+            "Reader coil generates an alternating magnetic field; tag rectifies "
+            "the field to power its IC and modulates load impedance to transmit "
+            "data (load modulation back to reader).  ISO 14443A (Mifare, NTAG): "
+            "range 0–10 cm, data rate 106–848 kbps, 4- or 7-byte UID.  "
+            "ISO 15693: range 0–1 m (vicinity), 26 kbps.  MFRC522 module "
+            "(common): SPI/I²C interface, reads Mifare Classic/Ultralight/NTAG. "
+            "Security considerations: Mifare Classic uses weak crypto (CRYPTO1) "
+            "— vulnerable to cloning; use NTAG216 or DESFire EV2 for "
+            "access-control applications.  Read latency: 50–200 ms per card."
+        ),
+        "source": "ISO 14443:2018, Identification Cards — Contactless; NXP MFRC522 Datasheet",
+        "confidence_score": 0.97,
+        "tags": ["RFID", "NFC", "access-control", "13.56MHz", "mechatronics", "electrical"],
+    },
+
+    # ----------------------------------------------------------------
+    # Motion Control — G-code / CNC
+    # ----------------------------------------------------------------
+    {
+        "title": "G-code and CNC Motion Control",
+        "domain": "software",
+        "category": "motion control",
+        "subcategory": "CNC programming",
+        "detail_level": "intermediate",
+        "content": (
+            "G-code is the standard numerical control language for CNC machines. "
+            "Modal codes (G0/G1/G2/G3) command the machine to move to absolute "
+            "or relative coordinates using linear (G1) or circular (G2/G3) "
+            "interpolation."
+        ),
+        "extended_content": (
+            "G0: rapid traverse (non-cutting); G1: linear feed (cutting speed "
+            "F in mm/min); G2/G3: circular arc (centre I, J or radius R); "
+            "G90/G91: absolute/relative mode; M3/M5: spindle on/off; "
+            "M106/M107: fan; M0: pause.  "
+            "Step-pulse generation: planner converts G-code to acceleration-"
+            "limited velocity profiles (trapezoidal or S-curve jerk control); "
+            "step pulse frequency: f_step = v / (step_angle_rad × r_wheel_or_pitch). "
+            "Firmware: Grbl (AVR/STM32, 2-axis plotter), Marlin (3D printing), "
+            "LinuxCNC (full CNC).  Grbl achieves 30 kHz step rate on ATmega328P.  "
+            "Backlash compensation and probe-based auto-levelling are supported."
+        ),
+        "source": "EIA RS-274-D G-code Standard; Grbl GitHub Documentation",
+        "confidence_score": 0.97,
+        "tags": ["G-code", "CNC", "motion-control", "stepper", "plotter", "mechatronics", "software"],
+    },
+
+    # ----------------------------------------------------------------
+    # Kinematics — Forward and Inverse
+    # ----------------------------------------------------------------
+    {
+        "title": "Forward and Inverse Kinematics — Serial Robot Arm",
+        "domain": "mechanical",
+        "category": "robotics",
+        "subcategory": "kinematics",
+        "detail_level": "advanced",
+        "content": (
+            "Forward kinematics (FK) maps joint angles θ to end-effector pose "
+            "using Denavit-Hartenberg (DH) transformation matrices. Inverse "
+            "kinematics (IK) solves for joint angles given a desired end-effector "
+            "pose — generally non-linear with multiple solutions."
+        ),
+        "extended_content": (
+            "FK: T_0n = T_01(θ₁)·T_12(θ₂)·…·T_{n-1,n}(θₙ), each 4×4 "
+            "homogeneous transformation using DH parameters (a, d, α, θ).  "
+            "IK analytical solutions exist for specific arm geometries "
+            "(e.g., 3R planar, 6R with spherical wrist); numerical methods "
+            "(Jacobian pseudo-inverse, gradient descent) solve the general "
+            "case.  Workspace: reachable positions for given joint limits.  "
+            "Singularities occur when the Jacobian is rank-deficient (arm "
+            "fully extended or wrist aligned with shoulder).  For a 3-DOF "
+            "planar arm: θ₁ = atan2(y,x) − atan2(l₂·sin(θ₂), l₁+l₂·cos(θ₂)); "
+            "θ₂ = ±acos((x²+y²−l₁²−l₂²)/(2·l₁·l₂))."
+        ),
+        "formula": "T_0n = T_01(θ₁) · T_12(θ₂) · … · T_{n−1,n}(θₙ)",
+        "source": "Siciliano et al., Robotics: Modelling, Planning and Control, Springer, 2009",
+        "confidence_score": 0.97,
+        "tags": ["kinematics", "IK", "FK", "robot-arm", "DH-parameters", "mechatronics", "mechanical"],
+    },
+
+    # ----------------------------------------------------------------
+    # Electrical Measurement — CT clamp / RMS
+    # ----------------------------------------------------------------
+    {
+        "title": "CT Clamp Current Sensing and RMS Calculation",
+        "domain": "electrical",
+        "category": "electrical measurement",
+        "subcategory": "current sensing",
+        "detail_level": "intermediate",
+        "content": (
+            "A split-core current transformer (CT clamp) non-invasively "
+            "measures AC current by magnetic induction: I_secondary = I_primary / N, "
+            "where N is the turns ratio.  RMS current is computed from sampled "
+            "waveform: I_rms = √(1/N · Σ i²)."
+        ),
+        "extended_content": (
+            "CT secondary outputs a small AC voltage across a burden resistor "
+            "R_burden: V_out = (I_primary / N) · R_burden.  For SCT-013-000 "
+            "(100 A, 50 mA): N = 2000, R_burden ≈ 33 Ω → 0–1.65 V peak.  "
+            "MCU ADC: bias mid-supply with voltage divider; digitise at ≥ 2 kHz "
+            "for 50/60 Hz mains.  True power P = (1/N) · Σ(v_n · i_n) "
+            "(requires simultaneous voltage sampling for power factor).  "
+            "Phase offset of CT must be corrected in software.  "
+            "Safety: never open-circuit a current transformer under load "
+            "(high voltage spike on secondary)."
+        ),
+        "formula": "I_rms = √(1/N · Σ iₙ²) ;  I_secondary = I_primary / N_turns",
+        "units": "A (amps), V (burden voltage)",
+        "source": "OpenEnergyMonitor Documentation; Bryan et al., Practical Current Transformer Application Note",
+        "confidence_score": 0.97,
+        "tags": ["CT-clamp", "current-sensing", "RMS", "energy-meter", "mechatronics", "electrical"],
+    },
 ]
 
 
@@ -1308,5 +1688,104 @@ DEVICE_FACT_RELATIONSHIPS: list[dict] = [
         "relationship_type": "supports",
         "weight": 0.7,
         "description": "MCU sleep modes reduce standby power, extending robot battery life.",
+    },
+    # New mechatronics facts
+    {
+        "source_title": "Stepper Motor Drive — Full Step and Microstepping",
+        "target_title": "G-code and CNC Motion Control",
+        "relationship_type": "depends_on",
+        "weight": 1.0,
+        "description": "G-code CNC controllers drive stepper motors to execute moves.",
+    },
+    {
+        "source_title": "G-code and CNC Motion Control",
+        "target_title": "DC Motor Speed Control via PWM",
+        "relationship_type": "example_of",
+        "weight": 0.5,
+        "description": "G-code motion planning is a specific application of programmatic actuator control.",
+    },
+    {
+        "source_title": "Kalman Filter for Sensor Fusion",
+        "target_title": "IMU (Inertial Measurement Unit) for Robot Navigation",
+        "relationship_type": "supports",
+        "weight": 0.95,
+        "description": "Kalman filter combines IMU gyro and accel for stable attitude estimate.",
+    },
+    {
+        "source_title": "Kalman Filter for Sensor Fusion",
+        "target_title": "Nyquist–Shannon Sampling Theorem",
+        "relationship_type": "depends_on",
+        "weight": 0.8,
+        "description": "Kalman filter measurements must be sampled above the Nyquist rate.",
+    },
+    {
+        "source_title": "N-Channel MOSFET as a Low-Side Power Switch",
+        "target_title": "H-Bridge Motor Driver Circuit",
+        "relationship_type": "prerequisite",
+        "weight": 0.9,
+        "description": "H-bridge circuits are built from four MOSFETs acting as switches.",
+    },
+    {
+        "source_title": "CT Clamp Current Sensing and RMS Calculation",
+        "target_title": "ADC Resolution and Measurement Precision",
+        "relationship_type": "depends_on",
+        "weight": 0.9,
+        "description": "CT clamp output must be digitised by an ADC for RMS calculation.",
+    },
+    {
+        "source_title": "RC Servo Motor PWM Control",
+        "target_title": "Forward and Inverse Kinematics — Serial Robot Arm",
+        "relationship_type": "supports",
+        "weight": 0.85,
+        "description": "Servo motors execute joint angle commands from IK solutions in robot arms.",
+    },
+    {
+        "source_title": "Forward and Inverse Kinematics — Serial Robot Arm",
+        "target_title": "DC Motor Speed Control via PWM",
+        "relationship_type": "depends_on",
+        "weight": 0.7,
+        "description": "Joint actuators (servos or DC motors with encoders) execute IK-derived angle commands.",
+    },
+    {
+        "source_title": "NDIR CO₂ Sensor — Non-Dispersive Infrared",
+        "target_title": "I²C Serial Communication Protocol",
+        "relationship_type": "depends_on",
+        "weight": 0.7,
+        "description": "Modern NDIR CO₂ modules (e.g. SCD41) communicate via I²C.",
+    },
+    {
+        "source_title": "Capacitive Soil Moisture Sensing",
+        "target_title": "ADC Resolution and Measurement Precision",
+        "relationship_type": "depends_on",
+        "weight": 0.9,
+        "description": "Soil moisture sensor voltage output is read by MCU ADC.",
+    },
+    {
+        "source_title": "ESP32 WiFi + BLE System-on-Chip",
+        "target_title": "MQTT Protocol for IoT Sensor Data",
+        "relationship_type": "supports",
+        "weight": 0.9,
+        "description": "ESP32 WiFi stack carries MQTT messages to the cloud broker.",
+    },
+    {
+        "source_title": "ESP32 WiFi + BLE System-on-Chip",
+        "target_title": "Bluetooth Low Energy (BLE) for App Control",
+        "relationship_type": "supports",
+        "weight": 0.9,
+        "description": "ESP32 integrated BLE is the hardware enabling BLE app connectivity.",
+    },
+    {
+        "source_title": "RFID/NFC Reader — ISO 14443 / 15693 Interface",
+        "target_title": "I²C Serial Communication Protocol",
+        "relationship_type": "supports",
+        "weight": 0.7,
+        "description": "RFID reader ICs (MFRC522) support I²C in addition to SPI.",
+    },
+    {
+        "source_title": "PM2.5 Optical Particle Counter",
+        "target_title": "NDIR CO₂ Sensor — Non-Dispersive Infrared",
+        "relationship_type": "supports",
+        "weight": 0.6,
+        "description": "PM2.5 and CO₂ sensors complement each other in complete air quality monitors.",
     },
 ]
