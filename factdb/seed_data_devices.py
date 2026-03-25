@@ -1489,6 +1489,539 @@ DEVICE_FACTS: list[dict] = [
         "confidence_score": 0.97,
         "tags": ["CT-clamp", "current-sensing", "RMS", "energy-meter", "mechatronics", "electrical"],
     },
+
+    # ================================================================
+    # NEW PROJECT FACTS — 20 additional mechatronics designs
+    # ================================================================
+
+    # ----------------------------------------------------------------
+    # Pneumatic Systems
+    # ----------------------------------------------------------------
+    {
+        "title": "Pneumatic Cylinder Force and Stroke",
+        "domain": "mechanical",
+        "category": "pneumatics",
+        "subcategory": "actuators",
+        "detail_level": "intermediate",
+        "content": (
+            "The theoretical push force of a double-acting pneumatic cylinder "
+            "is F = P · A, where P is gauge pressure and A = π·D²/4 is the "
+            "piston bore area.  Pull force on the rod side is reduced by the "
+            "rod cross-section area."
+        ),
+        "extended_content": (
+            "Push force: F_push = P · (π·D²/4).  "
+            "Pull force: F_pull = P · (π·(D²−d²)/4), where d = rod diameter.  "
+            "Typical shop-air pressure: 6–8 bar (600–800 kPa).  "
+            "Example: D = 50 mm, P = 6 bar → F_push = 600,000 × π × 0.05²/4 "
+            "≈ 1178 N (120 kg force).  "
+            "Stroke speed: v = Q_air / A, where Q_air is volumetric flow (m³/s) "
+            "governed by the control valve Cv rating.  "
+            "Cushioning built into the end caps reduces impact force on stroke end.  "
+            "ISO 15552 (formerly ISO 6431) covers metric cylinder dimensions.  "
+            "Safety: cylinders must be rated for at least 1.5× working pressure; "
+            "pressure relief valve mandatory on compressor output."
+        ),
+        "formula": "F_push = P · π·D²/4 ;  F_pull = P · π·(D²−d²)/4",
+        "units": "F: N, P: Pa, D: m",
+        "source": "Parker Hannifin Pneumatic Design Guide; ISO 15552:2004",
+        "confidence_score": 0.98,
+        "tags": ["pneumatic", "cylinder", "force", "actuator", "mechatronics", "mechanical"],
+    },
+    {
+        "title": "Solenoid Valve for Pneumatic and Fluid Control",
+        "domain": "electrical",
+        "category": "actuators",
+        "subcategory": "valves",
+        "detail_level": "intermediate",
+        "content": (
+            "A solenoid valve uses an electromagnet coil to move a plunger "
+            "that opens or closes a fluid (air, water, oil) passage.  "
+            "Energising the coil produces force F = N²·µ₀·A·I² / (2·g²) "
+            "acting on the ferromagnetic plunger."
+        ),
+        "extended_content": (
+            "Types: 2/2 (2-port, 2-position), 3/2, 5/2 (common for double-"
+            "acting cylinders — extends on one solenoid, retracts on the other). "
+            "Operating voltage: 12 V DC or 24 V DC standard; coil power "
+            "typically 2–10 W.  Response time: 10–50 ms.  "
+            "MCU control via N-channel MOSFET or relay; flyback diode essential "
+            "on DC coil.  Cv (flow coefficient) determines maximum flow; "
+            "ensure Cv ≥ Q_required / (√ΔP) for the application.  "
+            "IP65+ sealing for wet or dusty environments.  "
+            "Fail-safe variants: normally-open (NO) de-energised = flow; "
+            "normally-closed (NC) de-energised = blocked."
+        ),
+        "formula": "F_solenoid ≈ N²·µ₀·A·I² / (2·g²)",
+        "units": "F: N, I: A, g: m (air gap)",
+        "source": "Festo Pneumatic Fundamentals Guide; Parker 3/2 Valve Application Note",
+        "confidence_score": 0.97,
+        "tags": ["solenoid-valve", "pneumatic", "fluid-control", "actuator", "mechatronics", "electrical"],
+    },
+
+    # ----------------------------------------------------------------
+    # Electromagnetic Braking
+    # ----------------------------------------------------------------
+    {
+        "title": "Eddy Current Braking Principle",
+        "domain": "electrical",
+        "category": "electromagnetism",
+        "subcategory": "braking",
+        "detail_level": "intermediate",
+        "content": (
+            "When a conducting disc or rail moves through a static magnetic "
+            "field, circulating eddy currents are induced by Faraday's law "
+            "(EMF = −dΦ/dt) and these currents interact with the field to "
+            "produce a retarding (braking) force proportional to velocity."
+        ),
+        "extended_content": (
+            "Braking force: F ∝ σ·B²·v·A_eff, where σ is electrical "
+            "conductivity, B is flux density, v is relative velocity, and "
+            "A_eff is the effective eddy current path area.  "
+            "Key characteristic: braking force → 0 as v → 0 (no contact "
+            "braking at standstill — requires supplementary friction brake).  "
+            "Advantages: contactless (no wear), smooth deceleration, "
+            "silent operation, self-regulating at constant speed.  "
+            "Applications: roller coasters, roller test-rigs, train speed "
+            "governors, linear eddy-current brakes on maglev.  "
+            "Controllable by varying electromagnet current (I controls B, "
+            "F ∝ I²) or by changing the air gap.  "
+            "Dissipated power P = F · v (converted to heat in the conductor) "
+            "— disc must be thermally rated."
+        ),
+        "formula": "F_brake ∝ σ · B² · v · A_eff ;  EMF = −dΦ/dt",
+        "units": "F: N, B: T, v: m/s, σ: S/m",
+        "source": "Faraday, Experimental Researches in Electricity, 1839; "
+                  "Wiedemann & Franz Law; Brauer & Sirohi, IEEE Trans. Magnetics",
+        "confidence_score": 0.97,
+        "tags": ["eddy-current", "braking", "electromagnetism", "contactless", "mechatronics", "electrical"],
+    },
+
+    # ----------------------------------------------------------------
+    # Mechanical Systems — Pulleys, Worm Gears, Slider-Crank
+    # ----------------------------------------------------------------
+    {
+        "title": "Rope and Pulley Mechanical Advantage",
+        "domain": "mechanical",
+        "category": "mechanisms",
+        "subcategory": "simple machines",
+        "detail_level": "fundamental",
+        "content": (
+            "A block-and-tackle pulley system multiplies input force by the "
+            "mechanical advantage MA = n_ropes, where n_ropes is the number "
+            "of rope segments supporting the load.  "
+            "Ideal MA: F_load = F_effort × MA; distance: d_effort = d_load × MA."
+        ),
+        "extended_content": (
+            "Single fixed pulley: MA = 1 (changes direction only).  "
+            "Single movable pulley: MA = 2.  "
+            "Compound block-and-tackle with n movable pulleys: MA = 2n.  "
+            "Efficiency: η = MA_actual / MA_ideal; real systems lose "
+            "15–25% to rope friction and sheave bearing friction.  "
+            "Wire rope: breaking strength = π·d²/4 × σ_UTS (fibre core ~0.7× "
+            "wire rope rated load for safety).  "
+            "In crane applications, wire diameter selection: use wire with "
+            "FoS ≥ 5 over rated working load.  "
+            "Snatch block redirect: changes rope direction without increasing MA.  "
+            "Speed ratio: v_load = v_haul / MA (conservation of power)."
+        ),
+        "formula": "F_load = F_effort × MA ;  MA = n_supporting_rope_segments",
+        "units": "F: N, MA: dimensionless",
+        "source": "Shigley's Mechanical Engineering Design, 10th ed., Ch.17; "
+                  "Meriam & Kraige, Engineering Mechanics: Statics",
+        "confidence_score": 0.99,
+        "tags": ["pulley", "mechanical-advantage", "crane", "rope", "mechanisms", "mechanical"],
+    },
+    {
+        "title": "Worm Gear Ratio and Self-Locking Property",
+        "domain": "mechanical",
+        "category": "power transmission",
+        "subcategory": "gearing",
+        "detail_level": "intermediate",
+        "content": (
+            "A worm gear pair converts rotary motion through 90°; gear ratio "
+            "i = N_wormwheel / N_worm_starts.  Self-locking occurs when the "
+            "lead angle λ < friction angle φ: tan(λ) < µ, preventing "
+            "back-driving from the wheel to the worm."
+        ),
+        "extended_content": (
+            "Gear ratio: i = z₂ / z₁_starts (worm wheel teeth / worm thread starts).  "
+            "Single-start worm with 40-tooth wheel → i = 40:1.  "
+            "Lead angle λ = atan(lead / (π × pitch_diameter)); self-locking "
+            "when λ < atan(µ_static) ≈ atan(0.1–0.15) ≈ 6–8.5°.  "
+            "Efficiency: η = tan(λ) / tan(λ + φ); typically 30–80% "
+            "(lower for self-locking).  "
+            "Applications: lifts, motorised stands, steering gearboxes.  "
+            "Self-locking worms hold load without motor power — useful for "
+            "parking brakes, adjustable stands, and overhead cranes.  "
+            "Lubrication critical: grease reduces µ and improves efficiency "
+            "but may reduce self-locking margin."
+        ),
+        "formula": "i = z₂/z₁ ;  self-locking iff tan(λ) < µ",
+        "units": "i: dimensionless, λ: degrees",
+        "source": "Shigley's Mechanical Engineering Design, 10th ed., Ch.13; "
+                  "Norton, Machine Design: An Integrated Approach",
+        "confidence_score": 0.98,
+        "tags": ["worm-gear", "gear-ratio", "self-locking", "power-transmission", "mechatronics", "mechanical"],
+    },
+    {
+        "title": "Slider-Crank Mechanism — Rotary to Linear Conversion",
+        "domain": "mechanical",
+        "category": "mechanisms",
+        "subcategory": "kinematic linkages",
+        "detail_level": "intermediate",
+        "content": (
+            "A slider-crank converts continuous rotary motion to reciprocating "
+            "linear motion.  Piston displacement: x = r·cos(θ) + "
+            "√(L² − r²·sin²(θ)), where r = crank radius, L = connecting rod "
+            "length, θ = crank angle."
+        ),
+        "extended_content": (
+            "Stroke = 2r (full travel of the slider).  "
+            "Velocity of slider: ẋ = −r·ω·sin(θ)·[1 + r·cos(θ)/√(L²−r²sin²θ)].  "
+            "For long connecting rods (L >> r), motion approximates SHM: "
+            "x ≈ r·cos(θ).  "
+            "Scotch yoke variant: produces exact SHM, larger side loads on "
+            "the yoke slot.  "
+            "Applications: piston engines, pumps, pneumatic hammers, shakers, "
+            "gearless variable-ratio transmissions.  "
+            "Crank offset (offset slider-crank) shifts TDC/BDC timing for "
+            "asymmetric stroke profiles.  "
+            "Balancing: rotating masses balanced by counterweights; "
+            "reciprocating masses partially balanced."
+        ),
+        "formula": "x = r·cos(θ) + √(L² − r²·sin²(θ))  ;  stroke = 2r",
+        "units": "x: m, r: m, L: m, θ: rad",
+        "source": "Norton, Design of Machinery, 5th ed.; "
+                  "Shigley's Mechanical Engineering Design, Ch.2",
+        "confidence_score": 0.98,
+        "tags": ["slider-crank", "mechanism", "reciprocating", "linear-motion", "mechatronics", "mechanical"],
+    },
+    {
+        "title": "Load Cell and Wheatstone Bridge",
+        "domain": "electrical",
+        "category": "sensors",
+        "subcategory": "force / weight sensing",
+        "detail_level": "intermediate",
+        "content": (
+            "A load cell converts force or weight into an electrical signal "
+            "via strain gauges arranged in a Wheatstone bridge.  "
+            "Bridge output: V_out = V_ex · (GF · ε) / 2, where GF is the "
+            "gauge factor and ε is the strain."
+        ),
+        "extended_content": (
+            "Full-bridge load cell (4 active gauges): V_out/V_ex = GF·ε "
+            "(higher sensitivity, temperature-compensated).  "
+            "Typical sensitivity: 1–3 mV/V full-scale.  "
+            "Rated capacity: 1 kg – 50 t (for crane/industrial).  "
+            "Output amplified with instrumentation amplifier (INA128, HX711 "
+            "24-bit ADC dedicated load cell IC).  "
+            "HX711 provides 24-bit resolution at 10/80 SPS; reads directly "
+            "with Arduino/ESP32 via 2-wire clocked interface.  "
+            "Calibration: two-point with known masses (zero + full span).  "
+            "Overload rating typically 150% of nominal; ultimate capacity "
+            "300% before permanent deformation.  "
+            "Creep and hysteresis < 0.05% FS for S-type / beam type cells."
+        ),
+        "formula": "V_out = V_excitation · GF · ε / 2  (half-bridge)",
+        "units": "V_out: mV, ε: dimensionless (µε), GF ≈ 2",
+        "source": "National Instruments, Strain Gauge Measurement Tutorial; "
+                  "Vishay Micro-Measurements Technical Note TN-514",
+        "confidence_score": 0.97,
+        "tags": ["load-cell", "strain-gauge", "Wheatstone-bridge", "force", "weight", "mechatronics", "electrical"],
+    },
+
+    # ----------------------------------------------------------------
+    # Water Quality Sensing
+    # ----------------------------------------------------------------
+    {
+        "title": "Turbidity Sensing — NTU Optical Measurement",
+        "domain": "electrical",
+        "category": "sensors",
+        "subcategory": "water quality",
+        "detail_level": "intermediate",
+        "content": (
+            "Turbidity sensors measure the cloudiness of water caused by "
+            "suspended particles by detecting IR or visible light scattered "
+            "at 90° (nephelometric) or attenuation (transmission).  "
+            "Units: NTU (Nephelometric Turbidity Units)."
+        ),
+        "extended_content": (
+            "Nephelometric method (ISO 7027): 860 nm IR source, detector at "
+            "90°; insensitive to colour.  "
+            "Output voltage inversely proportional to NTU (cleaner water = "
+            "less scatter = lower signal).  "
+            "Typical module (SEN0189): 0–3 V output → 0–3000 NTU; "
+            "calibrated against formazin or SDVB standards.  "
+            "WHO drinking water guideline: < 1 NTU (treated), < 5 NTU (raw).  "
+            "Cross-sensitivity: air bubbles produce false high readings; "
+            "wiper-equipped sensors (for continuous deployment) prevent "
+            "fouling.  Stagnant water probe placement: avoid boundaries.  "
+            "Analogue output read by MCU ADC; some sensors provide digital "
+            "I²C output."
+        ),
+        "units": "NTU (Nephelometric Turbidity Units)",
+        "source": "ISO 7027:2016 Water Quality Turbidity; "
+                  "DFRobot Turbidity Sensor SEN0189 Datasheet",
+        "confidence_score": 0.96,
+        "tags": ["turbidity", "NTU", "water-quality", "sensor", "optical", "mechatronics", "electrical"],
+    },
+    {
+        "title": "Water Quality Multi-Parameter Sensing (pH, TDS, DO)",
+        "domain": "electrical",
+        "category": "sensors",
+        "subcategory": "water quality",
+        "detail_level": "intermediate",
+        "content": (
+            "Comprehensive water quality monitoring requires co-located "
+            "measurement of pH (hydrogen ion activity), Total Dissolved Solids "
+            "(TDS via electrical conductivity), and Dissolved Oxygen (DO via "
+            "galvanic or optical probe)."
+        ),
+        "extended_content": (
+            "pH: glass electrode + reference electrode; Nernst equation: "
+            "E = E₀ − (RT/F)·ln[H⁺] ≈ −59.16·pH mV at 25 °C.  "
+            "Range 0–14, accuracy ±0.1 pH; temperature compensation required "
+            "(slope −54.2 mV/pH at 15 °C).  "
+            "TDS: conductivity probe EC = I/(V·κ·A/L); convert EC (µS/cm) to "
+            "TDS (ppm) using TDS factor 0.5–0.7 (water-type dependent).  "
+            "DO (galvanic): cathode O₂ reduction generates current ∝ pO₂; "
+            "membrane requires periodic replacement.  "
+            "DO (optical): luminescent quenching of ruthenium dye — longer "
+            "life, no membrane, ±0.1 mg/L accuracy.  "
+            "All probes require regular calibration (pH buffer solutions, DO "
+            "air-saturated water).  Atlas Scientific EZO series provides "
+            "I²C/UART output for all three sensors."
+        ),
+        "formula": "E_pH = E₀ − (59.16 mV/pH) · pH  (at 25°C);  TDS(ppm) ≈ 0.64 · EC(µS/cm)",
+        "units": "pH: dimensionless, TDS: ppm (mg/L), DO: mg/L",
+        "source": "APHA Standard Methods for Water Examination, 23rd ed.; "
+                  "Atlas Scientific EZO Datasheet",
+        "confidence_score": 0.97,
+        "tags": ["pH", "TDS", "DO", "water-quality", "sensor", "monitoring", "mechatronics", "electrical"],
+    },
+
+    # ----------------------------------------------------------------
+    # Wireless Power Transfer
+    # ----------------------------------------------------------------
+    {
+        "title": "Wireless Inductive Power Transfer (WPT / IPT)",
+        "domain": "electrical",
+        "category": "power systems",
+        "subcategory": "wireless charging",
+        "detail_level": "intermediate",
+        "content": (
+            "Inductive power transfer (IPT) transfers energy between a "
+            "primary (transmitter) coil and a secondary (receiver) coil "
+            "via shared magnetic flux, following Faraday's law.  "
+            "Efficiency: η = k²·Q_p·Q_s / (1 + k²·Q_p·Q_s) at resonance."
+        ),
+        "extended_content": (
+            "Key parameters: coupling coefficient k (0–1, function of "
+            "alignment and gap), quality factors Q_p and Q_s of each coil.  "
+            "Resonant WPT (Qi, SAE J2954): primary and secondary tuned to "
+            "same resonant frequency f₀ = 1/(2π√(LC)) to maximise efficiency.  "
+            "Qi standard: 100–200 kHz, 5–15 W; SAE J2954 (EV): 85 kHz, "
+            "3.3–22 kW.  "
+            "Efficiency: 85–93% at Qi coil-to-coil gap < 5 mm; falls steeply "
+            "beyond 10 mm for non-resonant systems.  "
+            "Foreign object detection (FOD) required: metallic objects in "
+            "the field heat up (eddy currents) — chip-based systems monitor "
+            "power deviation.  "
+            "For EV charging: figure-8 coil configurations increase horizontal "
+            "misalignment tolerance."
+        ),
+        "formula": "η_IPT = k²Q_pQ_s / (1 + k²Q_pQ_s)  ;  f₀ = 1/(2π√LC)",
+        "units": "η: dimensionless, f₀: Hz",
+        "source": "Covic & Boys, Inductive Power Transfer, Proc. IEEE 2013; "
+                  "SAE J2954 WPT Standard; Wireless Power Consortium Qi Spec",
+        "confidence_score": 0.96,
+        "tags": ["WPT", "inductive-charging", "wireless-power", "EV", "Qi", "mechatronics", "electrical"],
+    },
+
+    # ----------------------------------------------------------------
+    # UV-C Disinfection
+    # ----------------------------------------------------------------
+    {
+        "title": "UV-C LED Germicidal Irradiation",
+        "domain": "electrical",
+        "category": "lighting / disinfection",
+        "subcategory": "UV sterilisation",
+        "detail_level": "intermediate",
+        "content": (
+            "UV-C radiation (200–280 nm, peak germicidal efficacy at 265 nm) "
+            "destroys micro-organism DNA/RNA by forming thymine dimers, "
+            "preventing replication.  Required dose D = E · t (J/m²) where "
+            "E is irradiance (W/m²) and t is exposure time."
+        ),
+        "extended_content": (
+            "Typical lethal doses: E. coli 6 mJ/cm², SARS-CoV-2 3.7 mJ/cm², "
+            "B. subtilis spores 100 mJ/cm².  "
+            "LED-based UV-C (270 nm AlGaN): wall-plug efficiency 1–5% "
+            "vs 30–35% for low-pressure Hg lamps.  "
+            "Radiant intensity falls as 1/r² from point source.  "
+            "Safety: UV-C is carcinogenic and damages corneas — opto-electronic "
+            "interlock (lid switch, PIR) mandatory.  "
+            "Surface disinfection: place items 5–20 cm from lamp; rotate or "
+            "use reflective chamber to dose all surfaces.  "
+            "Log-reduction: N = N₀ · 10^(−D/D_99), where D_99 is the dose "
+            "for 99% kill.  "
+            "Driver: constant-current LED driver (100–500 mA); duty-cycle "
+            "timing via MCU for precise dose control."
+        ),
+        "formula": "D (J/m²) = E (W/m²) · t (s) ;  N = N₀ · 10^(−D/D_99)",
+        "units": "D: J/m² (or mJ/cm²), E: W/m², t: s",
+        "source": "IES RP-27 UV Disinfection Guide; IUVA, UV Disinfection of "
+                  "COVID-19; ASHRAE Epidemic Task Force",
+        "confidence_score": 0.97,
+        "tags": ["UV-C", "disinfection", "germicidal", "sterilisation", "LED", "mechatronics", "electrical"],
+    },
+
+    # ----------------------------------------------------------------
+    # Solar Distillation / Desalination
+    # ----------------------------------------------------------------
+    {
+        "title": "Solar Thermal Distillation and Desalination",
+        "domain": "chemical",
+        "category": "water treatment",
+        "subcategory": "desalination",
+        "detail_level": "intermediate",
+        "content": (
+            "Solar distillation evaporates saline or polluted water using "
+            "solar radiation, then condenses vapour on a cooler surface to "
+            "yield fresh water.  Daily yield: Y ≈ I_s · A · η / h_fg, "
+            "where h_fg is the latent heat of vaporisation (2.26 MJ/kg)."
+        ),
+        "extended_content": (
+            "Single-basin solar still: glass or polycarbonate inclined cover "
+            "(15–30° for mid-latitude); black basin liner maximises solar "
+            "absorption (α > 0.95).  Typical productivity: 2–5 L/m²/day.  "
+            "Multi-effect evaporation: each effect uses waste heat from prior "
+            "stage; 3-effect gives ~3× single-still yield.  "
+            "Reverse osmosis (RO): solar PV drives high-pressure pump "
+            "(40–80 bar for seawater); membrane rejects 99.7% salt; "
+            "energy: 3–10 kWh/m³ depending on salinity.  "
+            "Comparison: solar still — zero electricity, low yield, low cost; "
+            "solar PV + RO — higher yield (50–200 L/m²/day), higher capital cost.  "
+            "Latent heat of vaporisation at 100°C: h_fg = 2260 kJ/kg; "
+            "at 60°C (low-pressure): h_fg ≈ 2357 kJ/kg."
+        ),
+        "formula": "Y (kg/m²/day) = I_s · A · η / h_fg",
+        "units": "Y: L/m²/day, I_s: W/m², h_fg: J/kg",
+        "source": "Tiwari, Solar Energy Fundamentals, Design, Modelling and "
+                  "Applications, Narosa; Delyannis, Solar Energy 2003",
+        "confidence_score": 0.96,
+        "tags": ["desalination", "solar-distillation", "water-treatment", "solar", "chemical"],
+    },
+
+    # ----------------------------------------------------------------
+    # Ultrasonic Atomiser / Humidifier
+    # ----------------------------------------------------------------
+    {
+        "title": "Ultrasonic Piezoelectric Atomiser (Humidifier)",
+        "domain": "mechanical",
+        "category": "fluid atomisation",
+        "subcategory": "ultrasonic humidification",
+        "detail_level": "intermediate",
+        "content": (
+            "An ultrasonic atomiser uses a piezoelectric disc vibrating at "
+            "1–3 MHz to generate standing waves on the water surface, ejecting "
+            "micro-droplets (1–5 µm) as a cool mist without heating."
+        ),
+        "extended_content": (
+            "Drop diameter: D ≈ (8π·σ / (ρ·f²))^(1/3) (Lang equation), "
+            "where σ = surface tension, ρ = density, f = frequency.  "
+            "At 1.7 MHz: D ≈ 3–5 µm (respirable range — appropriate for "
+            "humidification; verify mineral deposit accumulation at higher "
+            "hardness).  Efficiency: 40–100 mL/h at 3–5 W; far more efficient "
+            "than resistive-heating humidifiers.  "
+            "Driver circuit: half-bridge with inductance matching to piezo "
+            "impedance peak at resonance frequency.  "
+            "RH control: humidity sensor (SHT41) + PI controller adjusts "
+            "PWM duty cycle of atomiser.  "
+            "Hard water deposits (scale) on transducer reduce efficiency — "
+            "use demineralised water or periodic citric acid cleaning.  "
+            "Silent operation: 20–30 dB(A) vs 50+ dB(A) for fan humidifiers."
+        ),
+        "formula": "D_droplet ≈ (8π·σ / (ρ·f²))^(1/3)  (Lang 1962)",
+        "units": "D: µm, σ: N/m, ρ: kg/m³, f: Hz",
+        "source": "Lang, Ultrasonic Atomisation of Liquid, J. Acoust. Soc. Am., 1962; "
+                  "Ultrasonic Transducer Application Guide, Murata",
+        "confidence_score": 0.96,
+        "tags": ["ultrasonic", "atomiser", "humidifier", "piezoelectric", "mist", "mechatronics", "mechanical"],
+    },
+
+    # ----------------------------------------------------------------
+    # GPS Positioning
+    # ----------------------------------------------------------------
+    {
+        "title": "GPS Module — NMEA Sentence Parsing and Fix Accuracy",
+        "domain": "electrical",
+        "category": "positioning",
+        "subcategory": "satellite navigation",
+        "detail_level": "intermediate",
+        "content": (
+            "A GPS receiver decodes pseudorange signals from ≥ 4 satellites to "
+            "compute a 3D position fix (latitude, longitude, altitude) reported "
+            "as NMEA-0183 ASCII sentences at 1–10 Hz."
+        ),
+        "extended_content": (
+            "Key NMEA sentences: $GPRMC (position, speed, heading), "
+            "$GPGGA (position, altitude, fix quality), $GPGSV (satellites).  "
+            "Horizontal accuracy: 3–5 m CEP (standard GPS), < 2 m with WAAS/"
+            "EGNOS SBAS correction, < 0.1 m with RTK (Real-Time Kinematic).  "
+            "Cold start TTFF (time to first fix): 30–90 s; hot start < 2 s.  "
+            "Typical modules: u-blox NEO-M8N (3.3 V, UART, 10 Hz, −167 dBm "
+            "sensitivity), NEO-M9N (concurrent GNSS).  "
+            "Serial interface: 9600 baud default; configure with UBX protocol "
+            "for update rate and satellite system selection.  "
+            "Power: 10–25 mA acquisition, 10–15 mA tracking.  "
+            "External active antenna (3.3 V bias-T) increases sensitivity "
+            "in vehicles and buildings."
+        ),
+        "units": "Position: degrees decimal, speed: m/s, altitude: m",
+        "source": "u-blox NEO-M8N Integration Manual; NMEA-0183 Standard 4.11",
+        "confidence_score": 0.97,
+        "tags": ["GPS", "GNSS", "positioning", "NMEA", "navigation", "IoT", "mechatronics", "electrical"],
+    },
+
+    # ----------------------------------------------------------------
+    # CubeSat Platform
+    # ----------------------------------------------------------------
+    {
+        "title": "CubeSat Standard Platform (1U–3U)",
+        "domain": "aerospace",
+        "category": "small satellites",
+        "subcategory": "CubeSat",
+        "detail_level": "advanced",
+        "content": (
+            "A CubeSat is a standardised small satellite (1U = 10×10×10 cm, "
+            "≤ 1.33 kg) built to the CubeSat Design Specification (CDS) to "
+            "enable low-cost access to orbit via standardised deployers (P-POD)."
+        ),
+        "extended_content": (
+            "Form factors: 1U, 2U (10×10×20 cm), 3U (10×10×30 cm), 6U "
+            "(20×10×30 cm).  "
+            "Power budget: body-mounted 30% efficient GaAs cells; "
+            "1U ≈ 1–2 W average, 3U ≈ 3–6 W.  "
+            "Communications: UHF 437 MHz (LoRa or AX.25 packet), S-band "
+            "(2.4 GHz, 100 kbps–1 Mbps).  "
+            "Attitude control: passive (magnets/gravity gradient) or active "
+            "(reaction wheels, magnetorquers).  "
+            "Typical subsystems: EPS (power), OBC (onboard computer), ADCS "
+            "(attitude), COM, payload.  "
+            "Orbital lifetime: 300–400 km altitude → 1–12 months de-orbit; "
+            "550 km → 5–10 years.  "
+            "Radiation: SEU (single-event upset) mitigation via ECC RAM and "
+            "watchdog timers.  "
+            "Export control: EAR/ITAR regulations apply to components and "
+            "communication frequencies."
+        ),
+        "source": "CubeSat Design Specification Rev. 14; Woellert et al., "
+                  "Advances in Space Research 2011",
+        "confidence_score": 0.96,
+        "tags": ["CubeSat", "satellite", "aerospace", "small-satellite", "telemetry", "mechatronics"],
+    },
 ]
 
 
