@@ -1001,6 +1001,1122 @@ DESIGN_ELEMENTS: list[dict] = [
             "NTP Time Synchronisation for Data Logging",
         ],
     },
+
+    # ------------------------------------------------------------------
+    # CONTROL — Arduino MCU Platforms
+    # ------------------------------------------------------------------
+
+    {
+        "title": "Arduino Uno/Nano MCU Platform",
+        "component_category": "control",
+        "design_question": "Which low-cost 8-bit MCU board suits simple sensor/actuator projects?",
+        "selected_approach": (
+            "ATmega328P-based Arduino Uno (5 V, 16 MHz, 14 digital I/O, 6 ADC) "
+            "or Arduino Nano (same chip, smaller footprint). "
+            "Programmed via Arduino IDE with C++ Arduino framework over USB."
+        ),
+        "rationale": (
+            "Arduino Uno/Nano provides ample I/O for projects with < 10 actuators "
+            "and < 8 sensors. The 5 V operating voltage is directly compatible "
+            "with common modules (HC-05, L298N, servos). Wide community support."
+        ),
+        "alternatives": [
+            _alt("Raspberry Pi", "Overkill for simple actuator projects; higher cost and Linux boot time."),
+            _alt("STM32 Blue Pill", "More performant but harder to program for beginners."),
+        ],
+        "verification_notes": (
+            "FACT: 'DC Motor Speed Control via PWM' confirms Arduino hardware "
+            "PWM at 490/980 Hz on pins 3/5/6/9/10/11."
+        ),
+        "supporting_fact_titles": [
+            "DC Motor Speed Control via PWM",
+            "RC Servo Motor PWM Control",
+            "I²C Serial Communication Protocol",
+        ],
+    },
+
+    {
+        "title": "Arduino Mega 2560 MCU Platform",
+        "component_category": "control",
+        "design_question": "Which MCU handles projects with many I/O pins and multiple serial buses?",
+        "selected_approach": (
+            "ATmega2560-based Arduino Mega 2560 (5 V, 16 MHz, 54 digital I/O, "
+            "16 ADC channels, 4 hardware UARTs, 20 PWM pins). "
+            "Programmed via Arduino IDE; shields stack directly."
+        ),
+        "rationale": (
+            "54 I/O pins support large servo arrays, multiple sensors, and "
+            "4 independent serial devices (RF, GPS, Bluetooth, LCD) without "
+            "software serial emulation overhead. Cost ~£10—acceptable for lab projects."
+        ),
+        "alternatives": [
+            _alt("Arduino Uno", "Only 14 digital pins and 1 hardware UART—insufficient for complex projects."),
+            _alt("ESP32", "WiFi/BLE onboard but 3.3 V I/O requires level-shifting for 5 V modules."),
+        ],
+        "verification_notes": (
+            "FACT: 'Forward and Inverse Kinematics — Serial Robot Arm' confirms "
+            "servo array requirements for 5+ DOF arms."
+        ),
+        "supporting_fact_titles": [
+            "Forward and Inverse Kinematics — Serial Robot Arm",
+            "RC Servo Motor PWM Control",
+            "Stepper Motor Drive — Full Step and Microstepping",
+        ],
+    },
+
+    # ------------------------------------------------------------------
+    # COMMUNICATION — RF and Bluetooth
+    # ------------------------------------------------------------------
+
+    {
+        "title": "HC-05 Bluetooth Serial Bridge",
+        "component_category": "communication",
+        "design_question": "How to enable Android smartphone control of an Arduino project?",
+        "selected_approach": (
+            "HC-05 Bluetooth 2.0 SPP module wired to Arduino UART TX/RX. "
+            "Android app (e.g. Bluetooth RC Controller or custom MIT App Inventor "
+            "app) sends single-byte ASCII commands at 9600 baud."
+        ),
+        "rationale": (
+            "HC-05 pairs as a virtual serial port on Android with no custom "
+            "BLE GATT profile required. AT commands reconfigure baud rate and "
+            "name. Total cost < £3. Round-trip latency < 50 ms typical."
+        ),
+        "alternatives": [
+            _alt("BLE HM-10 module", "Preferred for iOS; slightly higher latency; lower power."),
+            _alt("WiFi ESP8266", "Requires TCP/IP stack; higher latency and complexity for joystick commands."),
+        ],
+        "verification_notes": (
+            "FACT: 'Bluetooth Classic SPP — HC-05 Serial Bridge Module' confirms "
+            "9600–115200 baud UART bridge and 10 m class-2 range."
+        ),
+        "supporting_fact_titles": [
+            "Bluetooth Classic SPP — HC-05 Serial Bridge Module",
+            "Bluetooth Low Energy (BLE) for App Control",
+        ],
+    },
+
+    {
+        "title": "nRF24L01 2.4 GHz RF Transceiver Link",
+        "component_category": "communication",
+        "design_question": "How to achieve real-time bidirectional wireless control up to 100 m without infrastructure?",
+        "selected_approach": (
+            "Pair of nRF24L01+ modules (one on transmitter joystick controller, "
+            "one on robot/vehicle). SPI on both MCUs; 250 kbps, 6-byte address, "
+            "auto-ACK. Transmitter sends 8–32 byte command frame at 20–50 Hz."
+        ),
+        "rationale": (
+            "nRF24L01 operates without WiFi/BT infrastructure, has 100 m open-air "
+            "range, and auto-ACK ensures delivery. At £1 per module it is the "
+            "lowest-cost bidirectional wireless option. Suitable for RC robots."
+        ),
+        "alternatives": [
+            _alt("HC-12 433 MHz", "1 km range but half-duplex UART only; 100 ms latency—too slow for RC."),
+            _alt("ESP-NOW (ESP32)", "No extra module needed but requires ESP32 on both sides."),
+        ],
+        "verification_notes": (
+            "FACT: '2.4 GHz RF Transceiver — nRF24L01 SPI Interface' confirms "
+            "250 kbps rate, 100 m open air range, and auto-retransmit."
+        ),
+        "supporting_fact_titles": [
+            "2.4 GHz RF Transceiver — nRF24L01 SPI Interface",
+        ],
+    },
+
+    # ------------------------------------------------------------------
+    # SENSING — Distance, Gas, Thermal, Camera, Position
+    # ------------------------------------------------------------------
+
+    {
+        "title": "HC-SR04 Ultrasonic Obstacle-Distance Sensor",
+        "component_category": "sensing",
+        "design_question": "How to detect obstacles at 2 cm–4 m range with a low-cost sensor?",
+        "selected_approach": (
+            "HC-SR04 module (40 kHz burst, ToF measurement). MCU triggers "
+            "a 10 µs pulse on TRIG; measures echo pulse width on ECHO pin. "
+            "Distance = (pulse_µs × 0.0343) / 2 cm."
+        ),
+        "rationale": (
+            "HC-SR04 provides ≤ 3 mm resolution, ±3 mm accuracy over 20–200 cm, "
+            "at < £1. Standard Arduino NewPing library simplifies usage. "
+            "Adequate for obstacle avoidance at robot walking speeds ≤ 0.5 m/s."
+        ),
+        "alternatives": [
+            _alt("TFMini-S LiDAR", "Better for 0.1 m–12 m at higher accuracy but costs 20× more."),
+            _alt("Sharp IR distance", "Faster (38 ms) but nonlinear analog output; narrower range."),
+        ],
+        "verification_notes": (
+            "FACT: 'Ultrasonic Proximity Sensor — ToF Distance Measurement' "
+            "confirms 40 kHz frequency and ±3 mm accuracy."
+        ),
+        "supporting_fact_titles": [
+            "Ultrasonic Proximity Sensor — ToF Distance Measurement",
+            "Differential Drive Robot Kinematics",
+        ],
+    },
+
+    {
+        "title": "L298N Dual H-Bridge Motor Driver Module",
+        "component_category": "actuation",
+        "design_question": "How to drive two DC motors bidirectionally from a 5 V MCU at up to 2 A each?",
+        "selected_approach": (
+            "L298N-based dual full H-bridge module (5–35 V motor supply, 2 A "
+            "continuous per channel, logic 5 V). "
+            "IN1/IN2/ENA for motor A; IN3/IN4/ENB for motor B. "
+            "ENx tied HIGH for full speed or driven by PWM for speed control."
+        ),
+        "rationale": (
+            "L298N module is universally available at < £2, accepts 5 V Arduino "
+            "logic directly, and drives 12 V DC gear motors up to 2 A each. "
+            "Built-in flyback diodes protect against inductive kickback."
+        ),
+        "alternatives": [
+            _alt("TB6612FNG", "Lower voltage drop (0.5 V vs 3 V), more efficient—preferred for battery projects."),
+            _alt("BTS7960 43A driver", "Required for high-current motors (> 5 A); more expensive."),
+        ],
+        "verification_notes": (
+            "FACT: 'H-Bridge Motor Driver Circuit' confirms full H-bridge "
+            "topology and PWM speed control principle."
+        ),
+        "supporting_fact_titles": [
+            "H-Bridge Motor Driver Circuit",
+            "DC Motor Speed Control via PWM",
+        ],
+    },
+
+    {
+        "title": "DC Gear Motor with PWM Speed Control",
+        "component_category": "actuation",
+        "design_question": "Which motor provides sufficient torque for wheeled robot locomotion?",
+        "selected_approach": (
+            "Standard DC gear motor (12 V, 100–300 RPM, gear ratio 1:30–1:100). "
+            "Speed controlled via L298N or TB6612FNG PWM. "
+            "Gear reduction provides high torque at low speed for reliable traction."
+        ),
+        "rationale": (
+            "Gear motors rated 0.5–2 kg·cm provide adequate drive for robots "
+            "up to 2 kg. 12 V operation compatible with common Li-Ion packs. "
+            "Encoder-equipped variants enable closed-loop speed control."
+        ),
+        "alternatives": [
+            _alt("BLDC + ESC", "Higher speed/efficiency but needs ESC; overkill for slow indoor robots."),
+            _alt("Servo motor (continuous)", "Limited to 360° rotation hack; lower torque than gearbox."),
+        ],
+        "verification_notes": (
+            "FACT: 'DC Motor Speed Control via PWM' confirms H-bridge PWM "
+            "direction and speed control."
+        ),
+        "supporting_fact_titles": [
+            "DC Motor Speed Control via PWM",
+            "H-Bridge Motor Driver Circuit",
+            "Differential Drive Robot Kinematics",
+        ],
+    },
+
+    {
+        "title": "12 V Peristaltic Pump Liquid Dispenser",
+        "component_category": "actuation",
+        "design_question": "How to dispense or transfer precise volumes of liquid without contaminating the pump interior?",
+        "selected_approach": (
+            "12 V DC peristaltic pump (0–100 mL/min, food-grade silicone tube). "
+            "N-channel MOSFET low-side switched by MCU PWM or on/off. "
+            "Flow rate calibrated by timing the pump to dispense a known volume."
+        ),
+        "rationale": (
+            "Peristaltic pumps keep fluid inside the tube—no contamination of "
+            "the pump body. Suitable for water, fertiliser, and sanitiser dispensing. "
+            "Self-priming and can run dry briefly."
+        ),
+        "alternatives": [
+            _alt("Centrifugal pump", "Higher flow rate but not self-priming; requires submergence."),
+            _alt("Syringe pump (stepper-driven)", "Highest accuracy (µL) but slow; preferred for medical infusion."),
+        ],
+        "verification_notes": (
+            "FACT: 'Solenoid Valve for Pneumatic and Fluid Control' confirms "
+            "flow actuation requirements."
+        ),
+        "supporting_fact_titles": [
+            "Solenoid Valve for Pneumatic and Fluid Control",
+            "N-Channel MOSFET as a Low-Side Power Switch",
+        ],
+    },
+
+    {
+        "title": "MQ-3 Alcohol and Combustible Gas Sensor",
+        "component_category": "sensing",
+        "design_question": "How to detect alcohol vapour concentration for ignition interlock applications?",
+        "selected_approach": (
+            "MQ-3 SnO₂ metal-oxide sensor (5 V heater, analog A0 out). "
+            "Voltage divider with 200 kΩ load resistor. "
+            "ADC reading compared to threshold calibrated to 0.05 mg/L "
+            "(legal BAC limit) during sensor warm-up ≥ 30 s."
+        ),
+        "rationale": (
+            "MQ-3 is selective to ethanol at low concentrations and costs < £2. "
+            "Relay output interrupts ignition circuit when threshold exceeded. "
+            "Preheat managed by microcontroller power-on sequence."
+        ),
+        "alternatives": [
+            _alt("Electrochemical BAC sensor", "±0.005 % BAC precision but costs 10× and requires periodic electrolyte replacement."),
+            _alt("MQ-135", "Broad air quality sensor; lower ethanol selectivity."),
+        ],
+        "verification_notes": (
+            "FACT: 'MQ-Series Metal-Oxide Gas Sensor — Alcohol, CO, LPG' "
+            "confirms 30 s preheat and R0 calibration procedure."
+        ),
+        "supporting_fact_titles": [
+            "MQ-Series Metal-Oxide Gas Sensor — Alcohol, CO, LPG",
+            "ADC Resolution and Measurement Precision",
+        ],
+    },
+
+    {
+        "title": "Voice Recognition UART Speech Module",
+        "component_category": "sensing",
+        "design_question": "How to add offline voice command control to an embedded system?",
+        "selected_approach": (
+            "LD3320-based module (DFRobot SEN0089 or compatible). "
+            "Up to 50 keywords stored and recognised offline. "
+            "UART at 9600 baud returns command ID on recognition. "
+            "Onboard microphone; 1–3 m recognition range in quiet environment."
+        ),
+        "rationale": (
+            "Offline recognition eliminates network dependency. Command ID "
+            "mapped in firmware to actuator action. < £8 module cost. "
+            "Satisfactory accuracy for 10–20 distinct command vocabulary."
+        ),
+        "alternatives": [
+            _alt("Android STT (Google ASR)", "Unlimited vocabulary but requires smartphone and internet—rejected for standalone."),
+            _alt("Raspberry Pi + PocketSphinx", "Unlimited offline vocab but adds £35 cost and Linux complexity."),
+        ],
+        "verification_notes": (
+            "FACT: 'Voice Recognition — Keyword Spotting UART Module (LD3320)' "
+            "confirms 50-command limit and 1–3 m range."
+        ),
+        "supporting_fact_titles": [
+            "Voice Recognition — Keyword Spotting UART Module (LD3320)",
+        ],
+    },
+
+    {
+        "title": "Flex Sensor Hand-Gesture Glove Interface",
+        "component_category": "sensing",
+        "design_question": "How to translate finger bend angles into servo commands for a robotic arm?",
+        "selected_approach": (
+            "5× Spectra Symbol 2.2″ flex sensors sewn onto glove fingers. "
+            "Each sensor in voltage-divider (47 kΩ load); ADC reads 0–1023. "
+            "Linear mapping: 0° (flat) → min PWM; 90° (bent) → max servo PWM. "
+            "MPU-6050 on wrist adds 3-axis orientation for wrist joint."
+        ),
+        "rationale": (
+            "Direct analogue mapping gives intuitive zero-latency control. "
+            "nRF24L01 on glove transmits 5 servo values + IMU data at 20 Hz. "
+            "Total glove cost < £15."
+        ),
+        "alternatives": [
+            _alt("Data glove with Hall sensors", "Lower hysteresis but requires permanent magnets on each finger segment."),
+            _alt("Computer vision hand tracking (MediaPipe)", "Camera-based; affected by occlusion—rejected for wearable."),
+        ],
+        "verification_notes": (
+            "FACT: 'Capacitive Flex Sensor — Finger Bend Angle Measurement' "
+            "confirms voltage divider circuit and mapping procedure."
+        ),
+        "supporting_fact_titles": [
+            "Capacitive Flex Sensor — Finger Bend Angle Measurement",
+            "RC Servo Motor PWM Control",
+            "IMU (Inertial Measurement Unit) for Robot Navigation",
+        ],
+    },
+
+    {
+        "title": "IR Night-Vision Camera Module",
+        "component_category": "sensing",
+        "design_question": "How to enable video surveillance in zero-light environments?",
+        "selected_approach": (
+            "Board camera with 1/3\" CMOS sensor and onboard 850 nm IR LED array "
+            "(6–12 LEDs, 5–10 m night range). "
+            "Composite or USB-UVC output; pairs with an FPV transmitter or "
+            "USB capture card on the control station."
+        ),
+        "rationale": (
+            "850 nm IR is invisible to human eye yet clearly detected by the "
+            "sensor. All-in-one camera+LED board costs < £10. "
+            "Suitable for spy/patrol robots and night patrol drones."
+        ),
+        "alternatives": [
+            _alt("Thermal MLX90640", "Detects heat through darkness—no IR illumination needed but lower resolution."),
+            _alt("Starlight Sony sensor", "Usable at 0.001 lux without IR illumination but 5× cost."),
+        ],
+        "verification_notes": (
+            "FACT: 'Infrared Cliff Detection for Robot Vacuums' confirms 850 nm "
+            "IR reflectance detection principle."
+        ),
+        "supporting_fact_titles": [
+            "Infrared Cliff Detection for Robot Vacuums",
+        ],
+    },
+
+    {
+        "title": "MLX90640 Thermal Infrared Imaging Array",
+        "component_category": "sensing",
+        "design_question": "How to detect hot bodies, fever, or fire without visible light?",
+        "selected_approach": (
+            "MLX90640 32×24 FIR array (I²C, 3.3 V). "
+            "ESP32 reads 64 Hz frames via Melexis API, applies calibration, "
+            "publishes hotspot temperature and grid to MQTT. "
+            "Displayed as colour-mapped heatmap on OLED or remote dashboard."
+        ),
+        "rationale": (
+            "Detects body heat at 5 m distance with ±1 °C accuracy. "
+            "I²C interface is simple to integrate. At £20 it is the most "
+            "cost-effective FIR array for fever screening and fire detection."
+        ),
+        "alternatives": [
+            _alt("FLIR Lepton 3.5 (160×120)", "4× resolution but £150 and requires SPI + specialised breakout."),
+            _alt("AMG8833 (8×8)", "Cheaper (£15) but 8×8 resolution too coarse for reliable screening."),
+        ],
+        "verification_notes": (
+            "FACT: 'MLX90640 Far-Infrared Thermal Camera Array' confirms "
+            "32×24 pixels, ±1 °C, 64 Hz, I²C 0x33."
+        ),
+        "supporting_fact_titles": [
+            "MLX90640 Far-Infrared Thermal Camera Array",
+            "I²C Serial Communication Protocol",
+        ],
+    },
+
+    {
+        "title": "TFMini-S Single-Point LiDAR Distance Sensor",
+        "component_category": "sensing",
+        "design_question": "How to measure altitude or obstacle distance on a drone with < 5 g sensor?",
+        "selected_approach": (
+            "Benewake TFMini-S (5 V, UART 115 200 baud, 0.1–12 m, 100 Hz). "
+            "Downward-facing for altitude hold < 10 m; "
+            "forward-facing for close-range obstacle avoidance."
+        ),
+        "rationale": (
+            "5 g mass, ±6 mm accuracy, 2.3° FOV makes TFMini-S ideal for drones. "
+            "UART output parsed in flight controller interrupt service routine. "
+            "12 m range covers indoor-to-outdoor low-altitude flight scenarios."
+        ),
+        "alternatives": [
+            _alt("HC-SR04 ultrasonic", "Cheaper but 40 ms sample rate and affected by airframe vibration."),
+            _alt("VL53L1X (4 m)", "Compact but insufficient range for outdoor altitude hold."),
+        ],
+        "verification_notes": (
+            "FACT: 'TFMini-S Micro LiDAR — 0.1–12 m Time-of-Flight' confirms "
+            "5 g mass, 115 200 baud UART, and 100 Hz rate."
+        ),
+        "supporting_fact_titles": [
+            "TFMini-S Micro LiDAR — 0.1–12 m Time-of-Flight",
+            "2D LiDAR Distance Measurement Principle",
+        ],
+    },
+
+    {
+        "title": "TCS3200 Color Sensor for Product Sorting",
+        "component_category": "sensing",
+        "design_question": "How to classify product colour for automated sorting?",
+        "selected_approach": (
+            "TCS3200 RGB photodiode array (8×8 filtered array + frequency converter). "
+            "MCU reads R, G, B pulse frequencies; converts to RGB 0–255 scale "
+            "after white-balance calibration on each product run."
+        ),
+        "rationale": (
+            "TCS3200 gives repeatable colour classification under controlled "
+            "illumination. < £2 cost. Simple digital frequency output eliminates "
+            "need for ADC. Classification accuracy > 95 % for distinct colours "
+            "at 2–5 cm sensing distance."
+        ),
+        "alternatives": [
+            _alt("Camera + OpenCV colour detection", "Higher accuracy and shape recognition but requires Raspberry Pi and 10× cost."),
+            _alt("Proximity colour TCS34725 (I²C)", "Better ambient-light rejection but smaller die—similar cost."),
+        ],
+        "verification_notes": (
+            "FACT: 'ADC Resolution and Measurement Precision' confirms frequency-"
+            "to-colour mapping accuracy constraints."
+        ),
+        "supporting_fact_titles": [
+            "ADC Resolution and Measurement Precision",
+        ],
+    },
+
+    {
+        "title": "NEO-6M GPS Module for Navigation",
+        "component_category": "sensing",
+        "design_question": "How to add outdoor position tracking to a drone or robot?",
+        "selected_approach": (
+            "u-blox NEO-6M GPS module (UART 9600 baud, NMEA 0183, 5 Hz update, "
+            "2.5 m CEP). Parses $GPRMC and $GPGGA sentences for lat/lon/altitude. "
+            "External active patch antenna for vehicle and indoor use."
+        ),
+        "rationale": (
+            "NEO-6M has < 2 s hot-start TTFF, 2.5 m CEP, and is available on "
+            "breakout boards for < £5. NMEA UART output is directly readable "
+            "by Arduino/ESP32 hardware UART."
+        ),
+        "alternatives": [
+            _alt("NEO-M8N (concurrent GNSS)", "< 2 m accuracy and GPS+GLONASS+Galileo—preferred for critical applications."),
+            _alt("LoRa APRS position beacon", "No GPS on-device; relies on ground network—unsuitable for mobile robots."),
+        ],
+        "verification_notes": (
+            "FACT: 'GPS Module — NMEA Sentence Parsing and Fix Accuracy' confirms "
+            "NMEA sentences and 2.5–5 m CEP accuracy."
+        ),
+        "supporting_fact_titles": [
+            "GPS Module — NMEA Sentence Parsing and Fix Accuracy",
+            "A* Pathfinding Algorithm",
+        ],
+    },
+
+    {
+        "title": "PIR HC-SR501 Motion Detection Module",
+        "component_category": "sensing",
+        "design_question": "How to trigger an action only when a person is present, saving power?",
+        "selected_approach": (
+            "HC-SR501 PIR module wired to MCU digital interrupt pin. "
+            "On HIGH output (person detected) MCU activates dispenser, pump, "
+            "or alarm; auto-resets after configurable hold time (0.5–200 s)."
+        ),
+        "rationale": (
+            "HC-SR501 requires no MCU processing—purely digital interrupt. "
+            "Quiescent < 50 µA enables battery-powered installations. "
+            "Simple and reliable for hands-free/touchless triggering."
+        ),
+        "alternatives": [
+            _alt("Ultrasonic distance sensor", "Requires active MCU polling; detects objects, not specifically warm bodies."),
+            _alt("Microwave radar RCWL-0516", "Detects through walls but high false-positive rate in cluttered environments."),
+        ],
+        "verification_notes": (
+            "FACT: 'PIR Passive Infrared Motion Sensor — HC-SR501' confirms "
+            "50 µA quiescent and 0.5–200 s hold time."
+        ),
+        "supporting_fact_titles": [
+            "PIR Passive Infrared Motion Sensor — HC-SR501",
+        ],
+    },
+
+    {
+        "title": "Load Cell IV-Bag / Fluid Weight Monitor",
+        "component_category": "sensing",
+        "design_question": "How to monitor drip-bag remaining volume and trigger a low-volume alert?",
+        "selected_approach": (
+            "50–100 g single-point load cell + HX711 24-bit ADC bridge amplifier. "
+            "MCU reads weight at 10 Hz; triggers audible/WiFi alert at "
+            "programmed threshold (e.g. 50 g remaining in IV bag)."
+        ),
+        "rationale": (
+            "Load cell gives direct mass measurement (±0.1 g accuracy with HX711). "
+            "IV bag density ≈ 1 g/mL so mass = volume directly. "
+            "Completely non-invasive—no contact with fluid."
+        ),
+        "alternatives": [
+            _alt("Optical drip counter", "Counts drops but errors accumulate; affected by bubbles."),
+            _alt("Ultrasonic level sensor", "Requires reflective surface; impractical for flexible IV bags."),
+        ],
+        "verification_notes": (
+            "FACT: 'Load Cell and Wheatstone Bridge' confirms Wheatstone bridge "
+            "and HX711 24-bit ADC instrumentation amplifier."
+        ),
+        "supporting_fact_titles": [
+            "Load Cell and Wheatstone Bridge",
+        ],
+    },
+
+    # ------------------------------------------------------------------
+    # ACTUATION — Drivers, Pumps, Brakes
+    # ------------------------------------------------------------------
+
+    {
+        "title": "Pneumatic Cylinder + 5/2 Solenoid Valve Actuator",
+        "component_category": "actuation",
+        "design_question": "How to produce fast, high-force linear strokes in a reciprocating cutting or forming mechanism?",
+        "selected_approach": (
+            "Double-acting pneumatic cylinder (bore 32–63 mm, stroke 50–200 mm) "
+            "controlled by a 12 V 5/2-way solenoid valve. "
+            "Compressed air supply at 4–7 bar. "
+            "MCU drives solenoid via MOSFET; cylinder extends/retracts in < 100 ms."
+        ),
+        "rationale": (
+            "Pneumatic cylinders provide 500–3000 N force at 6 bar with "
+            "< 50 ms stroke time—exceeding what a DC motor can achieve at "
+            "comparable cost. Ideal for punching, paper cup forming, and hacksaw reciprocation."
+        ),
+        "alternatives": [
+            _alt("Linear servo or stepper-driven leadscrew", "Precise position but < 200 N force and 10× slower stroke."),
+            _alt("Hydraulic cylinder", "Higher force but requires hydraulic pump and oil—impractical for lab scale."),
+        ],
+        "verification_notes": (
+            "FACT: 'Pneumatic Cylinder Force and Stroke' confirms F = P × A formula. "
+            "FACT: 'Solenoid Valve for Pneumatic and Fluid Control' confirms 5/2 valve logic."
+        ),
+        "supporting_fact_titles": [
+            "Pneumatic Cylinder Force and Stroke",
+            "Solenoid Valve for Pneumatic and Fluid Control",
+        ],
+    },
+
+    {
+        "title": "Eddy-Current Electromagnetic Brake",
+        "component_category": "actuation",
+        "design_question": "How to provide contactless, wear-free braking using electromagnetic induction?",
+        "selected_approach": (
+            "Electromagnet coil positioned adjacent to a rotating aluminium or "
+            "copper disc on the wheel/axle. "
+            "MCU-controlled MOSFET ramps coil current 0–12 V for variable braking torque. "
+            "Braking force scales with disc speed and coil current squared."
+        ),
+        "rationale": (
+            "No friction pads—zero wear and instant response. "
+            "Braking torque is proportional to current and speed, enabling "
+            "precise modulated braking for emergency stop systems. "
+            "Effective at vehicle speeds > 5 km/h."
+        ),
+        "alternatives": [
+            _alt("Hydraulic disc brake", "Higher braking force at zero speed but requires fluid system."),
+            _alt("Regenerative BLDC braking", "Recovers energy but requires BLDC traction motor."),
+        ],
+        "verification_notes": (
+            "FACT: 'Eddy Current Braking Principle' confirms torque ∝ I² × ω relationship."
+        ),
+        "supporting_fact_titles": [
+            "Eddy Current Braking Principle",
+            "N-Channel MOSFET as a Low-Side Power Switch",
+        ],
+    },
+
+    {
+        "title": "UV-C LED Germicidal + Ozone Sterilisation Module",
+        "component_category": "actuation",
+        "design_question": "How to achieve chemical-free sterilisation of surfaces and equipment?",
+        "selected_approach": (
+            "UV-C LED array (265–280 nm, 100–500 mW/cm²) combined with "
+            "optional ozone generator (3–5 mg/h) in a sealed or vented chamber. "
+            "Timer-controlled MCU (5–30 min cycle); safety interlock (PIR) "
+            "disables UV if presence detected."
+        ),
+        "rationale": (
+            "UV-C at 265 nm achieves 4-log (99.99 %) microbial reduction in "
+            "60 s at 30 mJ/cm² dose. No chemicals required. "
+            "Ozone oxidises residual pathogens in shadowed areas. "
+            "Mandatory safety interlock prevents human exposure."
+        ),
+        "alternatives": [
+            _alt("Chemical disinfectant spray", "Requires manual application; chemical residue; slower contact time."),
+            _alt("Autoclave steam sterilisation", "Complete sterility but 134 °C—incompatible with electronics."),
+        ],
+        "verification_notes": (
+            "FACT: 'UV-C LED Germicidal Irradiation' confirms 265 nm peak and "
+            "30 mJ/cm² dose for 4-log reduction."
+        ),
+        "supporting_fact_titles": [
+            "UV-C LED Germicidal Irradiation",
+            "PIR Passive Infrared Motion Sensor — HC-SR501",
+        ],
+    },
+
+    {
+        "title": "IGBT Resonant Induction Heating Circuit",
+        "component_category": "actuation",
+        "design_question": "How to heat a ferromagnetic cooking vessel rapidly without an open flame or contact element?",
+        "selected_approach": (
+            "ZVS half-bridge IGBT driver (IRFP260N or STGW30NC60W pair) "
+            "driving a 10–30 µH copper work coil at 25–50 kHz resonance. "
+            "Series resonant capacitor bank; output 1–2 kW. "
+            "NTC thermistor feedback into PID loop adjusts switching frequency."
+        ),
+        "rationale": (
+            "Induction cooktop reaches operating temperature in < 30 s. "
+            "90 % efficiency vs 74 % for resistive element. "
+            "Precise temperature control via PID loop. "
+            "ZVS topology minimises IGBT switching losses."
+        ),
+        "alternatives": [
+            _alt("Resistive coil heating", "Simpler but slower heat-up and 74 % efficiency."),
+            _alt("Propane burner", "Uncontrolled temperature; open flame hazard—unsuitable for lab or indoor use."),
+        ],
+        "verification_notes": (
+            "FACT: 'Induction Heating — IGBT Resonant Series Circuit' confirms "
+            "ZVS topology and f₀ = 1/(2π√(LC)) design equation."
+        ),
+        "supporting_fact_titles": [
+            "Induction Heating — IGBT Resonant Series Circuit",
+            "PID Controller — Transfer Function",
+        ],
+    },
+
+    # ------------------------------------------------------------------
+    # MECHANICAL — Linkages, Locomotion, Specialised Mechanisms
+    # ------------------------------------------------------------------
+
+    {
+        "title": "Klann / Theo-Jansen Leg Linkage Mechanism",
+        "component_category": "mechanical",
+        "design_question": "How to produce smooth bipedal or multi-legged walking motion from a single rotating crank?",
+        "selected_approach": (
+            "Theo Jansen or Klann 6-bar linkage: one DC motor crank drives "
+            "4- or 8-leg set via coupler links producing a near-sinusoidal "
+            "foot trajectory. All legs share a common drive shaft with "
+            "phase offsets (45° or 90°) for smooth gait."
+        ),
+        "rationale": (
+            "Single-motor drive simplifies electronics: one L298N channel "
+            "drives all legs simultaneously. Jansen linkage creates a natural "
+            "walking gait with ground clearance. Fabricated from 3 mm acrylic or "
+            "laser-cut plywood at < £10 materials."
+        ),
+        "alternatives": [
+            _alt("Servo-per-leg hexapod", "Independent control of each joint—more versatile but 12+ servos required."),
+            _alt("Wheeled locomotion", "Simpler but cannot handle uneven terrain obstacles the leg linkage traverses."),
+        ],
+        "verification_notes": (
+            "FACT: 'Slider-Crank Mechanism — Rotary to Linear Conversion' provides "
+            "the base theory for crank-coupler kinematic analysis."
+        ),
+        "supporting_fact_titles": [
+            "Slider-Crank Mechanism — Rotary to Linear Conversion",
+            "DC Motor Speed Control via PWM",
+        ],
+    },
+
+    {
+        "title": "Rocker-Bogie Rough-Terrain Drive System",
+        "component_category": "mechanical",
+        "design_question": "How to traverse obstacles up to 2× wheel diameter without active suspension?",
+        "selected_approach": (
+            "Rocker-bogie 6-wheel passive suspension (3 wheels per side, "
+            "differential bar links). Each wheel independently DC-gear-motor-driven. "
+            "Passive geometry distributes load across all 6 wheels over rocks/steps."
+        ),
+        "rationale": (
+            "Passive rocker-bogie requires no actuated suspension—only 6 motor "
+            "controllers. Proven on Mars rovers to traverse 25 cm obstacles with "
+            "25 cm diameter wheels. No electronics in the pivot joints."
+        ),
+        "alternatives": [
+            _alt("4-wheel independent suspension", "Simpler but handles obstacles only up to 1× wheel diameter."),
+            _alt("Track drive", "Better obstacle climbing but lower efficiency on flat surfaces."),
+        ],
+        "verification_notes": (
+            "FACT: 'Differential Drive Robot Kinematics' covers independent wheel "
+            "speed control principles applicable to the 6-drive system."
+        ),
+        "supporting_fact_titles": [
+            "Differential Drive Robot Kinematics",
+            "DC Motor Speed Control via PWM",
+        ],
+    },
+
+    {
+        "title": "Hovercraft Lift and Thrust Propulsion System",
+        "component_category": "mechanical",
+        "design_question": "How to achieve frictionless ground effect locomotion over land and water?",
+        "selected_approach": (
+            "Separate lift fan (centrifugal, 12 V BLDC) inflating a rubber skirt; "
+            "two thrust propellers (BLDC, 1045 props) for forward propulsion "
+            "and differential thrust steering. "
+            "MCU commands lift fan duty and two ESC thrust channels via RC inputs."
+        ),
+        "rationale": (
+            "Hovercraft achieves near-frictionless travel over water, sand, and grass "
+            "by maintaining a 2–5 cm air cushion. "
+            "Separate lift and thrust motors decouple altitude from propulsion."
+        ),
+        "alternatives": [
+            _alt("Combined lift/thrust (single fan)", "Simpler but steering requires movable duct vanes—mechanically complex."),
+            _alt("Wheeled vehicle", "No water traversal capability."),
+        ],
+        "verification_notes": (
+            "FACT: 'Brushless DC (BLDC) Motor for Suction Fan' covers centrifugal "
+            "fan characteristics used for the lift chamber."
+        ),
+        "supporting_fact_titles": [
+            "Brushless DC (BLDC) Motor for Suction Fan",
+            "Suction Pressure and Airflow in Vacuum Systems",
+        ],
+    },
+
+    {
+        "title": "Worm Gear Lead-Screw Linear Actuator",
+        "component_category": "mechanical",
+        "design_question": "How to convert rotary motor motion to a self-locking linear stroke for lifting applications?",
+        "selected_approach": (
+            "M8 or M10 threaded lead screw + T8 brass nut driven by DC gear motor "
+            "via worm gearbox (gear ratio 20:1–50:1). "
+            "Limit switches at each end of travel. "
+            "Self-locking worm prevents back-driving under load."
+        ),
+        "rationale": (
+            "Worm gear ratio provides high mechanical advantage (hold load "
+            "without power) and self-locking property prevents lowering under gravity. "
+            "Suitable for scissor jacks, forklifts, and folding tables."
+        ),
+        "alternatives": [
+            _alt("Ball screw + stepper", "Back-drivable—requires holding current; higher efficiency (90 % vs 50 %) but not self-locking."),
+            _alt("Rack and pinion", "Fast linear motion but not self-locking—needs brake for vertical loads."),
+        ],
+        "verification_notes": (
+            "FACT: 'Worm Gear Ratio and Self-Locking Property' confirms "
+            "self-locking condition (lead angle < friction angle)."
+        ),
+        "supporting_fact_titles": [
+            "Worm Gear Ratio and Self-Locking Property",
+            "DC Motor Speed Control via PWM",
+        ],
+    },
+
+    {
+        "title": "Servo-Based Gripper Jaw Mechanism",
+        "component_category": "mechanical",
+        "design_question": "How to grip and release objects with a compact, lightweight end-effector?",
+        "selected_approach": (
+            "Parallel-jaw gripper driven by MG996R servo (180° range, 10 kg·cm). "
+            "Rack-and-pinion or scissor linkage converts servo rotation to "
+            "symmetric jaw closure. Jaw gap 0–60 mm; grip force up to 5 N."
+        ),
+        "rationale": (
+            "Single servo gripper is compact (< 80 g), inexpensive (< £5), and "
+            "directly controlled by PWM from the robot arm controller. "
+            "Adequate for picking objects up to 200 g."
+        ),
+        "alternatives": [
+            _alt("Pneumatic gripper", "Faster and stronger but requires compressor and solenoid valves."),
+            _alt("3-finger underactuated gripper", "Handles irregular objects but 3 servos and complex linkage."),
+        ],
+        "verification_notes": (
+            "FACT: 'RC Servo Motor PWM Control' confirms MG996R PWM range "
+            "and 10 kg·cm stall torque."
+        ),
+        "supporting_fact_titles": [
+            "RC Servo Motor PWM Control",
+            "Forward and Inverse Kinematics — Serial Robot Arm",
+        ],
+    },
+
+    {
+        "title": "Pan-Tilt Servo Camera Gimbal",
+        "component_category": "mechanical",
+        "design_question": "How to aim a camera or sensor in any horizontal and vertical direction?",
+        "selected_approach": (
+            "Two RC servos (SG90 or MG90S) in pan-tilt bracket. "
+            "Pan servo rotates ±90°; tilt servo elevates ±60°. "
+            "Controlled by joystick potentiometers via MCU PWM, or autonomously "
+            "tracking a detected object."
+        ),
+        "rationale": (
+            "Pan-tilt bracket adds full hemisphere coverage at < £5. "
+            "SG90 servos provide 1.8 kg·cm torque—adequate for cameras < 100 g. "
+            "Standard PWM interface requires no additional driver ICs."
+        ),
+        "alternatives": [
+            _alt("3-axis brushless gimbal (BGC)", "Electronic stabilisation—needed for drone cinematography but 10× cost."),
+            _alt("Fixed camera mount", "No aiming flexibility."),
+        ],
+        "verification_notes": (
+            "FACT: 'RC Servo Motor PWM Control' confirms SG90 50 Hz PWM and "
+            "1–2 ms pulse range."
+        ),
+        "supporting_fact_titles": [
+            "RC Servo Motor PWM Control",
+        ],
+    },
+
+    {
+        "title": "Vacuum Suction Cup Wall-Climbing Drive",
+        "component_category": "mechanical",
+        "design_question": "How to enable a robot to adhere to and traverse vertical glass or smooth walls?",
+        "selected_approach": (
+            "Miniature centrifugal or diaphragm vacuum pump (12 V, −30 kPa) "
+            "maintaining sub-atmospheric pressure in a compliant silicone cup array. "
+            "DC gear motors drive wheels pressed against the wall surface. "
+            "Suction maintained continuously during movement."
+        ),
+        "rationale": (
+            "Vacuum adhesion can support robots up to 2 kg on glass at −25 kPa "
+            "(F = ΔP × A). Compliant cups accommodate slight surface irregularities. "
+            "No surface modification required."
+        ),
+        "alternatives": [
+            _alt("Magnetic adhesion", "Only works on ferromagnetic steel surfaces—not applicable to glass."),
+            _alt("Electrostatic adhesion", "Works on any surface but requires high-voltage (3–5 kV) supply."),
+        ],
+        "verification_notes": (
+            "FACT: 'Suction Pressure and Airflow in Vacuum Systems' confirms "
+            "adhesion force F = ΔP × A calculation."
+        ),
+        "supporting_fact_titles": [
+            "Suction Pressure and Airflow in Vacuum Systems",
+            "DC Motor Speed Control via PWM",
+        ],
+    },
+
+    {
+        "title": "Eccentric Cam Vibration Massager Drive",
+        "component_category": "mechanical",
+        "design_question": "How to generate therapeutic periodic percussion using a simple motor mechanism?",
+        "selected_approach": (
+            "DC gear motor (12 V, 60–120 RPM) driving an eccentric cam (offset "
+            "mass on shaft). Cam pushes a foam or roller head through a spring-loaded "
+            "follower producing 1–2 Hz deep-tissue percussion. "
+            "Speed controlled by PWM for variable intensity."
+        ),
+        "rationale": (
+            "Eccentric cam converts rotation to reciprocating linear force with "
+            "zero additional mechanisms. Motor gear ratio sets percussion depth "
+            "and frequency. < £8 mechanism."
+        ),
+        "alternatives": [
+            _alt("Linear vibration motor (coin/ERM)", "High frequency (200 Hz) vibration for surface massage—insufficient for deep tissue percussion."),
+            _alt("Servo-driven rack piston", "Precise stroke but 5× cost and noisier."),
+        ],
+        "verification_notes": (
+            "FACT: 'Slider-Crank Mechanism — Rotary to Linear Conversion' describes "
+            "the cam-follower equivalent rotary-to-linear conversion."
+        ),
+        "supporting_fact_titles": [
+            "Slider-Crank Mechanism — Rotary to Linear Conversion",
+            "DC Motor Speed Control via PWM",
+        ],
+    },
+
+    {
+        "title": "Abrasive Drum Food-Peeling Mechanism",
+        "component_category": "mechanical",
+        "design_question": "How to peel potato or root vegetable skins automatically in batch?",
+        "selected_approach": (
+            "Abrasive carborundum-coated drum (stainless inner bowl with "
+            "grooved or coated walls) rotated by DC gear motor (12 V, 60 RPM). "
+            "Wet process: continuous water spray washes away peel. "
+            "Batch size 1–3 kg; peel time 2–4 min."
+        ),
+        "rationale": (
+            "Abrasive peeling removes 2–3 mm of skin without a blade—safe and "
+            "usable with irregular shapes. Water flow carries peel through a "
+            "bottom drain. Motor torque requirement ≈ 2 N·m at 60 RPM."
+        ),
+        "alternatives": [
+            _alt("Rotary blade peeler", "Higher peel removal rate but uneven depth on irregular produce."),
+            _alt("Steam peeling", "Rapid industrial process but requires pressure vessel—impractical for lab scale."),
+        ],
+        "verification_notes": (
+            "FACT: 'DC Motor Speed Control via PWM' covers speed control for the "
+            "drum motor. FACT: 'Hooke's Law — Linear Elasticity' covers abrasion "
+            "surface normal force calculation."
+        ),
+        "supporting_fact_titles": [
+            "DC Motor Speed Control via PWM",
+            "Hooke's Law — Linear Elasticity",
+        ],
+    },
+
+    {
+        "title": "Coin Acceptor + Solenoid Dispenser Vending Mechanism",
+        "component_category": "mechanical",
+        "design_question": "How to reliably accept coins, accumulate credit, and dispense product in a vending machine?",
+        "selected_approach": (
+            "CH-926 coin acceptor wired to MCU interrupt pin (pulse count). "
+            "MCU accumulates credit; when credit ≥ item price, "
+            "energises a 12 V solenoid (or DC motor auger) for 500 ms "
+            "to release one product unit. Relay-driven by N-channel MOSFET."
+        ),
+        "rationale": (
+            "Pulse-count coin acceptor is vendor-programmable for local "
+            "currency denominations. Solenoid dispense is faster (< 200 ms) "
+            "than auger motors; suitable for cups, cans, or water spouts."
+        ),
+        "alternatives": [
+            _alt("NFC tap-to-pay", "No coin handling but requires payment gateway hardware."),
+            _alt("Gravity-feed ramp without actuator", "No electricity needed but uncontrolled dispensing."),
+        ],
+        "verification_notes": (
+            "FACT: 'Coin Acceptor — Pulse-Count Authentication and Relay Dispense' "
+            "confirms pulse protocol and solenoid control method."
+        ),
+        "supporting_fact_titles": [
+            "Coin Acceptor — Pulse-Count Authentication and Relay Dispense",
+            "Solenoid Valve for Pneumatic and Fluid Control",
+        ],
+    },
+
+    # ------------------------------------------------------------------
+    # POWER — Wind, Wave, Regenerative, Marine
+    # ------------------------------------------------------------------
+
+    {
+        "title": "Permanent Magnet Wind Turbine Generator",
+        "component_category": "power",
+        "design_question": "How to generate off-grid electrical power from local wind for IoT sensors?",
+        "selected_approach": (
+            "3-blade horizontal-axis turbine (0.5–1 m diameter), axial-flux PMA, "
+            "3-phase AC bridge-rectified to 12 V DC. "
+            "MPPT controller (CN3791 or wind-specific boost converter) charges "
+            "12 V 10 Ah LiFePO₄ battery. "
+            "Mechanical overspeed protection via furling tail."
+        ),
+        "rationale": (
+            "Wind generation complements PV in low-insolation and nighttime periods. "
+            "Typical mini turbine (0.5 m) generates 50–100 W at 8 m/s wind speed. "
+            "LiFePO₄ buffer handles calm periods up to 5 days."
+        ),
+        "alternatives": [
+            _alt("Solar PV only", "Zero output at night or in low wind/high cloud regions."),
+            _alt("Vertical-axis Savonius", "Lower Cp (0.15) but lower cut-in speed (1.5 m/s) for calm regions."),
+        ],
+        "verification_notes": (
+            "FACT: 'Permanent Magnet Alternator — Small Wind Turbine' confirms "
+            "Betz limit and power equation P = ½ρAv³."
+        ),
+        "supporting_fact_titles": [
+            "Permanent Magnet Alternator — Small Wind Turbine",
+            "Solar Panel Sizing for Remote IoT Stations",
+            "Li-Ion Battery Capacity and Energy Calculation",
+        ],
+    },
+
+    {
+        "title": "BLDC Regenerative Braking Energy Recovery System",
+        "component_category": "power",
+        "design_question": "How to recover kinetic energy during braking to extend electric vehicle range?",
+        "selected_approach": (
+            "Traction BLDC motor driven via 4-quadrant H-bridge or VESC ESC. "
+            "On brake input, ESC switches to generation mode: "
+            "back-EMF feeds current back to LiPo/LiFePO₄ battery. "
+            "INA226 current/power monitor logs regenerated power on 1 Hz log."
+        ),
+        "rationale": (
+            "Recovers 60–75 % of braking energy, extending range by 10–20 %. "
+            "VESC ESC supports regenerative braking in firmware. "
+            "INA226 telemetry validates efficiency and builds design-database evidence."
+        ),
+        "alternatives": [
+            _alt("Friction brake only", "Dissipates all kinetic energy as heat—no recovery."),
+            _alt("Supercapacitor buffer", "Faster charge/discharge than Li-Ion but lower energy density."),
+        ],
+        "verification_notes": (
+            "FACT: 'Regenerative Braking — BLDC Back-EMF Energy Recovery' confirms "
+            "60–75 % recovery efficiency."
+        ),
+        "supporting_fact_titles": [
+            "Regenerative Braking — BLDC Back-EMF Energy Recovery",
+            "Brushless DC (BLDC) Motor for Suction Fan",
+            "Li-Ion Battery Capacity and Energy Calculation",
+        ],
+    },
+
+    {
+        "title": "Oscillating Water Column Wave Energy Converter",
+        "component_category": "power",
+        "design_question": "How to harvest wave energy to power an autonomous maritime IoT buoy?",
+        "selected_approach": (
+            "Miniature OWC chamber (open-bottom column, sealed top, Wells turbine). "
+            "Wave action oscillates air column driving turbine → PMA generator → "
+            "bridge rectifier → LiFePO₄ battery. "
+            "Combined with 10 W solar panel for hybrid power."
+        ),
+        "rationale": (
+            "OWC operates bidirectionally—Wells turbine produces power on both "
+            "intake and exhaust strokes. Hybrid solar+wave increases availability "
+            "to > 95 % uptime for offshore IoT buoys."
+        ),
+        "alternatives": [
+            _alt("Heaving point absorber", "Higher capture efficiency but requires precision mooring—more complex."),
+            _alt("Solar only", "Zero power during nighttime and storms."),
+        ],
+        "verification_notes": (
+            "FACT: 'Wave Energy Conversion — Oscillating Water Column Principle' "
+            "confirms P/w = ρg²H²T/(32π) flux calculation."
+        ),
+        "supporting_fact_titles": [
+            "Wave Energy Conversion — Oscillating Water Column Principle",
+            "Solar Panel Sizing for Remote IoT Stations",
+        ],
+    },
+
+    {
+        "title": "Capacitor Bank High-Voltage Pulsed Power Supply",
+        "component_category": "power",
+        "design_question": "How to deliver a very high instantaneous current pulse to accelerate a ferromagnetic projectile?",
+        "selected_approach": (
+            "Bank of 400 V electrolytic capacitors (total 1–10 mF, 500–2000 J). "
+            "Charged via high-voltage flyback or boost converter from 12 V. "
+            "SCR/IGBT triggered by MCU to discharge through copper solenoid coil "
+            "in < 1 ms, producing a magnetic pulse accelerating the projectile."
+        ),
+        "rationale": (
+            "Capacitor bank provides multi-kA pulse impossible from a battery alone. "
+            "Energy E = ½ CV² ; 10 mF at 400 V = 800 J per shot. "
+            "Stage 2 and 3 coils timed by photogate projectile sensors."
+        ),
+        "alternatives": [
+            _alt("Direct battery discharge", "Insufficient peak current (limited by internal resistance)."),
+            _alt("Gas-powered (pneumatic)", "Higher muzzle velocity but regulated under firearms law in most jurisdictions."),
+        ],
+        "verification_notes": (
+            "FACT: 'Eddy Current Braking Principle' provides the electromagnetic "
+            "induction theory underpinning coil-gun acceleration."
+        ),
+        "supporting_fact_titles": [
+            "Eddy Current Braking Principle",
+            "N-Channel MOSFET as a Low-Side Power Switch",
+        ],
+    },
+
+    {
+        "title": "4S LiPo Marine RC Power System",
+        "component_category": "power",
+        "design_question": "How to power a high-speed RC boat or underwater drone propulsion system?",
+        "selected_approach": (
+            "4S (14.8 V nominal) LiPo 3000–5000 mAh pack with waterproof "
+            "XT60 connectors and IP67 battery compartment. "
+            "ESC rated for 30–60 A continuous with water-cooling jacket. "
+            "Low-voltage cutoff at 3.3 V/cell protects cells."
+        ),
+        "rationale": (
+            "4S LiPo provides high power density (250 Wh/kg) for fast RC boats. "
+            "Marine-rated ESC cooling prevents thermal shutdown during sustained "
+            "high-throttle operation. XT60 connectors rated for 60 A."
+        ),
+        "alternatives": [
+            _alt("3S LiPo", "Suitable for smaller boats; 25 % less power than 4S."),
+            _alt("NiMH", "Lower energy density, safer chemistry but 50 % heavier for same capacity."),
+        ],
+        "verification_notes": (
+            "FACT: 'Li-Ion Battery Capacity and Energy Calculation' confirms "
+            "Wh = V × Ah energy calculation and 3.3 V/cell LVC."
+        ),
+        "supporting_fact_titles": [
+            "Li-Ion Battery Capacity and Energy Calculation",
+            "Brushless DC (BLDC) Motor for Suction Fan",
+        ],
+    },
+
+    {
+        "title": "Waterproof IP67 Marine Enclosure Design",
+        "component_category": "mechanical",
+        "design_question": "How to protect electronics in an underwater or marine environment?",
+        "selected_approach": (
+            "Clear polycarbonate dome or ABS housing with dual O-ring groove seals "
+            "on each joint surface (O-ring cross-section 3 mm, squeeze 20–25 %). "
+            "Cable penetrations via polyurethane cable glands rated IP68. "
+            "Silica gel desiccant pack inside; pressure equalization valve optional."
+        ),
+        "rationale": (
+            "IP67 (1 m immersion, 30 min) achieved with correctly dimensioned and "
+            "lubricated O-rings. Polycarbonate provides optical transparency for "
+            "cameras. Desiccant prevents condensation fogging optics."
+        ),
+        "alternatives": [
+            _alt("Commercial Pelican-style case", "IP67 rated but heavy and opaque—unsuitable for camera housings."),
+            _alt("Conformal coating only", "IP43 at best—insufficient for submersion."),
+        ],
+        "verification_notes": (
+            "FACT: 'IP (Ingress Protection) Rating — IEC 60529' confirms IP67 "
+            "test: 1 m immersion for 30 min."
+        ),
+        "supporting_fact_titles": [
+            "IP (Ingress Protection) Rating — IEC 60529",
+        ],
+    },
 ]
 
 

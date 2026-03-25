@@ -2022,6 +2022,451 @@ DEVICE_FACTS: list[dict] = [
         "confidence_score": 0.96,
         "tags": ["CubeSat", "satellite", "aerospace", "small-satellite", "telemetry", "mechatronics"],
     },
+
+    # ----------------------------------------------------------------
+    # 2.4 GHz RF Transceiver
+    # ----------------------------------------------------------------
+    {
+        "title": "2.4 GHz RF Transceiver — nRF24L01 SPI Interface",
+        "domain": "electrical",
+        "category": "communication",
+        "subcategory": "wireless RF",
+        "detail_level": "intermediate",
+        "content": (
+            "The nRF24L01+ is a 2.4 GHz GFSK transceiver IC communicating "
+            "over SPI at up to 10 MHz. It operates at 250 kbps, 1 Mbps, or "
+            "2 Mbps and supports 126 channels and up to 6 simultaneous "
+            "data pipes with auto-acknowledge and automatic retransmission."
+        ),
+        "extended_content": (
+            "Supply voltage: 1.9–3.6 V; I/O tolerant to 5 V with level-shifter. "
+            "Transmit power: −18 to 0 dBm (4 levels). Receiver sensitivity: −94 dBm "
+            "at 250 kbps; −82 dBm at 2 Mbps. "
+            "SPI interface: CE pin enables RX/TX; CSN is chip-select. "
+            "Packet length: 1–32 bytes with 6-byte address per pipe. "
+            "Enhanced ShockBurst™: automatic acknowledgement and retransmission "
+            "eliminate MCU overhead for reliability. "
+            "Typical range: 100 m open air at 250 kbps; 30 m indoors. "
+            "PA+LNA variant extends range to 1 km open air with external antenna. "
+            "Alternatives: HC-12 (433 MHz, 1 km) for longer range; "
+            "ESP-NOW (ESP32) for higher-level API without separate module."
+        ),
+        "source": "Nordic Semiconductor nRF24L01+ Product Specification v1.0",
+        "confidence_score": 0.97,
+        "tags": ["RF", "nRF24L01", "2.4GHz", "SPI", "wireless", "communication", "mechatronics", "electrical"],
+    },
+
+    # ----------------------------------------------------------------
+    # Bluetooth Classic HC-05
+    # ----------------------------------------------------------------
+    {
+        "title": "Bluetooth Classic SPP — HC-05 Serial Bridge Module",
+        "domain": "electrical",
+        "category": "communication",
+        "subcategory": "Bluetooth",
+        "detail_level": "intermediate",
+        "content": (
+            "The HC-05 is a Bluetooth 2.0 EDR Serial Port Profile (SPP) module "
+            "bridging a UART to a Bluetooth wireless link at up to 115 200 baud. "
+            "HC-05 supports both Master and Slave roles; HC-06 is Slave-only."
+        ),
+        "extended_content": (
+            "Supply voltage: 3.6–6 V; logic TX/RX at 3.3 V (level-shift for 5 V MCUs). "
+            "Pairing PIN: 1234 or 0000 default; configured with AT commands at 38 400 baud. "
+            "Throughput: ~230 kbps maximum; typical latency < 100 ms. "
+            "Range: 10 m (Class 2); 100 m (Class 1). "
+            "Android Bluetooth SPP apps connect over the paired RFCOMM channel "
+            "and stream ASCII or binary data as a virtual serial port. "
+            "Comparison: BLE (HM-10 / ESP32) is preferred for iOS because Apple "
+            "requires MFi certification for Classic BT SPP."
+        ),
+        "source": "HC-05 AT Command Datasheet; Bluetooth SIG SPP Profile v1.2",
+        "confidence_score": 0.95,
+        "tags": [
+            "Bluetooth", "HC-05", "SPP", "UART", "wireless", "communication",
+            "Android", "mechatronics",
+        ],
+    },
+
+    # ----------------------------------------------------------------
+    # MQ Gas Sensors
+    # ----------------------------------------------------------------
+    {
+        "title": "MQ-Series Metal-Oxide Gas Sensor — Alcohol, CO, LPG",
+        "domain": "electrical",
+        "category": "sensing",
+        "subcategory": "gas detection",
+        "detail_level": "intermediate",
+        "content": (
+            "MQ-series sensors (MQ-2 LPG/smoke, MQ-3 alcohol, MQ-135 air "
+            "quality) use a heated SnO₂ metal-oxide film whose resistance "
+            "decreases in the presence of the target gas, producing an "
+            "analog voltage read by an ADC."
+        ),
+        "extended_content": (
+            "Heater supply: 5 V, 150–200 mW. Load resistor RL sets the sensitivity "
+            "curve: lower RL for high concentrations, higher RL for trace levels. "
+            "Sensitivity: Rs/R0 = A × C^B (log-log linear) where R0 is the "
+            "resistance in clean air and C is gas concentration in ppm. "
+            "MQ-3 (ethanol): 0.04–4 mg/L; threshold for vehicle ignition lock ≈ 0.05 mg/L. "
+            "Cross-sensitivity: all MQ sensors respond to multiple gases; not selective. "
+            "Warm-up: 48 h for first use; 30–60 s preheat on each power-on. "
+            "Temperature/humidity correction required over −20 to +50 °C. "
+            "Alternative: electrochemical cell for precision BAC (±0.005 %) "
+            "at 10× higher cost."
+        ),
+        "source": "Zhengzhou Winsen Electronics MQ-3 / MQ-2 / MQ-135 Datasheets",
+        "confidence_score": 0.93,
+        "tags": [
+            "gas sensor", "MQ-3", "MQ-2", "alcohol", "CO", "LPG",
+            "metal-oxide", "sensing", "mechatronics",
+        ],
+    },
+
+    # ----------------------------------------------------------------
+    # Thermal Infrared Imaging
+    # ----------------------------------------------------------------
+    {
+        "title": "MLX90640 Far-Infrared Thermal Camera Array",
+        "domain": "electrical",
+        "category": "sensing",
+        "subcategory": "thermal imaging",
+        "detail_level": "advanced",
+        "content": (
+            "The Melexis MLX90640 is a 32×24 pixel FIR thermopile array "
+            "measuring scene temperatures −40 °C to +300 °C with ±1 °C "
+            "accuracy, communicating over I²C at up to 64 Hz frame rate."
+        ),
+        "extended_content": (
+            "Field of view: 55°×35° (standard) or 110°×75° (wide-angle). "
+            "Pixel NETD: 0.1 K at 1 Hz. Supply: 3.3 V, < 23 mA. "
+            "I²C address: 0x33 default. Each frame returns 768 raw pixel values "
+            "requiring Melexis calibration API to convert to °C. "
+            "Use cases: fever screening, occupancy detection, predictive-maintenance "
+            "hotspot detection, building thermal envelope survey. "
+            "Limitation: 32×24 resolution insufficient for face recognition. "
+            "Alternative: FLIR Lepton (80×60 or 160×120) at 10× cost; "
+            "AMG8833 Panasonic (8×8) at lower resolution and cost."
+        ),
+        "source": "Melexis MLX90640 Datasheet Rev. 11; Melexis AN_MLX90640",
+        "confidence_score": 0.96,
+        "tags": [
+            "thermal", "infrared", "imaging", "MLX90640", "fever", "FIR",
+            "sensing", "mechatronics", "electrical",
+        ],
+    },
+
+    # ----------------------------------------------------------------
+    # Wind Power
+    # ----------------------------------------------------------------
+    {
+        "title": "Permanent Magnet Alternator — Small Wind Turbine",
+        "domain": "electrical",
+        "category": "power generation",
+        "subcategory": "wind energy",
+        "detail_level": "intermediate",
+        "content": (
+            "A small wind turbine permanent magnet alternator (PMA) converts "
+            "rotor mechanical power to 3-phase AC via Faraday induction, which is "
+            "then bridge-rectified and regulated to charge a battery. "
+            "Available wind power: P = ½ ρ A v³."
+        ),
+        "extended_content": (
+            "Betz limit: maximum extractable fraction is 16/27 ≈ 59.3 % of "
+            "available wind power. Practical rotor efficiency Cp ≈ 0.35–0.45. "
+            "Cut-in wind speed: 2–3 m/s; rated: 11–13 m/s; cut-out: 25 m/s. "
+            "3-phase AC rectified via 6-diode bridge; MPPT controller tracks "
+            "peak power via perturb-and-observe. "
+            "For mini turbines (0.5–1 m blade): 50–150 W at 10 m/s; charges "
+            "12 V LiFePO₄ via CN3791 MPPT controller. "
+            "Alternative: vertical-axis Savonius for low cut-in (1.5 m/s) "
+            "but lower Cp ≈ 0.15."
+        ),
+        "formula": "P = ½ ρ A v³;  P_turbine = Cp × P",
+        "units": "Power: W; rotor area: m²; wind speed: m/s",
+        "source": "Burton et al., Wind Energy Handbook, 3rd ed.; IEC 61400-2",
+        "confidence_score": 0.95,
+        "tags": [
+            "wind turbine", "PMA", "alternator", "Betz limit", "wind energy",
+            "power generation", "mechatronics",
+        ],
+    },
+
+    # ----------------------------------------------------------------
+    # Regenerative Braking
+    # ----------------------------------------------------------------
+    {
+        "title": "Regenerative Braking — BLDC Back-EMF Energy Recovery",
+        "domain": "electrical",
+        "category": "power systems",
+        "subcategory": "energy recovery",
+        "detail_level": "intermediate",
+        "content": (
+            "Regenerative braking converts kinetic energy back to electrical energy "
+            "by running the traction BLDC motor as a generator during deceleration, "
+            "feeding current back into the battery through the ESC/motor driver."
+        ),
+        "extended_content": (
+            "In a BLDC drive, the ESC or H-bridge is switched so winding back-EMF "
+            "pushes current into the DC bus. Regeneration efficiency: 60–75 % of "
+            "braking energy recovered (limited by winding resistance, commutation "
+            "losses, and battery charge acceptance rate). "
+            "Battery requirement: LiFePO₄ and Li-Ion accept 0.5–1 C continuous. "
+            "Braking torque: τ_regen = (V_bemf − V_bus) / R_phase × K_t. "
+            "Combined with friction braking (blended strategy) for full "
+            "deceleration range. "
+            "INA226 or CT clamp power monitor logs recovered power and validates "
+            "efficiency claims."
+        ),
+        "formula": "τ_regen = (V_bemf − V_bus) / R × K_t",
+        "units": "Torque: Nm; voltage: V; resistance: Ω",
+        "source": "Ehsani et al., Modern Electric, Hybrid Electric and Fuel Cell Vehicles, 3rd ed.",
+        "confidence_score": 0.94,
+        "tags": [
+            "regenerative braking", "BLDC", "energy recovery", "EV",
+            "back-EMF", "power systems", "mechatronics",
+        ],
+    },
+
+    # ----------------------------------------------------------------
+    # Induction Heating
+    # ----------------------------------------------------------------
+    {
+        "title": "Induction Heating — IGBT Resonant Series Circuit",
+        "domain": "electrical",
+        "category": "power electronics",
+        "subcategory": "induction heating",
+        "detail_level": "advanced",
+        "content": (
+            "Induction heating uses a high-frequency (20–100 kHz) alternating "
+            "magnetic field from a resonant LC work coil to induce eddy currents "
+            "and hysteresis losses inside a ferromagnetic or conductive workpiece, "
+            "heating it without contact."
+        ),
+        "extended_content": (
+            "Circuit topology: half-bridge or full-bridge IGBTs switching a series "
+            "LC tank at resonant frequency f₀ = 1 / (2π√(LC)). "
+            "Zero-voltage switching (ZVS) reduces IGBT switching losses. "
+            "Portable cooktop: 1–2 kW, 25–50 kHz; pot must be ferromagnetic "
+            "(iron, steel, cast iron; not pure aluminium or copper). "
+            "Safety: ferrite flux concentrators limit stray fields; keep "
+            "switching frequency above 20 kHz to avoid audible noise. "
+            "Temperature control: NTC thermistor or IR sensor with PID loop "
+            "adjusting duty cycle. "
+            "Alternative: resistive heating element—simpler but 30 % larger "
+            "and slower thermal response."
+        ),
+        "formula": "f₀ = 1 / (2π √(LC))",
+        "units": "Frequency: Hz; inductance: H; capacitance: F",
+        "source": "Kazimierczuk & Czarkowski, Resonant Power Converters, 2nd ed.",
+        "confidence_score": 0.94,
+        "tags": [
+            "induction heating", "IGBT", "ZVS", "resonant", "power electronics",
+            "cooktop", "mechatronics",
+        ],
+    },
+
+    # ----------------------------------------------------------------
+    # Coin Acceptor / Vending
+    # ----------------------------------------------------------------
+    {
+        "title": "Coin Acceptor — Pulse-Count Authentication and Relay Dispense",
+        "domain": "mechanical",
+        "category": "vending mechanisms",
+        "subcategory": "coin acceptor",
+        "detail_level": "intermediate",
+        "content": (
+            "A pulse-type coin acceptor (CH-926 / HX-616) validates coins using "
+            "optical and magnetic sensors then outputs a pulse burst—one pulse per "
+            "configured denomination—for counting by an MCU. A relay or solenoid "
+            "then actuates product dispensing."
+        ),
+        "extended_content": (
+            "Mechanism: coin rolls past magnetic + optical sensor array; if "
+            "diameter, thickness, and magnetic signature match the template, "
+            "the acceptor outputs N pulses (e.g. 1 pulse = 10 p, 2 = 20 p). "
+            "MCU counting: falling-edge interrupt accumulates credit. "
+            "Dispense: when credit ≥ product price, MCU energises a solenoid or "
+            "DC motor for a timed stroke to release product. "
+            "Programming: acceptor accepts up to 6 coin types; learn mode by "
+            "inserting a valid sample 10×. "
+            "Supply: 12 V DC, < 500 mA. "
+            "Alternative: NFC/RFID tap payment for contactless—higher cost but "
+            "supports mobile payments."
+        ),
+        "source": "CH-926 Coin Acceptor Datasheet; vending machine engineering practice",
+        "confidence_score": 0.92,
+        "tags": [
+            "coin acceptor", "vending", "solenoid dispense", "pulse count",
+            "mechanical", "mechatronics",
+        ],
+    },
+
+    # ----------------------------------------------------------------
+    # Voice Recognition
+    # ----------------------------------------------------------------
+    {
+        "title": "Voice Recognition — Keyword Spotting UART Module (LD3320)",
+        "domain": "electrical",
+        "category": "human-machine interface",
+        "subcategory": "voice control",
+        "detail_level": "intermediate",
+        "content": (
+            "The LD3320 (and compatible DFRobot V3/SEN0089 modules) is an embedded "
+            "ASR IC using speaker-independent keyword-spotting to match up to 50 "
+            "user-defined commands, reporting the matched keyword ID over UART or SPI."
+        ),
+        "extended_content": (
+            "Keyword vocabulary: user defines phoneme strings; each command stored "
+            "as an index (0–49). "
+            "Recognition distance: 1–3 m in quiet environments; degrades above 60 dB(A). "
+            "False-trigger rate: < 1 per 8 h in typical environments. "
+            "Interface: UART at 9600 baud; returns matched command ID as a byte. "
+            "Alternative: Android phone with cloud ASR (Google STT) for unlimited "
+            "vocabulary—requires network—unsuitable for offline embedded systems."
+        ),
+        "source": "ICRoute LD3320 Datasheet; DFRobot Voice Recognition Module v3 Wiki",
+        "confidence_score": 0.91,
+        "tags": [
+            "voice recognition", "ASR", "keyword spotting", "LD3320",
+            "HMI", "mechatronics", "electrical",
+        ],
+    },
+
+    # ----------------------------------------------------------------
+    # Flex / Gesture Sensing
+    # ----------------------------------------------------------------
+    {
+        "title": "Capacitive Flex Sensor — Finger Bend Angle Measurement",
+        "domain": "electrical",
+        "category": "sensing",
+        "subcategory": "gesture recognition",
+        "detail_level": "intermediate",
+        "content": (
+            "A resistive flex sensor (Spectra Symbol 2.2″/4.5″) increases "
+            "resistance from ≈ 10 kΩ (flat) to ≈ 35 kΩ (fully bent). "
+            "Fitted inside a glove over each finger joint, a voltage-divider "
+            "circuit converts resistance to an ADC-readable voltage for "
+            "measuring bend angle."
+        ),
+        "extended_content": (
+            "Voltage divider: V_out = V_cc × R_load / (R_flex + R_load). "
+            "Typical R_load = 47 kΩ gives V_out range 1.5–3.0 V on 5 V supply. "
+            "Calibration: flat = 0°, max bend ≈ 90° per joint; linear interpolation. "
+            "IMU supplement: adding MPU-6050 on wrist measures wrist orientation "
+            "to map full hand pose to robot joint angles. "
+            "5-finger glove maps to 5-DOF servo arm via lookup table. "
+            "Alternative: StretchSense capacitive glove for ±1° accuracy "
+            "at 30× higher cost—rejected for educational builds."
+        ),
+        "source": "Spectra Symbol Flex Sensor Datasheet; glove-based robotic arm literature",
+        "confidence_score": 0.92,
+        "tags": [
+            "flex sensor", "gesture", "glove", "robot arm", "hand motion",
+            "sensing", "mechatronics",
+        ],
+    },
+
+    # ----------------------------------------------------------------
+    # Wave Energy
+    # ----------------------------------------------------------------
+    {
+        "title": "Wave Energy Conversion — Oscillating Water Column Principle",
+        "domain": "mechanical",
+        "category": "energy harvesting",
+        "subcategory": "wave power",
+        "detail_level": "advanced",
+        "content": (
+            "An Oscillating Water Column (OWC) device captures ocean wave energy "
+            "by allowing wave action to alternately compress and expand a trapped "
+            "air column, driving a Wells turbine coupled to a generator."
+        ),
+        "extended_content": (
+            "Wave power flux (per unit width): P/w = ρg²H²T / (32π) where "
+            "H = wave height, T = period. At 1 m height and 7 s period: ≈ 4.9 kW/m. "
+            "OWC capture efficiency: 20–30 % in practice. "
+            "Mini linear generator alternative: permanent magnet on a float "
+            "sliding through a coil—simpler, suitable for IoT buoy power. "
+            "Combined with PV panel and LiFePO₄ battery for hybrid buoy power. "
+            "Seawater corrosion: submerged components require 316L SS or HDPE; "
+            "IP68 electrical cable glands."
+        ),
+        "formula": "P/w = ρ g² H² T / (32π)",
+        "units": "Power per unit wave front width: W/m",
+        "source": "Falcão, 'Wave Energy Utilisation', Renewable and Sustainable Energy Reviews, 2010",
+        "confidence_score": 0.93,
+        "tags": [
+            "wave energy", "OWC", "oscillating water column", "marine",
+            "renewable", "energy harvesting", "mechanical",
+        ],
+    },
+
+    # ----------------------------------------------------------------
+    # PIR Motion Sensing
+    # ----------------------------------------------------------------
+    {
+        "title": "PIR Passive Infrared Motion Sensor — HC-SR501",
+        "domain": "electrical",
+        "category": "sensing",
+        "subcategory": "motion detection",
+        "detail_level": "fundamental",
+        "content": (
+            "The HC-SR501 (Fresnel lens + dual-element pyroelectric detector) "
+            "outputs a digital HIGH for 0.5–200 s when it detects a change in "
+            "IR radiation (warm body moving) within ≈ 7 m and 120° cone."
+        ),
+        "extended_content": (
+            "Supply: 4.5–20 V; quiescent current < 50 µA. "
+            "Two potentiometers adjust: (1) sensitivity 3–7 m, (2) hold time 0.5–200 s. "
+            "Two modes (jumper): H = repeating (retrigger while moving), "
+            "L = non-repeating (single pulse). "
+            "Working temperature: −15 to +70 °C. "
+            "Fresnel lens segments create alternating zones—motion detected only "
+            "when moving between zones, reducing false triggers from slow temperature drift. "
+            "Alternative: microwave radar (RCWL-0516) detects through thin walls—"
+            "higher false-positive rate, no directional sensitivity."
+        ),
+        "source": "HC-SR501 Module Datasheet; Panasonic AMN PIR Application Note",
+        "confidence_score": 0.96,
+        "tags": [
+            "PIR", "motion sensor", "HC-SR501", "pyroelectric", "infrared",
+            "sensing", "mechatronics", "electrical",
+        ],
+    },
+
+    # ----------------------------------------------------------------
+    # TFMini LiDAR
+    # ----------------------------------------------------------------
+    {
+        "title": "TFMini-S Micro LiDAR — 0.1–12 m Time-of-Flight",
+        "domain": "electrical",
+        "category": "sensing",
+        "subcategory": "LiDAR",
+        "detail_level": "intermediate",
+        "content": (
+            "The Benewake TFMini-S is a compact (42×15×16 mm, 5 g) 850 nm "
+            "infrared ToF LiDAR measuring single-point distance 0.1–12 m at "
+            "100–1000 Hz over UART or I²C with ±1 % or ±2 cm accuracy."
+        ),
+        "extended_content": (
+            "Supply: 5 V, 120 mA average. Serial: 115 200 baud (default), "
+            "9-byte frame (header 0x59 0x59, dist_L, dist_H, …). "
+            "I²C address: 0x10. Indoor accuracy: ±6 mm (0.1–6 m). "
+            "Outdoor range: 6 m in bright sunlight. "
+            "FOV: 2.3° full angle. Signal quality byte: discard readings "
+            "with strength < 100 (transparent or dusty surfaces). "
+            "Drone use: downward-facing for altitude hold < 10 m; "
+            "forward-facing for obstacle detection from 0.5 m. "
+            "Alternative: HC-SR04 ultrasonic—cheaper but 40 ms/sample; "
+            "VL53L1X—shorter range (4 m)."
+        ),
+        "source": "Benewake TFMini-S Product Manual v1.7.1",
+        "confidence_score": 0.96,
+        "tags": [
+            "LiDAR", "TFMini", "time-of-flight", "distance", "sensing",
+            "drone", "mechatronics", "electrical",
+        ],
+    },
 ]
 
 
