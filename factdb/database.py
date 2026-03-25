@@ -141,6 +141,9 @@ def init_db(database_url: str | None = None) -> Engine:
         # Supports confidence-ordered queries within active fact set.
         "CREATE INDEX IF NOT EXISTS ix_facts_active_confidence "
         "ON facts (is_active, confidence_score)",
+        # Supports most-used ranking queries.
+        "CREATE INDEX IF NOT EXISTS ix_facts_use_count "
+        "ON facts (use_count DESC)",
         # Graph traversal: outgoing edges filtered by relationship type.
         "CREATE INDEX IF NOT EXISTS ix_fact_relationships_src_type "
         "ON fact_relationships (source_fact_id, relationship_type)",

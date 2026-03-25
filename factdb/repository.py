@@ -19,6 +19,7 @@ from factdb.models import (
     Fact,
     FactRelationship,
     FactStatus,
+    FactUsageLog,
     FactVersion,
     RelationshipType,
     Tag,
@@ -352,6 +353,78 @@ class FactRepository:
             .where(FactVersion.fact_id == fact_id)
             .order_by(FactVersion.version)
         )
+        return self.session.execute(stmt).scalars().all()
+
+    # ------------------------------------------------------------------
+    # Usage tracking
+    # ------------------------------------------------------------------
+
+    def record_usage(
+        self,
+        fact_id: str,
+        context: str | None = None,
+        used_by: str | None = None,
+    ) -> FactUsageLog:
+        """
+        Record that a fact was used and increment its usage counter.
+
+        Increments :attr:`Fact.use_count`, updates :attr:`Fact.last_used_at`,
+        and appends a :class:`~factdb.models.FactUsageLog` row so that
+        per-use context is retained for audit and prioritisation purposes.
+
+        Args:
+            fact_id:  Primary key of the fact that was used.
+            context:  Short label describing the call-site, e.g.
+                      ``"search"``, ``"inference"``, or ``"reasoning"``.
+            used_by:  Identity of the caller (user or agent name).
+
+        Returns:
+            The new :class:`~factdb.models.FactUsageLog` instance.
+
+        Raises:
+            ValueError: If the fact is not found.
+        """
+        fact = self.get(fact_id)
+        if fact is None:
+            raise ValueError(f"Fact not found: {fact_id!r}")
+
+        fact.use_count = (fact.use_count or 0) + 1
+        fact.last_used_at = datetime.now(timezone.utc)
+
+        log = FactUsageLog(fact_id=fact_id, context=context, used_by=used_by)
+        self.session.add(log)
+        self.session.flush()
+        return log
+
+    def list_most_used(
+        self,
+        limit: int = 20,
+        min_use_count: int = 1,
+        domain: EngineeringDomain | None = None,
+    ) -> Sequence[Fact]:
+        """
+        Return active facts ranked by descending use count.
+
+        Useful for identifying high-value facts that should be prioritised
+        for verification and maintenance.
+
+        Args:
+            limit:         Maximum number of results (default 20).
+            min_use_count: Only include facts used at least this many times
+                           (default 1, i.e. at least once).
+            domain:        Optional domain filter.
+
+        Returns:
+            Sequence of :class:`~factdb.models.Fact` objects ordered by
+            ``use_count`` descending, then ``last_used_at`` descending.
+        """
+        stmt = (
+            select(Fact)
+            .where(Fact.is_active == True, Fact.use_count >= min_use_count)  # noqa: E712
+        )
+        if domain is not None:
+            stmt = stmt.where(Fact.domain == domain)
+        stmt = stmt.order_by(Fact.use_count.desc(), Fact.last_used_at.desc()).limit(limit)
         return self.session.execute(stmt).scalars().all()
 
     # ------------------------------------------------------------------

@@ -133,8 +133,10 @@ def seed_devices_cmd(ctx):
 @click.option("--tag", "tags", multiple=True, help="Tag filter (repeatable).")
 @click.option("--limit", default=20, show_default=True, help="Max results.")
 @click.option("--json", "as_json", is_flag=True, help="Output as JSON.")
+@click.option("--record-usage", "record_usage", is_flag=True, default=False, help="Record usage for returned facts.")
+@click.option("--by", default=None, help="Identity to record in usage log.")
 @click.pass_context
-def search(ctx, query, domain, category, level, status, tags, limit, as_json):
+def search(ctx, query, domain, category, level, status, tags, limit, as_json, record_usage, by):
     """Search facts by keyword and/or filters."""
     reset_engine()
     init_db(ctx.obj.get("db"))
@@ -153,7 +155,12 @@ def search(ctx, query, domain, category, level, status, tags, limit, as_json):
             status=status_enum,
             tags=list(tags) if tags else None,
             limit=limit,
+            record_usage=record_usage,
+            usage_by=by,
         )
+
+        if record_usage:
+            session.commit()
 
         if as_json:
             click.echo(json.dumps([f.to_dict() for f in results], indent=2))
@@ -236,6 +243,58 @@ def show(ctx, fact_id):
         if fact.source:
             click.echo(f"\n  Source: {fact.source}")
         click.echo(f"{'='*70}\n")
+    finally:
+        session.close()
+
+
+# ---------------------------------------------------------------------------
+# most-used
+# ---------------------------------------------------------------------------
+
+
+@cli.command("most-used")
+@click.option("--limit", default=20, show_default=True, help="Number of facts to show.")
+@click.option("--min-count", default=1, show_default=True, help="Minimum use count.")
+@click.option("--domain", default=None, help="Filter by engineering domain.")
+@click.option("--json", "as_json", is_flag=True, help="Output as JSON.")
+@click.pass_context
+def most_used_cmd(ctx, limit, min_count, domain, as_json):
+    """List most-used facts, ordered by use count descending.
+
+    Highlights high-value facts for prioritised verification and maintenance.
+    """
+    reset_engine()
+    init_db(ctx.obj.get("db"))
+    session = _make_session(ctx.obj.get("db"))
+    try:
+        repo = FactRepository(session)
+        domain_enum = EngineeringDomain(domain) if domain else None
+        facts = repo.list_most_used(limit=limit, min_use_count=min_count, domain=domain_enum)
+
+        if not facts:
+            click.echo("No facts with recorded usage yet.")
+            return
+
+        if as_json:
+            click.echo(json.dumps([f.to_dict() for f in facts], indent=2))
+        else:
+            rows = [
+                [
+                    f.id[:8],
+                    f.use_count,
+                    f.last_used_at.strftime("%Y-%m-%d %H:%M") if f.last_used_at else "—",
+                    _val(f.status),
+                    (f.title[:55] + "…") if len(f.title) > 55 else f.title,
+                ]
+                for f in facts
+            ]
+            click.echo(
+                tabulate(
+                    rows,
+                    headers=["ID", "Uses", "Last Used", "Status", "Title"],
+                    tablefmt="simple",
+                )
+            )
     finally:
         session.close()
 
