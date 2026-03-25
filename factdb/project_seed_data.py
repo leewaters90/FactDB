@@ -2410,4 +2410,386 @@ MECHATRONICS_PROJECTS: list[dict] = [
             "SCT-013 Split-Core CT Clamp Current Sensing": "4800 Hz sampling; 80 samples/60 Hz cycle for true RMS.",
         },
     },
+
+    {
+        "title": "Autonomous Robot Vacuum Cleaner",
+        "description": (
+            "Differential-drive vacuum robot with 360° LiDAR and sonar obstacle avoidance, "
+            "boustrophedon coverage path planning, SLAM localisation, HEPA filter, and BLE "
+            "smartphone app. Returns autonomously to charging dock when battery is low."
+        ),
+        "objective": (
+            "Clean ≥ 90 % of reachable floor area in ≤ 30 min; ≥ 90 min runtime; "
+            "cliff-safe; return to dock ≤ 5 % battery."
+        ),
+        "constraints": "≤ 350 mm diameter; ≤ 100 mm height; ≤ 2 kg; 24 V 3 Ah LiPo; IP31.",
+        "domain": "systems",
+        "status": "completed",
+        "supporting_fact_titles": [
+            "SLAM — Simultaneous Localisation and Mapping",
+            "Coverage Path Planning — Boustrophedon (Lawnmower) Algorithm",
+            "Differential Drive Robot Kinematics",
+            "H-Bridge Motor Driver Circuit",
+            "Brushless DC (BLDC) Motor for Suction Fan",
+            "HEPA Filter Efficiency and Filtration Grade",
+            "Robot Runtime Estimation from Battery Capacity",
+            "Automatic Charging Dock — IR Beacon Homing",
+            "Infrared Cliff Detection for Robot Vacuums",
+            "Bluetooth Low Energy (BLE) for App Control",
+        ],
+        "design_element_titles": [
+            "TFMini-S Single-Point LiDAR Distance Sensor",
+            "HC-SR04 Ultrasonic Obstacle-Distance Sensor",
+            "L298N Dual H-Bridge Motor Driver Module",
+            "DC Gear Motor with PWM Speed Control",
+            "Magnetic Quadrature Wheel Encoders",
+            "BLE GATT Smartphone App Interface",
+            "MCU Deep-Sleep Duty Cycle Power Management",
+        ],
+        "element_usage_notes": {
+            "TFMini-S Single-Point LiDAR Distance Sensor": (
+                "Mounted on 360° spinning platform at 10 Hz; 8 m range for room mapping."
+            ),
+            "L298N Dual H-Bridge Motor Driver Module": (
+                "Two 12 V 200 RPM gearmotors; 180 mm wheelbase; 20 kHz PWM."
+            ),
+        },
+    },
+
+    {
+        "title": "Automatic Weather Station",
+        "description": (
+            "Solar-powered outdoor station measuring air temperature, RH, barometric pressure, "
+            "wind speed, wind direction, and rainfall. Logs at 1-min intervals to microSD and "
+            "publishes over MQTT. Sensors housed in radiation shield and anemometer mast."
+        ),
+        "objective": (
+            "T ±0.3 °C; RH ±2 %; pressure ±1 hPa; wind ±0.5 m/s; rainfall 0.2 mm resolution; "
+            "30-day local data retention."
+        ),
+        "constraints": "Outdoor IP65; mast-mounted; 12 V LiFePO₄ + 10 W solar; WiFi uplink.",
+        "domain": "systems",
+        "status": "completed",
+        "supporting_fact_titles": [
+            "Cup Anemometer — Wind Speed Measurement",
+            "Wind Vane — Wind Direction Measurement",
+            "Tipping Bucket Rain Gauge",
+            "Capacitive Relative Humidity Sensing",
+            "MEMS Barometric Pressure Sensor",
+            "Solar Panel Sizing for Remote IoT Stations",
+            "MQTT Protocol for IoT Sensor Data",
+            "NTP Time Synchronisation for Data Logging",
+            "Radiation Shield for Meteorological Temperature Sensors",
+            "Sensor Calibration and Traceability to SI",
+        ],
+        "design_element_titles": [
+            "SHT41 Digital Temperature and RH Sensing",
+            "I²C TCA9548A Multi-Device Sensor Bus",
+            "Solar Panel + LiFePO₄ MPPT Power System",
+            "MCU Deep-Sleep Duty Cycle Power Management",
+            "ESP32 WiFi + MQTT IoT Telemetry",
+            "NTP UTC Timestamped Data Logging",
+            "MicroSD 1 Hz Time-Series Data Logger",
+        ],
+        "element_usage_notes": {
+            "SHT41 Digital Temperature and RH Sensing": (
+                "Housed in Stevenson screen; radiation shield reduces solar error to < 0.3 °C."
+            ),
+            "MicroSD 1 Hz Time-Series Data Logger": (
+                "1-min interval averages; CSV with UTC timestamp; 30-day FAT32 rolling archive."
+            ),
+        },
+    },
+
+    {
+        "title": "Thermal Anomaly Inspection Camera",
+        "description": (
+            "Pan-tilt thermal camera using MLX90640 and servo gimbal for detecting hot spots "
+            "in electrical panels, PCBs, or building envelopes. ESP32 streams false-colour MJPEG "
+            "over WiFi and publishes alerts via MQTT."
+        ),
+        "objective": (
+            "Detect anomalies ≥ 5 °C above ambient in 32×24 pixel array; ≤ 1 s stream latency; "
+            "±1.5 °C absolute accuracy; ≥ 8 h battery."
+        ),
+        "constraints": "≤ 150×80×50 mm; USB-C charged; WiFi MJPEG stream; ≤ £80.",
+        "domain": "systems",
+        "status": "completed",
+        "supporting_fact_titles": [
+            "RC Servo Motor PWM Control",
+            "I²C Serial Communication Protocol",
+            "MQTT Protocol for IoT Sensor Data",
+        ],
+        "design_element_titles": [
+            "MLX90640 Thermal Infrared Imaging Array",
+            "Pan-Tilt Servo Camera Gimbal",
+            "ESP32 WiFi + MQTT IoT Telemetry",
+            "BLE GATT Smartphone App Interface",
+            "Li-Po 3.7 V USB-C Rechargeable Battery Pack",
+        ],
+        "element_usage_notes": {
+            "MLX90640 Thermal Infrared Imaging Array": (
+                "32×24 @ 4 Hz; false-colour mapped to 320×240 JPEG for MJPEG stream."
+            ),
+            "Pan-Tilt Servo Camera Gimbal": (
+                "±45° pan, ±30° tilt via SG90 servos; remote-controlled from BLE app."
+            ),
+        },
+    },
+
+    {
+        "title": "GPS Outdoor Asset Tracker",
+        "description": (
+            "Low-power GPS tracker for vehicles or outdoor equipment. Publishes location over "
+            "MQTT via ESP32 WiFi on movement events and periodic heartbeat; logs to microSD "
+            "when offline."
+        ),
+        "objective": (
+            "Fix ≤ 10 m CEP; ≤ 5 s cold start outdoors; wake on >5 m movement; "
+            "≥ 1-week battery at 1 fix/10 min."
+        ),
+        "constraints": "90×50×25 mm; IP54; USB-C; WiFi-only (no cellular); ≤ £30.",
+        "domain": "systems",
+        "status": "completed",
+        "supporting_fact_titles": [
+            "MQTT Protocol for IoT Sensor Data",
+            "NTP Time Synchronisation for Data Logging",
+            "Low-Power Microcontroller Sleep Modes",
+        ],
+        "design_element_titles": [
+            "NEO-6M GPS Module for Navigation",
+            "MCU Deep-Sleep Duty Cycle Power Management",
+            "ESP32 WiFi + MQTT IoT Telemetry",
+            "Li-Po 3.7 V USB-C Rechargeable Battery Pack",
+            "NTP UTC Timestamped Data Logging",
+            "MicroSD 1 Hz Time-Series Data Logger",
+        ],
+        "element_usage_notes": {
+            "NEO-6M GPS Module for Navigation": (
+                "Sleep between fixes; 1 Hz NMEA UART 9600 baud; backup battery for warm start."
+            ),
+            "MCU Deep-Sleep Duty Cycle Power Management": (
+                "ESP32 10-min deep sleep; RTC wakeup; ≤ 12 µA idle current."
+            ),
+        },
+    },
+
+    {
+        "title": "Autonomous Obstacle-Avoidance Rover",
+        "description": (
+            "Six-wheel rocker-bogie rover navigating rough terrain using forward-facing LiDAR "
+            "and sonar array. Performs A* path replanning on obstacle detection; operated via "
+            "nRF24L01 wireless link from a remote base station."
+        ),
+        "objective": (
+            "Traverse 30° inclines; detect obstacles ≥ 50 mm at 1 m; navigate a 10×10 m "
+            "outdoor area without manual intervention."
+        ),
+        "constraints": "≤ 5 kg; 12 V LiPo; nRF24 link ≤ 100 m; ≤ £150 BOM.",
+        "domain": "systems",
+        "status": "in_design",
+        "supporting_fact_titles": [
+            "A* Pathfinding Algorithm",
+            "Ultrasonic Proximity Sensor — ToF Distance Measurement",
+            "2D LiDAR Distance Measurement Principle",
+            "Differential Drive Robot Kinematics",
+            "DC Motor Speed Control via PWM",
+        ],
+        "design_element_titles": [
+            "TFMini-S Single-Point LiDAR Distance Sensor",
+            "HC-SR04 Ultrasonic Obstacle-Distance Sensor",
+            "Rocker-Bogie Rough-Terrain Drive System",
+            "L298N Dual H-Bridge Motor Driver Module",
+            "DC Gear Motor with PWM Speed Control",
+            "nRF24L01 2.4 GHz RF Transceiver Link",
+            "Arduino Mega 2560 MCU Platform",
+        ],
+        "element_usage_notes": {
+            "Rocker-Bogie Rough-Terrain Drive System": (
+                "6-wheel passive suspension; 3D-printed PETG links; 80 mm diameter wheels."
+            ),
+            "nRF24L01 2.4 GHz RF Transceiver Link": (
+                "Auto-ACK; 250 kbps; 100 m open-field range; pipe 0 = telemetry, pipe 1 = cmd."
+            ),
+        },
+    },
+
+    {
+        "title": "Smart Coin-Operated Vending Machine",
+        "description": (
+            "Single-row vending machine accepting coins or RFID cards, driving per-lane solenoid "
+            "dispensers, with MQTT sales logging, NTP-timestamped audit trail, and OTA firmware "
+            "updates."
+        ),
+        "objective": (
+            "Accept 20p/50p/£1 coins and RFID cards; ≤ 5 dispense lanes; ≤ 3 s dispense; "
+            "100 % sales event logging."
+        ),
+        "constraints": "230 V mains-powered; RS232 coin validator; ≤ £100 BOM; WiFi uplink.",
+        "domain": "systems",
+        "status": "completed",
+        "supporting_fact_titles": [
+            "MQTT Protocol for IoT Sensor Data",
+            "RFID/NFC Reader — ISO 14443 / 15693 Interface",
+            "OTA Firmware Update for Embedded Devices",
+        ],
+        "design_element_titles": [
+            "Coin Acceptor + Solenoid Dispenser Vending Mechanism",
+            "MFRC522 RFID Card Reader (NTAG216)",
+            "Arduino Mega 2560 MCU Platform",
+            "ESP32 WiFi + MQTT IoT Telemetry",
+            "OTA HTTPS Dual-Bank Firmware Update",
+            "MQTT QoS-1 Secure Event Logger",
+            "NTP UTC Timestamped Data Logging",
+        ],
+        "element_usage_notes": {
+            "Coin Acceptor + Solenoid Dispenser Vending Mechanism": (
+                "5-lane solenoid dispensers; coin acceptor UART @ 9600 baud."
+            ),
+            "Arduino Mega 2560 MCU Platform": (
+                "Handles coin/RFID validation and lane control; ESP32 co-processor for WiFi/MQTT."
+            ),
+        },
+    },
+
+    {
+        "title": "BLE Hand-Gesture Glove Controller",
+        "description": (
+            "Wearable glove embedding five-channel flex sensors and MPU-6050 IMU to map hand "
+            "gestures to servo commands. Streams gesture data over BLE for robot arm or "
+            "prosthetic control applications."
+        ),
+        "objective": (
+            "Recognise 8 distinct static gestures; ≤ 50 ms BLE latency; ≥ 8 h battery; "
+            "10 m BLE range."
+        ),
+        "constraints": "Fits adult size-M glove; Li-Po ≤ 200 mAh; USB-C charge; no skin electrodes.",
+        "domain": "systems",
+        "status": "completed",
+        "supporting_fact_titles": [
+            "Bluetooth Low Energy (BLE) for App Control",
+            "IMU (Inertial Measurement Unit) for Robot Navigation",
+            "RC Servo Motor PWM Control",
+        ],
+        "design_element_titles": [
+            "Flex Sensor Hand-Gesture Glove Interface",
+            "MPU-6050 IMU Gyro + Accel (I²C)",
+            "BLE GATT Smartphone App Interface",
+            "RC Servo Joint Actuator",
+            "Li-Po 3.7 V USB-C Rechargeable Battery Pack",
+        ],
+        "element_usage_notes": {
+            "Flex Sensor Hand-Gesture Glove Interface": (
+                "Five 2.2-inch flex sensors; ADC averaged over 16 samples; 10 kΩ voltage divider."
+            ),
+            "RC Servo Joint Actuator": (
+                "Mapped to prosthetic finger tendons via Bowden cable; 1 servo per digit."
+            ),
+        },
+    },
+
+    {
+        "title": "UV-C Automated Sterilisation Cabinet",
+        "description": (
+            "Enclosed UV-C LED cabinet with PIR door-occupancy interlock, timed sterilisation "
+            "cycle controller, OLED status display, and MQTT audit log. Suitable for tools, "
+            "masks, or small medical equipment."
+        ),
+        "objective": (
+            "≥ 99.9 % microbial reduction in ≤ 10 min at 275 nm; door interlock prevents UV "
+            "exposure to occupants; ≥ 1000 h LED rated life."
+        ),
+        "constraints": "40×30×20 cm internal; 230 V mains; ≤ £60; CE safety markings.",
+        "domain": "systems",
+        "status": "completed",
+        "supporting_fact_titles": [
+            "MQTT Protocol for IoT Sensor Data",
+            "N-Channel MOSFET as a Low-Side Power Switch",
+        ],
+        "design_element_titles": [
+            "UV-C LED Germicidal + Ozone Sterilisation Module",
+            "PIR HC-SR501 Motion Detection Module",
+            "N-Channel MOSFET Low-Side Load Switch",
+            "ESP32 WiFi + MQTT IoT Telemetry",
+            "MQTT QoS-1 Secure Event Logger",
+            "NTP UTC Timestamped Data Logging",
+        ],
+        "element_usage_notes": {
+            "UV-C LED Germicidal + Ozone Sterilisation Module": (
+                "Six 3 W LEDs at 275 nm; timed 10-min cycle; PWM dimming for dose control."
+            ),
+            "PIR HC-SR501 Motion Detection Module": (
+                "Door-open proxy; HIGH output immediately kills UV driver via MOSFET."
+            ),
+        },
+    },
+
+    {
+        "title": "Voice-Controlled Home Automation Hub",
+        "description": (
+            "Offline voice recognition controller switching mains loads (lights, fans, pumps) "
+            "via solid-state relays, with MQTT status reporting and BLE fallback app control. "
+            "No cloud dependency."
+        ),
+        "objective": (
+            "Recognise 10 voice commands offline; ≤ 500 ms response; control ≥ 4 mains "
+            "channels; ≥ 30 operations/day."
+        ),
+        "constraints": "230 V; DIN-rail mount; no cloud dependency; CE-compliant; ≤ £45 BOM.",
+        "domain": "systems",
+        "status": "in_design",
+        "supporting_fact_titles": [
+            "MQTT Protocol for IoT Sensor Data",
+            "Bluetooth Low Energy (BLE) for App Control",
+        ],
+        "design_element_titles": [
+            "Voice Recognition UART Speech Module",
+            "Solid-State Relay Mains Actuator Switching",
+            "ESP32 WiFi + MQTT IoT Telemetry",
+            "BLE GATT Smartphone App Interface",
+            "MQTT QoS-1 Secure Event Logger",
+        ],
+        "element_usage_notes": {
+            "Voice Recognition UART Speech Module": (
+                "LD3320 UART @ 9600 baud; 20-word vocabulary; 1-shot user retrain supported."
+            ),
+            "Solid-State Relay Mains Actuator Switching": (
+                "4-channel SSR board; 230 V / 10 A per channel; zero-cross switching."
+            ),
+        },
+    },
+
+    {
+        "title": "Wireless Temperature and Gas Monitoring Node",
+        "description": (
+            "Battery-powered wireless sensor node detecting combustible gas and temperature "
+            "with MQ-3 sensor and nRF24L01 link to a central hub. Relay alarm triggered on "
+            "threshold breach; deep sleep between measurements for long battery life."
+        ),
+        "objective": (
+            "Detect ≥ 100 ppm alcohol/combustible gas in ≤ 5 s; transmit alert in ≤ 500 ms; "
+            "≥ 6-month battery at 1-min sensing interval."
+        ),
+        "constraints": "3× AA alkaline; ≤ £15 per node; ≤ 50 m indoor range; IP30.",
+        "domain": "systems",
+        "status": "completed",
+        "supporting_fact_titles": [
+            "MQTT Protocol for IoT Sensor Data",
+            "ADC Resolution and Measurement Precision",
+        ],
+        "design_element_titles": [
+            "MQ-3 Alcohol and Combustible Gas Sensor",
+            "nRF24L01 2.4 GHz RF Transceiver Link",
+            "Arduino Uno/Nano MCU Platform",
+            "MCU Deep-Sleep Duty Cycle Power Management",
+        ],
+        "element_usage_notes": {
+            "MQ-3 Alcohol and Combustible Gas Sensor": (
+                "RS/R0 threshold 0.4 for alarm; 30 s preheat on wake-up before sample."
+            ),
+            "nRF24L01 2.4 GHz RF Transceiver Link": (
+                "PTX mode; 1-min intervals; hub is PRX coordinator; auto-ACK 250 kbps."
+            ),
+        },
+    },
 ]
