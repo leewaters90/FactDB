@@ -1,5 +1,8 @@
 """
-Repository layer — CRUD operations for Project and DesignDecision.
+Repository layer — CRUD for Project, DesignElement, and their associations.
+
+All methods accept a SQLAlchemy Session; the caller controls transaction
+boundaries (call ``session.commit()`` after operations).
 """
 
 from __future__ import annotations
@@ -9,30 +12,130 @@ from typing import List, Optional, Sequence
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from factdb.models import Fact
+from factdb.models import EngineeringDomain, Fact
 from factdb.project_models import (
     ComponentCategory,
-    DesignDecision,
+    DesignElement,
     Project,
+    ProjectDesignElement,
     ProjectStatus,
 )
 
 
 class ProjectRepository:
     """
-    CRUD operations on :class:`~factdb.project_models.Project` and
-    :class:`~factdb.project_models.DesignDecision`.
-
-    The caller controls transaction boundaries (call ``session.commit()``
-    after operations).
+    CRUD + linking operations on Projects, DesignElements, and their
+    many-to-many associations.
     """
 
     def __init__(self, session: Session) -> None:
         self.session = session
 
-    # ------------------------------------------------------------------
-    # Project — Create
-    # ------------------------------------------------------------------
+    # ==================================================================
+    # DesignElement — Create / Read / List
+    # ==================================================================
+
+    def create_design_element(
+        self,
+        title: str,
+        selected_approach: str,
+        component_category: ComponentCategory = ComponentCategory.SENSING,
+        design_question: str | None = None,
+        rationale: str | None = None,
+        alternatives: list[dict] | None = None,
+        verification_notes: str | None = None,
+        supporting_fact_titles: List[str] | None = None,
+    ) -> DesignElement:
+        """
+        Create a new standalone, reusable DesignElement.
+
+        Args:
+            title:                  Unique short title (used as the lookup key).
+            selected_approach:      The chosen design approach (required).
+            component_category:     Category of the component being designed.
+            design_question:        The engineering question being answered.
+            rationale:              Why this approach was selected.
+            alternatives:           List of ``{approach, reason_rejected}`` dicts.
+            verification_notes:     Notes from fact / reasoning verification.
+            supporting_fact_titles: Titles of Fact records that back this decision.
+
+        Returns:
+            The new :class:`~factdb.project_models.DesignElement`.
+        """
+        element = DesignElement(
+            title=title,
+            selected_approach=selected_approach,
+            component_category=component_category,
+            design_question=design_question,
+            rationale=rationale,
+            verification_notes=verification_notes,
+        )
+        if alternatives:
+            element.set_alternatives(alternatives)
+
+        self.session.add(element)
+        self.session.flush()
+
+        if supporting_fact_titles:
+            self._attach_facts_to_element(element, supporting_fact_titles)
+
+        return element
+
+    def get_design_element(self, element_id: str) -> Optional[DesignElement]:
+        """Return a DesignElement by primary key, or None."""
+        return self.session.get(DesignElement, element_id)
+
+    def get_design_element_by_title(self, title: str) -> Optional[DesignElement]:
+        """Return a DesignElement by exact title, or None."""
+        return self.session.execute(
+            select(DesignElement).where(DesignElement.title == title)
+        ).scalar_one_or_none()
+
+    def get_or_create_design_element(
+        self, title: str, **kwargs
+    ) -> tuple[DesignElement, bool]:
+        """
+        Return an existing DesignElement by title, or create a new one.
+
+        Returns:
+            Tuple of (element, created) where ``created`` is True if the
+            element was newly inserted.
+        """
+        element = self.get_design_element_by_title(title)
+        if element is not None:
+            return element, False
+        element = self.create_design_element(title=title, **kwargs)
+        return element, True
+
+    def list_design_elements(
+        self,
+        component_category: ComponentCategory | None = None,
+        limit: int = 500,
+        offset: int = 0,
+    ) -> Sequence[DesignElement]:
+        """Return DesignElements, optionally filtered by category."""
+        stmt = select(DesignElement)
+        if component_category is not None:
+            stmt = stmt.where(
+                DesignElement.component_category == component_category
+            )
+        stmt = stmt.order_by(DesignElement.component_category, DesignElement.title)
+        stmt = stmt.offset(offset).limit(limit)
+        return self.session.execute(stmt).scalars().all()
+
+    def get_projects_using_element(self, element_id: str) -> list[Project]:
+        """Return all Projects that include the given DesignElement."""
+        stmt = (
+            select(Project)
+            .join(Project.element_links)
+            .where(ProjectDesignElement.element_id == element_id)
+            .order_by(Project.title)
+        )
+        return list(self.session.execute(stmt).scalars().all())
+
+    # ==================================================================
+    # Project — Create / Read / List / Update
+    # ==================================================================
 
     def create_project(
         self,
@@ -46,23 +149,23 @@ class ProjectRepository:
         supporting_fact_titles: List[str] | None = None,
     ) -> Project:
         """
-        Create a new Project record.
+        Create a new Project record (without design elements).
+
+        Use :meth:`link_element_to_project` to attach elements after creation.
 
         Args:
             title:                   Unique short title.
-            description:             Full description of the project.
+            description:             Full description.
             objective:               Primary engineering objective.
-            constraints:             Design constraints (budget, size, power…).
+            constraints:             Design constraints.
             domain:                  Engineering domain string or enum value.
             status:                  Initial lifecycle status.
             created_by:              Author identity.
-            supporting_fact_titles:  Titles of facts that underpin the project.
+            supporting_fact_titles:  Project-level fact references.
 
         Returns:
-            The newly created :class:`~factdb.project_models.Project` instance.
+            The new :class:`~factdb.project_models.Project`.
         """
-        from factdb.models import EngineeringDomain
-
         project = Project(
             title=title,
             description=description,
@@ -80,16 +183,12 @@ class ProjectRepository:
 
         return project
 
-    # ------------------------------------------------------------------
-    # Project — Read
-    # ------------------------------------------------------------------
-
     def get_project(self, project_id: str) -> Optional[Project]:
         """Return a Project by primary key, or None."""
         return self.session.get(Project, project_id)
 
     def get_project_by_title(self, title: str) -> Optional[Project]:
-        """Return a Project by title, or None."""
+        """Return a Project by exact title, or None."""
         return self.session.execute(
             select(Project).where(Project.title == title)
         ).scalar_one_or_none()
@@ -101,7 +200,7 @@ class ProjectRepository:
         limit: int = 100,
         offset: int = 0,
     ) -> Sequence[Project]:
-        """Return filtered projects ordered by creation time."""
+        """Return projects filtered by status and/or domain."""
         stmt = select(Project)
         if status is not None:
             stmt = stmt.where(Project.status == status)
@@ -110,21 +209,15 @@ class ProjectRepository:
         stmt = stmt.order_by(Project.created_at).offset(offset).limit(limit)
         return self.session.execute(stmt).scalars().all()
 
-    # ------------------------------------------------------------------
-    # Project — Update
-    # ------------------------------------------------------------------
-
-    def update_project(
-        self, project_id: str, **fields
-    ) -> Project:
+    def update_project(self, project_id: str, **fields) -> Project:
         """
-        Update mutable fields on an existing Project.
+        Update mutable fields on a Project.
 
-        Supported keyword arguments: title, description, objective,
-        constraints, domain, status, supporting_fact_titles.
+        Supported keyword fields: title, description, objective, constraints,
+        domain, status, supporting_fact_titles.
 
         Raises:
-            ValueError: If the project is not found.
+            ValueError: if the project is not found.
         """
         project = self.get_project(project_id)
         if project is None:
@@ -136,11 +229,8 @@ class ProjectRepository:
 
         if "status" in fields:
             project.status = ProjectStatus(fields["status"])
-
         if "domain" in fields:
-            from factdb.models import EngineeringDomain
             project.domain = EngineeringDomain(fields["domain"])
-
         if "supporting_fact_titles" in fields:
             project.supporting_facts.clear()
             self._attach_facts_to_project(project, fields["supporting_fact_titles"])
@@ -148,95 +238,77 @@ class ProjectRepository:
         self.session.flush()
         return project
 
-    # ------------------------------------------------------------------
-    # DesignDecision — Create
-    # ------------------------------------------------------------------
+    # ==================================================================
+    # Project ↔ DesignElement association
+    # ==================================================================
 
-    def add_design_decision(
+    def link_element_to_project(
         self,
         project_id: str,
-        title: str,
-        selected_approach: str,
-        component_category: ComponentCategory = ComponentCategory.SENSING,
-        design_question: str | None = None,
-        rationale: str | None = None,
-        alternatives: list[dict] | None = None,
-        verification_notes: str | None = None,
-        supporting_fact_titles: List[str] | None = None,
-    ) -> DesignDecision:
+        element_id: str,
+        usage_notes: str | None = None,
+    ) -> ProjectDesignElement:
         """
-        Add a design decision to a project.
+        Link a DesignElement to a Project, optionally with project-specific
+        ``usage_notes``.
+
+        Idempotent: if the link already exists, it is returned unchanged
+        (usage_notes is not overwritten).
 
         Args:
-            project_id:            PK of the owning project.
-            title:                 Short title of the decision.
-            selected_approach:     The chosen design approach.
-            component_category:    Category of the component being designed.
-            design_question:       The question being answered.
-            rationale:             Why this approach was chosen.
-            alternatives:          List of ``{approach, reason_rejected}`` dicts.
-            verification_notes:    Notes from fact / reasoning verification.
-            supporting_fact_titles: Titles of facts supporting this decision.
+            project_id:   PK of the Project.
+            element_id:   PK of the DesignElement.
+            usage_notes:  Optional project-specific context.
 
         Returns:
-            The new :class:`~factdb.project_models.DesignDecision` instance.
+            The :class:`~factdb.project_models.ProjectDesignElement` link.
 
         Raises:
-            ValueError: If the project is not found.
+            ValueError: if either record is not found.
         """
         if self.get_project(project_id) is None:
             raise ValueError(f"Project not found: {project_id!r}")
+        if self.get_design_element(element_id) is None:
+            raise ValueError(f"DesignElement not found: {element_id!r}")
 
-        decision = DesignDecision(
-            project_id=project_id,
-            title=title,
-            selected_approach=selected_approach,
-            component_category=component_category,
-            design_question=design_question,
-            rationale=rationale,
-            verification_notes=verification_notes,
-        )
-        if alternatives:
-            decision.set_alternatives(alternatives)
-
-        self.session.add(decision)
-        self.session.flush()
-
-        if supporting_fact_titles:
-            self._attach_facts_to_decision(decision, supporting_fact_titles)
-
-        return decision
-
-    # ------------------------------------------------------------------
-    # DesignDecision — Read
-    # ------------------------------------------------------------------
-
-    def get_decision(self, decision_id: str) -> Optional[DesignDecision]:
-        """Return a DesignDecision by primary key, or None."""
-        return self.session.get(DesignDecision, decision_id)
-
-    def list_decisions(
-        self,
-        project_id: str,
-        component_category: ComponentCategory | None = None,
-    ) -> Sequence[DesignDecision]:
-        """Return design decisions for a project, optionally filtered by category."""
-        stmt = select(DesignDecision).where(
-            DesignDecision.project_id == project_id
-        )
-        if component_category is not None:
-            stmt = stmt.where(
-                DesignDecision.component_category == component_category
+        # Check for existing link
+        existing = self.session.execute(
+            select(ProjectDesignElement).where(
+                ProjectDesignElement.project_id == project_id,
+                ProjectDesignElement.element_id == element_id,
             )
-        stmt = stmt.order_by(DesignDecision.created_at)
-        return self.session.execute(stmt).scalars().all()
+        ).scalar_one_or_none()
+        if existing is not None:
+            return existing
 
-    # ------------------------------------------------------------------
+        link = ProjectDesignElement(
+            project_id=project_id,
+            element_id=element_id,
+            usage_notes=usage_notes,
+        )
+        self.session.add(link)
+        self.session.flush()
+        return link
+
+    def unlink_element_from_project(
+        self, project_id: str, element_id: str
+    ) -> None:
+        """Remove the link between a project and a design element (if it exists)."""
+        link = self.session.execute(
+            select(ProjectDesignElement).where(
+                ProjectDesignElement.project_id == project_id,
+                ProjectDesignElement.element_id == element_id,
+            )
+        ).scalar_one_or_none()
+        if link is not None:
+            self.session.delete(link)
+            self.session.flush()
+
+    # ==================================================================
     # Internal helpers
-    # ------------------------------------------------------------------
+    # ==================================================================
 
     def _resolve_facts(self, titles: List[str]) -> list[Fact]:
-        """Resolve fact titles to Fact instances (silently skips missing)."""
         facts = []
         for title in titles:
             fact = self.session.execute(
@@ -254,10 +326,10 @@ class ProjectRepository:
                 project.supporting_facts.append(fact)
         self.session.flush()
 
-    def _attach_facts_to_decision(
-        self, decision: DesignDecision, titles: List[str]
+    def _attach_facts_to_element(
+        self, element: DesignElement, titles: List[str]
     ) -> None:
         for fact in self._resolve_facts(titles):
-            if fact not in decision.supporting_facts:
-                decision.supporting_facts.append(fact)
+            if fact not in element.supporting_facts:
+                element.supporting_facts.append(fact)
         self.session.flush()

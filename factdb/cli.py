@@ -96,6 +96,30 @@ def seed(ctx):
 
 
 # ---------------------------------------------------------------------------
+# seed-devices
+# ---------------------------------------------------------------------------
+
+
+@cli.command("seed-devices")
+@click.pass_context
+def seed_devices_cmd(ctx):
+    """Seed the database with device-domain engineering facts."""
+    from factdb.device_seeder import seed_devices
+
+    reset_engine()
+    init_db(ctx.obj.get("db"))
+    session = _make_session(ctx.obj.get("db"))
+    try:
+        result = seed_devices(session)
+        click.echo(
+            f"Device facts seeded: {result['created']} created, "
+            f"{result['skipped']} skipped, "
+            f"{result['relationships']} relationships created."
+        )
+    finally:
+        session.close()
+
+# ---------------------------------------------------------------------------
 # search
 # ---------------------------------------------------------------------------
 
@@ -469,6 +493,162 @@ def _print_facts_table(facts) -> None:
         )
     )
     click.echo(f"\n{len(facts)} fact(s) found.")
+
+
+# ---------------------------------------------------------------------------
+# seed-projects
+# ---------------------------------------------------------------------------
+
+
+@cli.command("seed-projects")
+@click.pass_context
+def seed_projects_cmd(ctx):
+    """Seed shared DesignElements and mechatronics project designs."""
+    from factdb.project_seeder import seed_projects
+
+    reset_engine()
+    init_db(ctx.obj.get("db"))
+    session = _make_session(ctx.obj.get("db"))
+    try:
+        result = seed_projects(session)
+        click.echo(
+            f"DesignElements: {result['elements_created']} created, "
+            f"{result['elements_skipped']} skipped."
+        )
+        click.echo(
+            f"Projects: {result['projects_created']} created, "
+            f"{result['projects_skipped']} skipped."
+        )
+        click.echo(f"Project-element links: {result['links_created']} processed.")
+    finally:
+        session.close()
+
+
+# ---------------------------------------------------------------------------
+# list-projects
+# ---------------------------------------------------------------------------
+
+
+@cli.command("list-projects")
+@click.option("--status", default=None, help="Filter by project status.")
+@click.option("--domain", default=None, help="Filter by engineering domain.")
+@click.option("--limit", default=50, show_default=True)
+@click.option("--json", "as_json", is_flag=True, help="Output as JSON.")
+@click.pass_context
+def list_projects_cmd(ctx, status, domain, limit, as_json):
+    """List mechatronics projects."""
+    from factdb.project_models import ProjectStatus
+    from factdb.project_repository import ProjectRepository
+
+    reset_engine()
+    init_db(ctx.obj.get("db"))
+    session = _make_session(ctx.obj.get("db"))
+    try:
+        repo = ProjectRepository(session)
+        status_enum = ProjectStatus(status) if status else None
+        projects = repo.list_projects(status=status_enum, domain=domain, limit=limit)
+        if not projects:
+            click.echo("No projects found.")
+            return
+        if as_json:
+            click.echo(json.dumps([p.to_dict() for p in projects], indent=2))
+        else:
+            rows = [
+                [
+                    p.id[:8] + "…",
+                    _val(p.domain),
+                    _val(p.status),
+                    len(p.element_links),
+                    p.title[:60],
+                ]
+                for p in projects
+            ]
+            click.echo(tabulate(rows, headers=["ID", "Domain", "Status", "Elements", "Title"]))
+            click.echo(f"\n{len(projects)} project(s) found.")
+    finally:
+        session.close()
+
+
+# ---------------------------------------------------------------------------
+# show-project
+# ---------------------------------------------------------------------------
+
+
+@cli.command("show-project")
+@click.argument("project_title")
+@click.pass_context
+def show_project_cmd(ctx, project_title):
+    """Show full details of a project including its design elements."""
+    from factdb.project_repository import ProjectRepository
+
+    reset_engine()
+    init_db(ctx.obj.get("db"))
+    session = _make_session(ctx.obj.get("db"))
+    try:
+        repo = ProjectRepository(session)
+        project = repo.get_project_by_title(project_title)
+        if project is None:
+            click.echo(f"Project not found: {project_title!r}", err=True)
+            sys.exit(1)
+        click.echo(f"\n{'='*70}")
+        click.echo(f"  {project.title}")
+        click.echo(f"{'='*70}")
+        click.echo(f"  Status  : {_val(project.status)}")
+        click.echo(f"  Domain  : {_val(project.domain)}")
+        click.echo(f"  Objective: {project.objective or '—'}")
+        click.echo(f"  Constraints: {project.constraints or '—'}")
+        click.echo(f"\n  Description:\n    {project.description}")
+        click.echo(f"\n  Design Elements ({len(project.element_links)}):")
+        for link in project.element_links:
+            el = link.element
+            note = f"  [{link.usage_notes}]" if link.usage_notes else ""
+            click.echo(f"    [{_val(el.component_category):14}] {el.title}{note}")
+        click.echo(f"{'='*70}\n")
+    finally:
+        session.close()
+
+
+# ---------------------------------------------------------------------------
+# list-elements
+# ---------------------------------------------------------------------------
+
+
+@cli.command("list-elements")
+@click.option("--category", default=None, help="Filter by component category.")
+@click.option("--limit", default=100, show_default=True)
+@click.option("--json", "as_json", is_flag=True, help="Output as JSON.")
+@click.pass_context
+def list_elements_cmd(ctx, category, limit, as_json):
+    """List shared design elements."""
+    from factdb.project_models import ComponentCategory
+    from factdb.project_repository import ProjectRepository
+
+    reset_engine()
+    init_db(ctx.obj.get("db"))
+    session = _make_session(ctx.obj.get("db"))
+    try:
+        repo = ProjectRepository(session)
+        cat_enum = ComponentCategory(category) if category else None
+        elements = repo.list_design_elements(component_category=cat_enum, limit=limit)
+        if not elements:
+            click.echo("No design elements found.")
+            return
+        if as_json:
+            click.echo(json.dumps([e.to_dict() for e in elements], indent=2))
+        else:
+            rows = [
+                [
+                    e.id[:8] + "…",
+                    _val(e.component_category),
+                    len(e.project_links),
+                    e.title[:60],
+                ]
+                for e in elements
+            ]
+            click.echo(tabulate(rows, headers=["ID", "Category", "Projects", "Title"]))
+            click.echo(f"\n{len(elements)} element(s) found.")
+    finally:
+        session.close()
 
 
 if __name__ == "__main__":

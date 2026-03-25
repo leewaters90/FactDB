@@ -1,12 +1,21 @@
 """
-Project and Design Decision ORM models for FactDB.
+Project and DesignElement ORM models for FactDB.
 
-Hierarchy:
-    Project
-    └── DesignDecision  (one project has many decisions)
+Architecture
+------------
+DesignElement
+    A reusable, standalone component or subsystem design decision.
+    One DesignElement can appear in many Projects (many-to-many).
 
-Both Project and DesignDecision carry many-to-many links to Fact records
-so that designs are anchored to the verified fact knowledge base.
+ProjectDesignElement  (association object)
+    Joins Project ↔ DesignElement and carries optional ``usage_notes``
+    describing how this particular project uses the element.
+
+Project
+    A mechatronics design project composed of DesignElements.
+
+Both Project and DesignElement carry many-to-many links to Fact records
+so every design choice is anchored to the verified fact knowledge base.
 """
 
 from __future__ import annotations
@@ -18,14 +27,11 @@ from enum import Enum as PyEnum
 from typing import Any
 
 from sqlalchemy import (
-    Boolean,
     Column,
     DateTime,
     Enum,
-    Float,
     ForeignKey,
     Index,
-    Integer,
     String,
     Table,
     Text,
@@ -52,7 +58,7 @@ class ProjectStatus(str, PyEnum):
 
 
 class ComponentCategory(str, PyEnum):
-    """High-level category of a design decision within a project."""
+    """High-level category of a design element."""
 
     POWER = "power"
     SENSING = "sensing"
@@ -65,10 +71,9 @@ class ComponentCategory(str, PyEnum):
 
 
 # ---------------------------------------------------------------------------
-# Association tables
+# Association: Project ↔ Fact  (many-to-many)
 # ---------------------------------------------------------------------------
 
-# Project ↔ Fact  (many-to-many: which facts underpin this project overall)
 project_fact_association = Table(
     "project_facts",
     Base.metadata,
@@ -87,14 +92,17 @@ project_fact_association = Table(
     UniqueConstraint("project_id", "fact_id", name="uq_project_fact"),
 )
 
-# DesignDecision ↔ Fact  (many-to-many: which facts support this decision)
-design_decision_fact_association = Table(
-    "design_decision_facts",
+# ---------------------------------------------------------------------------
+# Association: DesignElement ↔ Fact  (many-to-many)
+# ---------------------------------------------------------------------------
+
+design_element_fact_association = Table(
+    "design_element_facts",
     Base.metadata,
     Column(
-        "decision_id",
+        "element_id",
         String(36),
-        ForeignKey("design_decisions.id", ondelete="CASCADE"),
+        ForeignKey("design_elements.id", ondelete="CASCADE"),
         nullable=False,
     ),
     Column(
@@ -103,8 +111,149 @@ design_decision_fact_association = Table(
         ForeignKey("facts.id", ondelete="CASCADE"),
         nullable=False,
     ),
-    UniqueConstraint("decision_id", "fact_id", name="uq_decision_fact"),
+    UniqueConstraint("element_id", "fact_id", name="uq_element_fact"),
 )
+
+
+# ---------------------------------------------------------------------------
+# DesignElement — reusable, shared across projects
+# ---------------------------------------------------------------------------
+
+
+class DesignElement(Base):
+    """
+    A reusable design element (component/subsystem design decision).
+
+    DesignElements are *shared* — the same element (e.g.
+    "ESP32 WiFi + MQTT Telemetry") can be linked to many Projects.
+    Project-specific context is stored in the :class:`ProjectDesignElement`
+    association object rather than here.
+    """
+
+    __tablename__ = "design_elements"
+    __table_args__ = (
+        Index("ix_design_elements_category", "component_category"),
+    )
+
+    id: str = Column(String(36), primary_key=True, default=_new_uuid)
+
+    # --- Identity ---
+    title: str = Column(String(300), nullable=False, unique=True, index=True)
+    component_category: str = Column(
+        Enum(ComponentCategory),
+        nullable=False,
+        default=ComponentCategory.SENSING,
+        index=True,
+    )
+
+    # --- Design content ---
+    design_question: str = Column(Text, nullable=True)
+    selected_approach: str = Column(Text, nullable=False)
+    rationale: str = Column(Text, nullable=True)
+    alternatives_json: str = Column(Text, nullable=True)   # JSON array of {approach, reason_rejected}
+    verification_notes: str = Column(Text, nullable=True)
+
+    # --- Timestamps ---
+    created_at: datetime = Column(
+        DateTime(timezone=True), nullable=False, default=_utcnow
+    )
+
+    # --- Relationships ---
+    project_links = relationship(
+        "ProjectDesignElement",
+        back_populates="element",
+        cascade="all, delete-orphan",
+    )
+    supporting_facts = relationship(
+        "Fact",
+        secondary=design_element_fact_association,
+        passive_deletes=True,
+    )
+
+    # ------------------------------------------------------------------
+    # Helpers for the JSON alternatives field
+    # ------------------------------------------------------------------
+
+    def set_alternatives(self, alternatives: list[dict[str, str]]) -> None:
+        """Store a list of alternative dicts as JSON."""
+        self.alternatives_json = json.dumps(alternatives, ensure_ascii=False)
+
+    def get_alternatives(self) -> list[dict[str, Any]]:
+        """Return the list of alternative approaches (empty list if none)."""
+        if not self.alternatives_json:
+            return []
+        return json.loads(self.alternatives_json)
+
+    @property
+    def projects(self) -> list["Project"]:
+        """Return all Projects that use this element."""
+        return [link.project for link in self.project_links]
+
+    def __repr__(self) -> str:
+        return (
+            f"<DesignElement title={self.title!r} "
+            f"category={self.component_category!r}>"
+        )
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "title": self.title,
+            "component_category": self.component_category,
+            "design_question": self.design_question,
+            "selected_approach": self.selected_approach,
+            "rationale": self.rationale,
+            "alternatives": self.get_alternatives(),
+            "verification_notes": self.verification_notes,
+            "supporting_fact_titles": [f.title for f in self.supporting_facts],
+            "used_in_projects": [link.project.title for link in self.project_links],
+        }
+
+
+# ---------------------------------------------------------------------------
+# ProjectDesignElement — association object (carries usage_notes)
+# ---------------------------------------------------------------------------
+
+
+class ProjectDesignElement(Base):
+    """
+    Association between a Project and a DesignElement.
+
+    ``usage_notes`` records how *this project* uses the shared element —
+    e.g. a variant component value, a project-specific trade-off note, or
+    an integration detail not captured in the element's generic description.
+    """
+
+    __tablename__ = "project_design_elements"
+    __table_args__ = (
+        UniqueConstraint(
+            "project_id", "element_id", name="uq_project_design_element"
+        ),
+        Index("ix_pde_project_id", "project_id"),
+        Index("ix_pde_element_id", "element_id"),
+    )
+
+    id: str = Column(String(36), primary_key=True, default=_new_uuid)
+    project_id: str = Column(
+        String(36),
+        ForeignKey("projects.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    element_id: str = Column(
+        String(36),
+        ForeignKey("design_elements.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    usage_notes: str = Column(Text, nullable=True)
+
+    project = relationship("Project", back_populates="element_links")
+    element = relationship("DesignElement", back_populates="project_links")
+
+    def __repr__(self) -> str:
+        return (
+            f"<ProjectDesignElement project={self.project_id!r} "
+            f"element={self.element_id!r}>"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -116,9 +265,10 @@ class Project(Base):
     """
     A mechatronics design project.
 
-    Captures the overall goal, constraints, and selected domain, and links
-    to the DesignDecision records that describe each component / subsystem
-    choice.
+    Composed of zero or more :class:`DesignElement` records (many-to-many),
+    accessed through :class:`ProjectDesignElement` association objects.
+    Each element in the composition may carry project-specific
+    ``usage_notes``.
     """
 
     __tablename__ = "projects"
@@ -158,11 +308,11 @@ class Project(Base):
     created_by: str = Column(String(200), nullable=True)
 
     # --- Relationships ---
-    designs = relationship(
-        "DesignDecision",
+    element_links = relationship(
+        "ProjectDesignElement",
         back_populates="project",
         cascade="all, delete-orphan",
-        order_by="DesignDecision.created_at",
+        order_by="ProjectDesignElement.id",
     )
     supporting_facts = relationship(
         "Fact",
@@ -170,11 +320,15 @@ class Project(Base):
         passive_deletes=True,
     )
 
+    @property
+    def elements(self) -> list[DesignElement]:
+        """Return all DesignElements used by this project (ordered by link id)."""
+        return [link.element for link in self.element_links]
+
     def __repr__(self) -> str:
         return f"<Project title={self.title!r} status={self.status!r}>"
 
     def to_dict(self) -> dict:
-        """Serialise to a plain dictionary."""
         return {
             "id": self.id,
             "title": self.title,
@@ -186,97 +340,12 @@ class Project(Base):
             "created_by": self.created_by,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "supporting_fact_titles": [f.title for f in self.supporting_facts],
-            "designs": [d.to_dict() for d in self.designs],
-        }
-
-
-# ---------------------------------------------------------------------------
-# DesignDecision
-# ---------------------------------------------------------------------------
-
-
-class DesignDecision(Base):
-    """
-    A single component or subsystem design decision within a Project.
-
-    Records the design question, the selected approach with rationale,
-    alternative approaches considered (and why they were rejected), and
-    links to the Fact records used to verify the decision.
-    """
-
-    __tablename__ = "design_decisions"
-    __table_args__ = (
-        Index("ix_design_decisions_project_category", "project_id", "component_category"),
-    )
-
-    id: str = Column(String(36), primary_key=True, default=_new_uuid)
-    project_id: str = Column(
-        String(36),
-        ForeignKey("projects.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
-    )
-
-    # --- Content ---
-    title: str = Column(String(300), nullable=False)
-    component_category: str = Column(
-        Enum(ComponentCategory),
-        nullable=False,
-        default=ComponentCategory.SENSING,
-        index=True,
-    )
-    design_question: str = Column(Text, nullable=True)
-    selected_approach: str = Column(Text, nullable=False)
-    rationale: str = Column(Text, nullable=True)
-
-    # Stored as a JSON array of {approach, reason_rejected} objects
-    alternatives_json: str = Column(Text, nullable=True)
-
-    verification_notes: str = Column(Text, nullable=True)
-
-    # --- Timestamps ---
-    created_at: datetime = Column(
-        DateTime(timezone=True), nullable=False, default=_utcnow
-    )
-
-    # --- Relationships ---
-    project = relationship("Project", back_populates="designs")
-    supporting_facts = relationship(
-        "Fact",
-        secondary=design_decision_fact_association,
-        passive_deletes=True,
-    )
-
-    # ------------------------------------------------------------------
-    # Helpers for the JSON alternatives field
-    # ------------------------------------------------------------------
-
-    def set_alternatives(self, alternatives: list[dict[str, str]]) -> None:
-        """Store a list of alternative dicts as JSON."""
-        self.alternatives_json = json.dumps(alternatives)
-
-    def get_alternatives(self) -> list[dict[str, Any]]:
-        """Return the list of alternative approaches (empty list if none)."""
-        if not self.alternatives_json:
-            return []
-        return json.loads(self.alternatives_json)
-
-    def __repr__(self) -> str:
-        return (
-            f"<DesignDecision project_id={self.project_id!r} "
-            f"title={self.title!r} category={self.component_category!r}>"
-        )
-
-    def to_dict(self) -> dict:
-        return {
-            "id": self.id,
-            "project_id": self.project_id,
-            "title": self.title,
-            "component_category": self.component_category,
-            "design_question": self.design_question,
-            "selected_approach": self.selected_approach,
-            "rationale": self.rationale,
-            "alternatives": self.get_alternatives(),
-            "verification_notes": self.verification_notes,
-            "supporting_fact_titles": [f.title for f in self.supporting_facts],
+            "design_elements": [
+                {
+                    "title": link.element.title,
+                    "category": link.element.component_category,
+                    "usage_notes": link.usage_notes,
+                }
+                for link in self.element_links
+            ],
         }

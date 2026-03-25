@@ -19,7 +19,15 @@ from factdb.models import (
     RelationshipType,
     EngineeringDomain,
 )
+from factdb.project_models import (
+    Project,
+    DesignElement,
+    ProjectDesignElement,
+    ProjectStatus,
+    ComponentCategory,
+)
 from factdb.repository import FactRepository
+from factdb.project_repository import ProjectRepository
 from factdb.search import FactSearch
 from factdb.verification import VerificationWorkflow
 from factdb.reasoning import ReasoningEngine
@@ -37,7 +45,13 @@ __all__ = [
     "VerificationStatus",
     "RelationshipType",
     "EngineeringDomain",
+    "Project",
+    "DesignElement",
+    "ProjectDesignElement",
+    "ProjectStatus",
+    "ComponentCategory",
     "FactRepository",
+    "ProjectRepository",
     "FactSearch",
     "VerificationWorkflow",
     "ReasoningEngine",
