@@ -106,12 +106,13 @@ class TestDesignElementCreate:
         assert repo.get_design_element_by_title("No Such Element") is None
 
     def test_title_uniqueness(self, db_session):
+        from sqlalchemy.exc import IntegrityError
+
         repo = ProjectRepository(db_session)
         _make_element(repo, title="Unique")
         db_session.commit()
 
-        from sqlalchemy.exc import IntegrityError
-        with pytest.raises(Exception):
+        with pytest.raises(IntegrityError):
             _make_element(repo, title="Unique")
             db_session.commit()
 

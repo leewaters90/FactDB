@@ -77,7 +77,8 @@ def seed_projects(session: Session, created_by: str = "system-seed") -> dict:
         ptitle = pdata["title"]
 
         project = repo.get_project_by_title(ptitle)
-        if project is not None:
+        is_new_project = project is None
+        if not is_new_project:
             projects_skipped += 1
         else:
             project = repo.create_project(
@@ -93,21 +94,19 @@ def seed_projects(session: Session, created_by: str = "system-seed") -> dict:
             session.flush()
             projects_created += 1
 
-        # Link design elements (idempotent per element title)
+        # Link design elements (idempotent per element title).
+        # Only count links that are truly new (i.e. for newly created projects).
         usage_notes_map: dict = pdata.get("element_usage_notes", {})
         for etitle in pdata.get("design_element_titles", []):
             element = repo.get_design_element_by_title(etitle)
             if element is None:
                 continue  # element not seeded — skip silently
-            link = repo.link_element_to_project(
+            repo.link_element_to_project(
                 project_id=project.id,
                 element_id=element.id,
                 usage_notes=usage_notes_map.get(etitle),
             )
-            # link_element_to_project is idempotent; only count new links
-            # We can't easily tell if it was new without extra query, so
-            # just count all successful calls for new projects.
-            if projects_created > 0 or link is not None:
+            if is_new_project:
                 links_created += 1
 
         session.flush()
