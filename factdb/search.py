@@ -2,15 +2,17 @@
 Full-text and filtered search for FactDB.
 
 Implements a lightweight in-database search that works with SQLite's
-built-in LIKE operator as well as structured filters.  The interface is
-intentionally simple so that it can be wrapped by an AI planner.
+built-in FTS5 virtual table (``facts_fts``) for free-text queries and
+falls back to LIKE matching when FTS5 is unavailable (e.g. non-SQLite
+engines).  Structured filters (domain, level, status, tags, confidence)
+use the composite indexes defined on the ``facts`` table.
 """
 
 from __future__ import annotations
 
 from typing import Sequence
 
-from sqlalchemy import or_, select
+from sqlalchemy import or_, select, text
 from sqlalchemy.orm import Session
 
 from factdb.models import (
@@ -22,16 +24,36 @@ from factdb.models import (
 )
 
 
+def _fts5_available(session: Session) -> bool:
+    """Return True if the facts_fts virtual table exists in the database."""
+    try:
+        result = session.execute(
+            text("SELECT 1 FROM sqlite_master WHERE type='table' AND name='facts_fts'")
+        ).fetchone()
+        return result is not None
+    except Exception:
+        return False
+
+
 class FactSearch:
     """
     Search helper for :class:`~factdb.models.Fact` records.
 
     All queries are restricted to active (``is_active=True``) facts unless
     *include_inactive* is explicitly set to ``True``.
+
+    Keyword search uses the FTS5 virtual table (``facts_fts``) when
+    available, falling back to ``ILIKE``/``LIKE`` pattern matching.
     """
 
     def __init__(self, session: Session) -> None:
         self.session = session
+        self._use_fts5: bool | None = None  # lazily resolved
+
+    def _fts5_enabled(self) -> bool:
+        if self._use_fts5 is None:
+            self._use_fts5 = _fts5_available(self.session)
+        return self._use_fts5
 
     def search(
         self,
@@ -50,10 +72,13 @@ class FactSearch:
         """
         Search facts using a combination of keyword and structured filters.
 
+        Keyword search (``query``) uses the FTS5 virtual table when available
+        for fast ranked retrieval, falling back to ``LIKE`` matching otherwise.
+
         Args:
             query:            Free-text search against *title*, *content*, and
-                              *extended_content*.  Case-insensitive LIKE match.
-                              Supports ``%`` and ``_`` wildcards.
+                              *extended_content*.  Supports FTS5 match syntax
+                              (e.g. ``"motor AND speed"``) when FTS5 is active.
             domain:           Restrict to a specific engineering domain.
             category:         Restrict to a category (exact match, case-insensitive).
             subcategory:      Restrict to a subcategory (exact, case-insensitive).
@@ -69,10 +94,118 @@ class FactSearch:
             Sequence of matching :class:`~factdb.models.Fact` objects ordered
             by descending confidence score then ascending title.
         """
-        stmt = select(Fact)
+        if query and self._fts5_enabled():
+            return self._search_fts5(
+                query=query,
+                domain=domain,
+                category=category,
+                subcategory=subcategory,
+                detail_level=detail_level,
+                status=status,
+                tags=tags,
+                min_confidence=min_confidence,
+                include_inactive=include_inactive,
+                limit=limit,
+                offset=offset,
+            )
 
-        if not include_inactive:
-            stmt = stmt.where(Fact.is_active == True)  # noqa: E712
+        return self._search_like(
+            query=query,
+            domain=domain,
+            category=category,
+            subcategory=subcategory,
+            detail_level=detail_level,
+            status=status,
+            tags=tags,
+            min_confidence=min_confidence,
+            include_inactive=include_inactive,
+            limit=limit,
+            offset=offset,
+        )
+
+    # ------------------------------------------------------------------
+    # FTS5 path
+    # ------------------------------------------------------------------
+
+    def _search_fts5(
+        self,
+        query: str,
+        domain: EngineeringDomain | None,
+        category: str | None,
+        subcategory: str | None,
+        detail_level: DetailLevel | None,
+        status: FactStatus | None,
+        tags: list[str] | None,
+        min_confidence: float,
+        include_inactive: bool,
+        limit: int,
+        offset: int,
+    ) -> Sequence[Fact]:
+        """Use the FTS5 virtual table to resolve matching fact IDs, then
+        apply structured filters on the ``facts`` table."""
+        # Escape any quotes in the query to prevent FTS5 syntax errors.
+        safe_query = query.replace('"', '""')
+        fts_stmt = text(
+            "SELECT fact_id FROM facts_fts WHERE facts_fts MATCH :q"
+        ).bindparams(q=safe_query)
+        try:
+            matching_ids = [
+                row[0]
+                for row in self.session.execute(fts_stmt).fetchall()
+            ]
+        except Exception:
+            # FTS5 MATCH syntax error — fall back to LIKE
+            return self._search_like(
+                query=query,
+                domain=domain,
+                category=category,
+                subcategory=subcategory,
+                detail_level=detail_level,
+                status=status,
+                tags=tags,
+                min_confidence=min_confidence,
+                include_inactive=include_inactive,
+                limit=limit,
+                offset=offset,
+            )
+
+        if not matching_ids:
+            return []
+
+        stmt = select(Fact).where(Fact.id.in_(matching_ids))
+        stmt = self._apply_filters(
+            stmt,
+            domain=domain,
+            category=category,
+            subcategory=subcategory,
+            detail_level=detail_level,
+            status=status,
+            tags=tags,
+            min_confidence=min_confidence,
+            include_inactive=include_inactive,
+        )
+        stmt = stmt.order_by(Fact.confidence_score.desc(), Fact.title).offset(offset).limit(limit)
+        return self.session.execute(stmt).scalars().all()
+
+    # ------------------------------------------------------------------
+    # LIKE fallback path
+    # ------------------------------------------------------------------
+
+    def _search_like(
+        self,
+        query: str | None,
+        domain: EngineeringDomain | None,
+        category: str | None,
+        subcategory: str | None,
+        detail_level: DetailLevel | None,
+        status: FactStatus | None,
+        tags: list[str] | None,
+        min_confidence: float,
+        include_inactive: bool,
+        limit: int,
+        offset: int,
+    ) -> Sequence[Fact]:
+        stmt = select(Fact)
 
         if query:
             pattern = f"%{query}%"
@@ -83,6 +216,39 @@ class FactSearch:
                     Fact.extended_content.ilike(pattern),
                 )
             )
+
+        stmt = self._apply_filters(
+            stmt,
+            domain=domain,
+            category=category,
+            subcategory=subcategory,
+            detail_level=detail_level,
+            status=status,
+            tags=tags,
+            min_confidence=min_confidence,
+            include_inactive=include_inactive,
+        )
+        stmt = stmt.order_by(Fact.confidence_score.desc(), Fact.title).offset(offset).limit(limit)
+        return self.session.execute(stmt).scalars().all()
+
+    # ------------------------------------------------------------------
+    # Shared filter builder
+    # ------------------------------------------------------------------
+
+    def _apply_filters(
+        self,
+        stmt,
+        domain: EngineeringDomain | None,
+        category: str | None,
+        subcategory: str | None,
+        detail_level: DetailLevel | None,
+        status: FactStatus | None,
+        tags: list[str] | None,
+        min_confidence: float,
+        include_inactive: bool,
+    ):
+        if not include_inactive:
+            stmt = stmt.where(Fact.is_active == True)  # noqa: E712
 
         if domain is not None:
             stmt = stmt.where(Fact.domain == domain)
@@ -103,9 +269,7 @@ class FactSearch:
             stmt = stmt.where(Fact.confidence_score >= min_confidence)
 
         if tags:
-            # Must have ALL specified tags (chained joins)
             for tag_name in tags:
-                tag_alias = select(Tag.id).where(Tag.name == tag_name).scalar_subquery()
                 stmt = stmt.where(
                     Fact.id.in_(
                         select(Fact.id)
@@ -114,13 +278,11 @@ class FactSearch:
                     )
                 )
 
-        stmt = (
-            stmt.order_by(Fact.confidence_score.desc(), Fact.title)
-            .offset(offset)
-            .limit(limit)
-        )
+        return stmt
 
-        return self.session.execute(stmt).scalars().all()
+    # ------------------------------------------------------------------
+    # Convenience helpers
+    # ------------------------------------------------------------------
 
     def get_by_domain_and_level(
         self,

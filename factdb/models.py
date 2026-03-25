@@ -17,6 +17,7 @@ from sqlalchemy import (
     Enum,
     Float,
     ForeignKey,
+    Index,
     Integer,
     String,
     Table,
@@ -154,6 +155,15 @@ class Fact(Base):
     """
 
     __tablename__ = "facts"
+    __table_args__ = (
+        # Covering index for the most common list/search pattern: active facts
+        # filtered by domain + status, ordered by confidence then title.
+        Index("ix_facts_active_domain_status", "is_active", "domain", "status"),
+        # Supports layered retrieval by domain + level + status (AI planner pattern).
+        Index("ix_facts_domain_level_status", "domain", "detail_level", "status"),
+        # Supports confidence-ordered queries within an active set.
+        Index("ix_facts_active_confidence", "is_active", "confidence_score"),
+    )
 
     id: str = Column(String(36), primary_key=True, default=_new_uuid)
 
@@ -364,6 +374,16 @@ class FactRelationship(Base):
         UniqueConstraint(
             "source_fact_id", "target_fact_id", "relationship_type",
             name="uq_fact_relationship",
+        ),
+        # Composite index for outgoing-edge graph traversal filtered by type.
+        Index(
+            "ix_fact_relationships_src_type",
+            "source_fact_id", "relationship_type",
+        ),
+        # Composite index for incoming-edge graph traversal filtered by type.
+        Index(
+            "ix_fact_relationships_tgt_type",
+            "target_fact_id", "relationship_type",
         ),
     )
 
