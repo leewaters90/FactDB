@@ -1,0 +1,17 @@
+{
+  "title": "I²C TCA9548A Multi-Device Sensor Bus",
+  "component_category": "sensing",
+  "design_question": "How to connect multiple identical I²C sensors (same address) to one MCU bus?",
+  "selected_approach": "TCA9548A 8-channel I²C multiplexer. Each channel switched in software before communicating with its sensor.",
+  "rationale": "TCA9548A resolves address conflicts for 4 identical SHT41 (all 0x44). Scanning at 1-min intervals adds negligible overhead.",
+  "alternatives": [
+    {
+      "approach": "Separate MCU I²C ports per zone",
+      "reason_rejected": "Most MCUs have only 1–2 hardware I²C peripherals—insufficient for 4 zones."
+    }
+  ],
+  "verification_notes": "FACT: 'I²C Serial Communication Protocol' confirms address conflict resolution with multiplexer pattern.",
+  "supporting_fact_titles": [
+    "I²C Serial Communication Protocol"
+  ]
+}

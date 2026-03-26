@@ -1,0 +1,13 @@
+{
+  "title": "Li-Po 3.7 V USB-C Rechargeable Battery Pack",
+  "component_category": "power",
+  "design_question": "What battery capacity provides ≥8 h continuous operation for a handheld IoT device?",
+  "selected_approach": "3.7 V 2000 mAh Li-Po (103450 format). P_total ≈ 174 mA @ 3.3 V = 574 mW. Runtime = 2.0×3.7×0.8 / 0.574 ≈ 10.3 h—meets 8 h spec.",
+  "rationale": "2000 mAh fits 120×60×25 mm enclosure. 2.3 h margin covers battery aging and BLE overhead.",
+  "alternatives": [],
+  "verification_notes": "FACT: 'Robot Runtime Estimation from Battery Capacity': t = C×V×DoD/P = 2.0×3.7×0.8/0.574 ≈ 10.3 h.",
+  "supporting_fact_titles": [
+    "Li-Ion Battery Capacity and Energy Calculation",
+    "Robot Runtime Estimation from Battery Capacity"
+  ]
+}

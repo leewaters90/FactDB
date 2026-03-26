@@ -1,0 +1,22 @@
+{
+  "title": "UV-C LED Germicidal + Ozone Sterilisation Module",
+  "component_category": "actuation",
+  "design_question": "How to achieve chemical-free sterilisation of surfaces and equipment?",
+  "selected_approach": "UV-C LED array (265–280 nm, 100–500 mW/cm²) combined with optional ozone generator (3–5 mg/h) in a sealed or vented chamber. Timer-controlled MCU (5–30 min cycle); safety interlock (PIR) disables UV if presence detected.",
+  "rationale": "UV-C at 265 nm achieves 4-log (99.99 %) microbial reduction in 60 s at 30 mJ/cm² dose. No chemicals required. Ozone oxidises residual pathogens in shadowed areas. Mandatory safety interlock prevents human exposure.",
+  "alternatives": [
+    {
+      "approach": "Chemical disinfectant spray",
+      "reason_rejected": "Requires manual application; chemical residue; slower contact time."
+    },
+    {
+      "approach": "Autoclave steam sterilisation",
+      "reason_rejected": "Complete sterility but 134 °C—incompatible with electronics."
+    }
+  ],
+  "verification_notes": "FACT: 'UV-C LED Germicidal Irradiation' confirms 265 nm peak and 30 mJ/cm² dose for 4-log reduction.",
+  "supporting_fact_titles": [
+    "UV-C LED Germicidal Irradiation",
+    "PIR Passive Infrared Motion Sensor — HC-SR501"
+  ]
+}

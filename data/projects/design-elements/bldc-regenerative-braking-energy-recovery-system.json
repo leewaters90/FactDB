@@ -1,0 +1,23 @@
+{
+  "title": "BLDC Regenerative Braking Energy Recovery System",
+  "component_category": "power",
+  "design_question": "How to recover kinetic energy during braking to extend electric vehicle range?",
+  "selected_approach": "Traction BLDC motor driven via 4-quadrant H-bridge or VESC ESC. On brake input, ESC switches to generation mode: back-EMF feeds current back to LiPo/LiFePO₄ battery. INA226 current/power monitor logs regenerated power on 1 Hz log.",
+  "rationale": "Recovers 60–75 % of braking energy, extending range by 10–20 %. VESC ESC supports regenerative braking in firmware. INA226 telemetry validates efficiency and builds design-database evidence.",
+  "alternatives": [
+    {
+      "approach": "Friction brake only",
+      "reason_rejected": "Dissipates all kinetic energy as heat—no recovery."
+    },
+    {
+      "approach": "Supercapacitor buffer",
+      "reason_rejected": "Faster charge/discharge than Li-Ion but lower energy density."
+    }
+  ],
+  "verification_notes": "FACT: 'Regenerative Braking — BLDC Back-EMF Energy Recovery' confirms 60–75 % recovery efficiency.",
+  "supporting_fact_titles": [
+    "Regenerative Braking — BLDC Back-EMF Energy Recovery",
+    "Brushless DC (BLDC) Motor for Suction Fan",
+    "Li-Ion Battery Capacity and Energy Calculation"
+  ]
+}

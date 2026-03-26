@@ -1,0 +1,27 @@
+{
+  "id": "45b9bfe2-8ea4-5b0b-9536-c7896b58260e",
+  "title": "PM2.5 Optical Particle Counter",
+  "domain": "electrical",
+  "category": "sensors",
+  "subcategory": "particle sensing",
+  "detail_level": "intermediate",
+  "content": "Optical particle counters (OPC) measure particulate matter concentration by detecting light scattered by individual particles passing through a laser beam, correlating pulse count and amplitude to PM2.5 and PM10 mass concentrations.",
+  "extended_content": "Laser diode illuminates a detection volume; photodetector (PD) measures scattered light pulses.  Mie scattering theory governs relationship between particle size, refractive index, and scatter intensity.  Low-cost sensors (PMS5003, SPS30): 0.3–10 µm range, output PM1.0/PM2.5/PM10 in µg/m³ via UART or I²C.  Accuracy strongly depends on particle composition and humidity; at RH > 75% hygroscopic growth inflates readings.  Cross-sensitivity: smoke, fog, and sea spray give false PM readings.  Used in IoT air quality monitors and HVAC systems.",
+  "formula": null,
+  "units": "µg/m³ (micrograms per cubic metre)",
+  "source": "Plantower PMS5003 Datasheet; Sensirion SPS30 Product Summary; EPA PM2.5 NAAQS",
+  "source_url": null,
+  "confidence_score": 0.96,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "PM2.5",
+    "particle",
+    "air-quality",
+    "optical",
+    "sensor",
+    "mechatronics",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

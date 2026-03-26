@@ -1,0 +1,26 @@
+{
+  "id": "cfb1a519-bb5b-5bfa-888b-b3b85d382d6b",
+  "title": "N-Channel MOSFET as a Low-Side Power Switch",
+  "domain": "electrical",
+  "category": "power electronics",
+  "subcategory": "switching",
+  "detail_level": "intermediate",
+  "content": "An N-channel MOSFET switches a load on and off from a logic-level MCU signal by controlling V_GS.  When V_GS > V_th the MOSFET enters the triode (on) region; when V_GS < V_th it is off.",
+  "extended_content": "Low-side switch configuration: drain connected to load, source to GND; gate driven from MCU GPIO via series resistor (100 Ω – 10 kΩ). Selection criteria: V_DS(max) > supply + transient spikes, I_D(max) > worst-case load current, R_DS(on) low to minimise conduction loss (P = I²·R_DS(on)).  Gate capacitance C_iss sets switching speed; fast switching (< 1 µs) reduces transition losses.  Inductive loads (solenoids, motors) require a flyback diode (D from drain to supply rail) to suppress V_DS spikes when the MOSFET turns off.  Typical devices: IRLZ44N (logic-level, 55 V, 47 A), AO3400 (20 V, 5.7 A, SOT-23).",
+  "formula": null,
+  "units": null,
+  "source": "Sedra & Smith, Microelectronic Circuits, 7th ed.; Texas Instruments AN-7836",
+  "source_url": null,
+  "confidence_score": 0.98,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "MOSFET",
+    "switch",
+    "power",
+    "load-switching",
+    "mechatronics",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

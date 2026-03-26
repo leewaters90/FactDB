@@ -1,0 +1,27 @@
+{
+  "id": "7f3301bb-b8ae-52c7-993f-3786ea9f8b74",
+  "title": "Kalman Filter for Sensor Fusion",
+  "domain": "systems",
+  "category": "signal processing",
+  "subcategory": "state estimation",
+  "detail_level": "advanced",
+  "content": "The Kalman filter is an optimal recursive estimator that combines noisy sensor measurements with a dynamic system model to produce a minimum-variance estimate of the system state.",
+  "extended_content": "Prediction step: x̂⁻ = F·x̂_{k-1} + B·u_{k-1}; P⁻ = F·P·Fᵀ + Q.  Update step: K = P⁻·Hᵀ·(H·P⁻·Hᵀ + R)⁻¹; x̂ = x̂⁻ + K·(z − H·x̂⁻); P = (I − K·H)·P⁻.  Q = process noise covariance (model uncertainty); R = measurement noise covariance; K = Kalman gain.  Extended Kalman Filter (EKF) linearises nonlinear systems via Jacobians.  Applications: IMU attitude fusion (gyro + accel), GPS + dead-reckoning, drone altitude hold (barometer + sonar).  Tuning Q/R ratio determines the balance between sensor trust and model trust.",
+  "formula": "K = P⁻Hᵀ(HP⁻Hᵀ + R)⁻¹ ;  x̂ = x̂⁻ + K(z − Hx̂⁻) ;  P = (I − KH)P⁻",
+  "units": null,
+  "source": "Kalman, R.E. (1960). A new approach to linear filtering. ASME J. Basic Eng.; Welch & Bishop, UNC TR 95-041",
+  "source_url": null,
+  "confidence_score": 0.99,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "Kalman-filter",
+    "estimation",
+    "sensor-fusion",
+    "IMU",
+    "drone",
+    "mechatronics",
+    "systems"
+  ],
+  "created_by": "seed"
+}

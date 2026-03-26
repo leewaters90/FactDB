@@ -1,0 +1,27 @@
+{
+  "id": "e8a860b6-9ddd-568d-86b1-b889ed3486b5",
+  "title": "2D LiDAR Distance Measurement Principle",
+  "domain": "electrical",
+  "category": "sensors",
+  "subcategory": "distance measurement",
+  "detail_level": "intermediate",
+  "content": "A 2D LiDAR (Light Detection and Ranging) sensor emits a rotating laser beam and measures distance via time-of-flight (ToF): d = c · t_ToF / 2, where c is the speed of light.",
+  "extended_content": "Typical robot-vacuum LiDAR (e.g., RPLIDAR A1): range 0.15–12 m, angular resolution 1°, 360° scan, 2000–8000 samples/s.  Uncertainty ±1–2 cm at <6 m; degrades on dark/absorptive surfaces.  Phase-modulation (FMCW) LiDAR is an alternative that uses frequency shift instead of pulse timing.  The rotating mirror or MEMS mirror adds a mechanical wear concern; solid-state alternatives (e.g., VCSEL array + SPAD) are emerging.  LiDAR point clouds feed occupancy grid maps in the SLAM algorithm.",
+  "formula": "d = c · t_ToF / 2",
+  "units": "d: m, t_ToF: s, c: 3×10⁸ m/s",
+  "source": "Siciliano et al., Robotics: Modelling, Planning and Control, Springer; RPLIDAR A1 Datasheet",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "LiDAR",
+    "ToF",
+    "distance",
+    "sensor",
+    "navigation",
+    "robot-vacuum",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

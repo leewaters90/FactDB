@@ -1,0 +1,27 @@
+{
+  "id": "ecd2bd81-b18d-51f9-b807-f13ee8b1745a",
+  "title": "H-Bridge Motor Driver Circuit",
+  "domain": "electrical",
+  "category": "power electronics",
+  "subcategory": "motor drive",
+  "detail_level": "intermediate",
+  "content": "An H-bridge uses four switching transistors (MOSFETs or BJTs) to control the polarity of voltage applied to a DC motor, enabling forward, reverse, and braking operation with PWM speed control.",
+  "extended_content": "Four MOSFETs arranged in a full-bridge: Q1–Q4.  Forward: Q1+Q4 ON; Reverse: Q2+Q3 ON; Coast (free-wheel): Q1+Q3 or Q2+Q4 ON (low-side recirculation); Brake: Q1+Q3 ON (high-side shoot-through — avoid). PWM frequency: 20–50 kHz for quiet operation (above audible range). Dead-time insertion (50–200 ns) prevents shoot-through.  Integrated drivers (e.g., DRV8833, TB6612FNG) include protection (overcurrent, thermal shutdown) and are preferred for robot-vacuum wheel motors (typically 100–500 mA stall, 5–12 V).",
+  "formula": null,
+  "units": null,
+  "source": "Mohan, Undeland & Robbins, Power Electronics, 3rd ed.; Texas Instruments DRV8833 Datasheet",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "H-bridge",
+    "motor-driver",
+    "PWM",
+    "MOSFET",
+    "DC-motor",
+    "robot-vacuum",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

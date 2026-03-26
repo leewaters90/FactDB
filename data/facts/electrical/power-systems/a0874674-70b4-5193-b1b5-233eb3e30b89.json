@@ -1,0 +1,27 @@
+{
+  "id": "a0874674-70b4-5193-b1b5-233eb3e30b89",
+  "title": "Li-Ion Battery Capacity and Energy Calculation",
+  "domain": "electrical",
+  "category": "power systems",
+  "subcategory": "energy storage",
+  "detail_level": "fundamental",
+  "content": "Battery usable energy is: E_usable = V_nominal × C_Ah × DoD, where C_Ah is the rated capacity in amp-hours and DoD is the permitted depth of discharge.",
+  "extended_content": "Li-ion (LiCoO₂): 3.6–3.7 V nominal, 150–250 Wh/kg, recommended DoD 80%.  LiFePO₄: 3.2–3.3 V nominal, 90–140 Wh/kg, DoD 90%, superior cycle life (2000–4000 cycles vs 500–1000 for LiCoO₂) and safer thermal runaway profile — preferred for outdoor, unattended weather-station installations.  Temperature derating: capacity reduces ≈ 20–30% at −20 °C, requiring a larger battery or insulated enclosure at high-latitude sites.",
+  "formula": "E_usable (Wh) = V_nom × C_Ah × DoD",
+  "units": "Wh (watt-hours), Ah (amp-hours)",
+  "source": "Linden & Reddy, Handbook of Batteries, 4th ed., McGraw-Hill",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "battery",
+    "Li-ion",
+    "LiFePO4",
+    "energy",
+    "power",
+    "weather-station",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

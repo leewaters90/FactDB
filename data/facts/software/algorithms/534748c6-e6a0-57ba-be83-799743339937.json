@@ -1,0 +1,24 @@
+{
+  "id": "534748c6-e6a0-57ba-be83-799743339937",
+  "title": "Big-O Notation — Time Complexity",
+  "domain": "software",
+  "category": "algorithms",
+  "subcategory": "complexity analysis",
+  "detail_level": "fundamental",
+  "content": "Big-O notation O(f(n)) describes the asymptotic upper bound on the growth rate of an algorithm's resource usage as input size n → ∞.",
+  "extended_content": "Common classes (best to worst): O(1) constant, O(log n) logarithmic, O(n) linear, O(n log n) linearithmic, O(n²) quadratic, O(2ⁿ) exponential. Use Big-Ω for lower bounds and Big-Θ for tight bounds.",
+  "formula": "f(n) = O(g(n)) iff ∃ c,n₀ : f(n) ≤ c·g(n) ∀ n ≥ n₀",
+  "units": null,
+  "source": "Cormen et al., Introduction to Algorithms, 4th ed.",
+  "source_url": null,
+  "confidence_score": 1.0,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "algorithm",
+    "complexity",
+    "software",
+    "performance"
+  ],
+  "created_by": "seed"
+}

@@ -1,0 +1,27 @@
+{
+  "id": "59fad815-f2ea-521d-88b6-8b1277043c47",
+  "title": "Wireless Inductive Power Transfer (WPT / IPT)",
+  "domain": "electrical",
+  "category": "power systems",
+  "subcategory": "wireless charging",
+  "detail_level": "intermediate",
+  "content": "Inductive power transfer (IPT) transfers energy between a primary (transmitter) coil and a secondary (receiver) coil via shared magnetic flux, following Faraday's law.  Efficiency: η = k²·Q_p·Q_s / (1 + k²·Q_p·Q_s) at resonance.",
+  "extended_content": "Key parameters: coupling coefficient k (0–1, function of alignment and gap), quality factors Q_p and Q_s of each coil.  Resonant WPT (Qi, SAE J2954): primary and secondary tuned to same resonant frequency f₀ = 1/(2π√(LC)) to maximise efficiency.  Qi standard: 100–200 kHz, 5–15 W; SAE J2954 (EV): 85 kHz, 3.3–22 kW.  Efficiency: 85–93% at Qi coil-to-coil gap < 5 mm; falls steeply beyond 10 mm for non-resonant systems.  Foreign object detection (FOD) required: metallic objects in the field heat up (eddy currents) — chip-based systems monitor power deviation.  For EV charging: figure-8 coil configurations increase horizontal misalignment tolerance.",
+  "formula": "η_IPT = k²Q_pQ_s / (1 + k²Q_pQ_s)  ;  f₀ = 1/(2π√LC)",
+  "units": "η: dimensionless, f₀: Hz",
+  "source": "Covic & Boys, Inductive Power Transfer, Proc. IEEE 2013; SAE J2954 WPT Standard; Wireless Power Consortium Qi Spec",
+  "source_url": null,
+  "confidence_score": 0.96,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "WPT",
+    "inductive-charging",
+    "wireless-power",
+    "EV",
+    "Qi",
+    "mechatronics",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

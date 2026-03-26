@@ -1,0 +1,29 @@
+{
+  "id": "215eafda-c784-5cb1-9734-26d516d8700e",
+  "title": "MLX90640 Far-Infrared Thermal Camera Array",
+  "domain": "electrical",
+  "category": "sensing",
+  "subcategory": "thermal imaging",
+  "detail_level": "advanced",
+  "content": "The Melexis MLX90640 is a 32×24 pixel FIR thermopile array measuring scene temperatures −40 °C to +300 °C with ±1 °C accuracy, communicating over I²C at up to 64 Hz frame rate.",
+  "extended_content": "Field of view: 55°×35° (standard) or 110°×75° (wide-angle). Pixel NETD: 0.1 K at 1 Hz. Supply: 3.3 V, < 23 mA. I²C address: 0x33 default. Each frame returns 768 raw pixel values requiring Melexis calibration API to convert to °C. Use cases: fever screening, occupancy detection, predictive-maintenance hotspot detection, building thermal envelope survey. Limitation: 32×24 resolution insufficient for face recognition. Alternative: FLIR Lepton (80×60 or 160×120) at 10× cost; AMG8833 Panasonic (8×8) at lower resolution and cost.",
+  "formula": null,
+  "units": null,
+  "source": "Melexis MLX90640 Datasheet Rev. 11; Melexis AN_MLX90640",
+  "source_url": null,
+  "confidence_score": 0.96,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "thermal",
+    "infrared",
+    "imaging",
+    "MLX90640",
+    "fever",
+    "FIR",
+    "sensing",
+    "mechatronics",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

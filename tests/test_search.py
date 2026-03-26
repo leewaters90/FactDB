@@ -148,3 +148,65 @@ class TestFactSearch:
         searcher = FactSearch(db_session)
         results = searcher.search(query="To Be Deleted")
         assert all(f.is_active for f in results)
+
+
+# ---------------------------------------------------------------------------
+# record_usage integration
+# ---------------------------------------------------------------------------
+
+
+class TestSearchUsageTracking:
+    def test_search_records_usage_when_flag_set(self, db_session):
+        _seed_facts(db_session)
+        db_session.commit()
+
+        searcher = FactSearch(db_session)
+        results = searcher.search(
+            query="Ohm",
+            record_usage=True,
+            usage_context="search",
+            usage_by="test-user",
+        )
+
+        assert len(results) > 0
+        for fact in results:
+            db_session.refresh(fact)
+            assert fact.use_count >= 1
+            assert fact.last_used_at is not None
+
+    def test_search_does_not_record_usage_by_default(self, db_session):
+        _seed_facts(db_session)
+        db_session.commit()
+
+        searcher = FactSearch(db_session)
+        results = searcher.search(query="Ohm")
+
+        assert len(results) > 0
+        for fact in results:
+            db_session.refresh(fact)
+            assert fact.use_count == 0
+
+    def test_search_usage_log_context(self, db_session):
+        from factdb.models import FactUsageLog
+        from sqlalchemy import select
+
+        _seed_facts(db_session)
+        db_session.commit()
+
+        searcher = FactSearch(db_session)
+        results = searcher.search(
+            query="Newton",
+            record_usage=True,
+            usage_context="inference",
+            usage_by="agent-v1",
+        )
+        db_session.flush()
+
+        assert len(results) > 0
+        for fact in results:
+            logs = db_session.execute(
+                select(FactUsageLog).where(FactUsageLog.fact_id == fact.id)
+            ).scalars().all()
+            assert len(logs) == 1
+            assert logs[0].context == "inference"
+            assert logs[0].used_by == "agent-v1"

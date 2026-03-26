@@ -1,0 +1,26 @@
+{
+  "id": "2bed7c89-2523-57c4-8f45-b602a3fc72e8",
+  "title": "HEPA Filter Efficiency and Filtration Grade",
+  "domain": "mechanical",
+  "category": "filtration",
+  "subcategory": "air quality",
+  "detail_level": "fundamental",
+  "content": "A HEPA (High-Efficiency Particulate Air) filter must capture ≥ 99.97% of particles ≥ 0.3 µm in diameter (the most penetrating particle size, MPPS) to meet the H13 or H14 standard.",
+  "extended_content": "Filtration grades per EN 1822: H13 ≥ 99.95% efficiency, H14 ≥ 99.995% at MPPS.  Mechanisms: inertial impaction (large particles), interception, Brownian diffusion (sub-0.1 µm).  HEPA filters are pleated to maximise surface area (0.5–1.0 m²) in a small volume. Robot-vacuum HEPA filters require periodic replacement (every 2–4 months); clogging increases pressure drop, reduces airflow, and increases motor load.  Washable versions lose efficiency after multiple washes.  For allergy applications, filter efficiency ≥ H13 is recommended.",
+  "formula": null,
+  "units": null,
+  "source": "EN 1822:2019 High-efficiency air filters; EPA HEPA Guide; IEC 62885",
+  "source_url": null,
+  "confidence_score": 0.99,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "HEPA",
+    "filter",
+    "air-quality",
+    "filtration",
+    "robot-vacuum",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}

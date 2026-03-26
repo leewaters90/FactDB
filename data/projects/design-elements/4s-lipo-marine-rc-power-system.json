@@ -1,0 +1,22 @@
+{
+  "title": "4S LiPo Marine RC Power System",
+  "component_category": "power",
+  "design_question": "How to power a high-speed RC boat or underwater drone propulsion system?",
+  "selected_approach": "4S (14.8 V nominal) LiPo 3000–5000 mAh pack with waterproof XT60 connectors and IP67 battery compartment. ESC rated for 30–60 A continuous with water-cooling jacket. Low-voltage cutoff at 3.3 V/cell protects cells.",
+  "rationale": "4S LiPo provides high power density (250 Wh/kg) for fast RC boats. Marine-rated ESC cooling prevents thermal shutdown during sustained high-throttle operation. XT60 connectors rated for 60 A.",
+  "alternatives": [
+    {
+      "approach": "3S LiPo",
+      "reason_rejected": "Suitable for smaller boats; 25 % less power than 4S."
+    },
+    {
+      "approach": "NiMH",
+      "reason_rejected": "Lower energy density, safer chemistry but 50 % heavier for same capacity."
+    }
+  ],
+  "verification_notes": "FACT: 'Li-Ion Battery Capacity and Energy Calculation' confirms Wh = V × Ah energy calculation and 3.3 V/cell LVC.",
+  "supporting_fact_titles": [
+    "Li-Ion Battery Capacity and Energy Calculation",
+    "Brushless DC (BLDC) Motor for Suction Fan"
+  ]
+}

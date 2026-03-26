@@ -1,0 +1,18 @@
+{
+  "title": "Magnetic Quadrature Wheel Encoders",
+  "component_category": "sensing",
+  "design_question": "How to measure wheel speed and position for closed-loop motor control?",
+  "selected_approach": "600 CPR magnetic quadrature encoders on each drive wheel. MCU interrupt-driven counting; direction from A/B phase.",
+  "rationale": "600 CPR×4 (quadrature) = 2400 effective counts/rev. At 75 mm wheel: Δd = π×0.075/2400 ≈ 0.098 mm/count.",
+  "alternatives": [
+    {
+      "approach": "Optical encoder",
+      "reason_rejected": "More expensive; susceptible to dust—magnetic preferred outdoors."
+    }
+  ],
+  "verification_notes": "FACT: 'Wheel Encoder Odometry' confirms Δd formula and 1–3 % cumulative odometry error.",
+  "supporting_fact_titles": [
+    "Wheel Encoder Odometry",
+    "Differential Drive Robot Kinematics"
+  ]
+}

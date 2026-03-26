@@ -1,0 +1,18 @@
+{
+  "title": "BLE GATT Smartphone App Interface",
+  "component_category": "communication",
+  "design_question": "How to provide a low-energy wireless user interface for a battery-powered device?",
+  "selected_approach": "ESP32 BLE stack (GATT server). Custom service with control/status characteristics. 100 ms connection interval. Average ≈0.3 mA when connected.",
+  "rationale": "BLE integrated in ESP32—no extra hardware. 0.3 mA average vs WiFi 80 mA—23× more efficient for local UI.",
+  "alternatives": [
+    {
+      "approach": "WiFi HTTP REST API",
+      "reason_rejected": "80 mA continuous when server active; much higher power—rejected for UI use case."
+    }
+  ],
+  "verification_notes": "FACT: 'Bluetooth Low Energy (BLE) for App Control' confirms GATT profile and 0.1–1 mA average current.",
+  "supporting_fact_titles": [
+    "Bluetooth Low Energy (BLE) for App Control",
+    "ESP32 WiFi + BLE System-on-Chip"
+  ]
+}

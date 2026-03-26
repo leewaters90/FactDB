@@ -1,0 +1,26 @@
+{
+  "id": "e79ccc67-e763-5bfe-acd9-eeb654a94ff0",
+  "title": "Eddy Current Braking Principle",
+  "domain": "electrical",
+  "category": "electromagnetism",
+  "subcategory": "braking",
+  "detail_level": "intermediate",
+  "content": "When a conducting disc or rail moves through a static magnetic field, circulating eddy currents are induced by Faraday's law (EMF = −dΦ/dt) and these currents interact with the field to produce a retarding (braking) force proportional to velocity.",
+  "extended_content": "Braking force: F ∝ σ·B²·v·A_eff, where σ is electrical conductivity, B is flux density, v is relative velocity, and A_eff is the effective eddy current path area.  Key characteristic: braking force → 0 as v → 0 (no contact braking at standstill — requires supplementary friction brake).  Advantages: contactless (no wear), smooth deceleration, silent operation, self-regulating at constant speed.  Applications: roller coasters, roller test-rigs, train speed governors, linear eddy-current brakes on maglev.  Controllable by varying electromagnet current (I controls B, F ∝ I²) or by changing the air gap.  Dissipated power P = F · v (converted to heat in the conductor) — disc must be thermally rated.",
+  "formula": "F_brake ∝ σ · B² · v · A_eff ;  EMF = −dΦ/dt",
+  "units": "F: N, B: T, v: m/s, σ: S/m",
+  "source": "Faraday, Experimental Researches in Electricity, 1839; Wiedemann & Franz Law; Brauer & Sirohi, IEEE Trans. Magnetics",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "eddy-current",
+    "braking",
+    "electromagnetism",
+    "contactless",
+    "mechatronics",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

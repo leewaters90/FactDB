@@ -1,0 +1,26 @@
+{
+  "id": "52417c28-6a5d-57db-bd71-0bff8d15c519",
+  "title": "MQTT Protocol for IoT Sensor Data",
+  "domain": "software",
+  "category": "communication protocols",
+  "subcategory": "IoT messaging",
+  "detail_level": "intermediate",
+  "content": "MQTT (Message Queuing Telemetry Transport) is a lightweight, publish–subscribe messaging protocol designed for constrained IoT devices over low-bandwidth, high-latency networks.",
+  "extended_content": "MQTT v3.1.1 / v5.0 uses a central broker (e.g., Mosquitto, AWS IoT Core).  Clients publish to topics (e.g., 'station/01/temperature'); subscribers receive matching messages.  QoS levels: 0 (at most once), 1 (at least once), 2 (exactly once).  Minimum header overhead is 2 bytes.  TLS encryption adds ≈ 5–10 kB of code on constrained MCUs. For weather stations, MQTT over LoRaWAN gateways or WiFi is common; last-will messages notify subscribers of connection loss.",
+  "formula": null,
+  "units": null,
+  "source": "MQTT v3.1.1 OASIS Standard (2014); MQTT v5.0 OASIS Standard (2019)",
+  "source_url": null,
+  "confidence_score": 0.98,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "MQTT",
+    "IoT",
+    "protocol",
+    "publish-subscribe",
+    "weather-station",
+    "software"
+  ],
+  "created_by": "seed"
+}

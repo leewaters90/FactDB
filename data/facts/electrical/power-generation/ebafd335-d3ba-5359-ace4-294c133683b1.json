@@ -1,0 +1,27 @@
+{
+  "id": "ebafd335-d3ba-5359-ace4-294c133683b1",
+  "title": "Permanent Magnet Alternator — Small Wind Turbine",
+  "domain": "electrical",
+  "category": "power generation",
+  "subcategory": "wind energy",
+  "detail_level": "intermediate",
+  "content": "A small wind turbine permanent magnet alternator (PMA) converts rotor mechanical power to 3-phase AC via Faraday induction, which is then bridge-rectified and regulated to charge a battery. Available wind power: P = ½ ρ A v³.",
+  "extended_content": "Betz limit: maximum extractable fraction is 16/27 ≈ 59.3 % of available wind power. Practical rotor efficiency Cp ≈ 0.35–0.45. Cut-in wind speed: 2–3 m/s; rated: 11–13 m/s; cut-out: 25 m/s. 3-phase AC rectified via 6-diode bridge; MPPT controller tracks peak power via perturb-and-observe. For mini turbines (0.5–1 m blade): 50–150 W at 10 m/s; charges 12 V LiFePO₄ via CN3791 MPPT controller. Alternative: vertical-axis Savonius for low cut-in (1.5 m/s) but lower Cp ≈ 0.15.",
+  "formula": "P = ½ ρ A v³;  P_turbine = Cp × P",
+  "units": "Power: W; rotor area: m²; wind speed: m/s",
+  "source": "Burton et al., Wind Energy Handbook, 3rd ed.; IEC 61400-2",
+  "source_url": null,
+  "confidence_score": 0.95,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "wind turbine",
+    "PMA",
+    "alternator",
+    "Betz limit",
+    "wind energy",
+    "power generation",
+    "mechatronics"
+  ],
+  "created_by": "seed"
+}

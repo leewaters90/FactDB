@@ -1,0 +1,25 @@
+{
+  "id": "7422ec54-d257-59bf-a400-bca580b2dc28",
+  "title": "Wind Vane — Wind Direction Measurement",
+  "domain": "mechanical",
+  "category": "meteorological instruments",
+  "subcategory": "wind measurement",
+  "detail_level": "fundamental",
+  "content": "A wind vane aligns with the wind direction; a potentiometer or resistor array converts the vane angle to a voltage or resistance that is read by an ADC to determine direction (0–360°).",
+  "extended_content": "Precision potentiometer vanes provide continuous 360° output (excluding a small dead band at the electrical stop).  Reed-switch and resistor-ladder designs encode direction as a discrete voltage selected from 8 or 16 positions (45° or 22.5° resolution).  Accuracy requirement (WMO): ±5° for the direction and ±0.5 m/s for speed.  Vane inertia should be minimised for response to wind gusts (distance constant < 2 m).  True north correction must be applied during installation using a compass bearing.",
+  "formula": null,
+  "units": "degrees (0–360°, meteorological convention: from North, clockwise)",
+  "source": "WMO-No.8 Guide to Instruments, Ch.5",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "wind-direction",
+    "vane",
+    "potentiometer",
+    "meteorology",
+    "weather-station"
+  ],
+  "created_by": "seed"
+}

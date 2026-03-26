@@ -1,0 +1,18 @@
+{
+  "title": "TB6612FNG Dual H-Bridge PWM Motor Drive",
+  "component_category": "actuation",
+  "design_question": "Which motor driver provides bidirectional control for two DC gearmotors from a 3.3 V MCU?",
+  "selected_approach": "TB6612FNG dual H-bridge (1.2 A continuous, 3.2 A peak). 20 kHz PWM above audible range. 3.3 V logic compatible.",
+  "rationale": "TB6612FNG includes thermal shutdown, no external voltage drop issue (unlike L298N 2–3 V saturation loss). Two motors in one IC.",
+  "alternatives": [
+    {
+      "approach": "L298N",
+      "reason_rejected": "2–3 V saturation drop; bulky; no current limit—rejected."
+    }
+  ],
+  "verification_notes": "FACT: 'H-Bridge Motor Driver Circuit' confirms dead-time insertion and 20 kHz PWM above audible range.",
+  "supporting_fact_titles": [
+    "H-Bridge Motor Driver Circuit",
+    "DC Motor Speed Control via PWM"
+  ]
+}

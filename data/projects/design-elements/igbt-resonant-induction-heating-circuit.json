@@ -1,0 +1,22 @@
+{
+  "title": "IGBT Resonant Induction Heating Circuit",
+  "component_category": "actuation",
+  "design_question": "How to heat a ferromagnetic cooking vessel rapidly without an open flame or contact element?",
+  "selected_approach": "ZVS half-bridge IGBT driver (IRFP260N or STGW30NC60W pair) driving a 10–30 µH copper work coil at 25–50 kHz resonance. Series resonant capacitor bank; output 1–2 kW. NTC thermistor feedback into PID loop adjusts switching frequency.",
+  "rationale": "Induction cooktop reaches operating temperature in < 30 s. 90 % efficiency vs 74 % for resistive element. Precise temperature control via PID loop. ZVS topology minimises IGBT switching losses.",
+  "alternatives": [
+    {
+      "approach": "Resistive coil heating",
+      "reason_rejected": "Simpler but slower heat-up and 74 % efficiency."
+    },
+    {
+      "approach": "Propane burner",
+      "reason_rejected": "Uncontrolled temperature; open flame hazard—unsuitable for lab or indoor use."
+    }
+  ],
+  "verification_notes": "FACT: 'Induction Heating — IGBT Resonant Series Circuit' confirms ZVS topology and f₀ = 1/(2π√(LC)) design equation.",
+  "supporting_fact_titles": [
+    "Induction Heating — IGBT Resonant Series Circuit",
+    "PID Controller — Transfer Function"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "title": "NEO-6M GPS Module for Navigation",
+  "component_category": "sensing",
+  "design_question": "How to add outdoor position tracking to a drone or robot?",
+  "selected_approach": "u-blox NEO-6M GPS module (UART 9600 baud, NMEA 0183, 5 Hz update, 2.5 m CEP). Parses $GPRMC and $GPGGA sentences for lat/lon/altitude. External active patch antenna for vehicle and indoor use.",
+  "rationale": "NEO-6M has < 2 s hot-start TTFF, 2.5 m CEP, and is available on breakout boards for < £5. NMEA UART output is directly readable by Arduino/ESP32 hardware UART.",
+  "alternatives": [
+    {
+      "approach": "NEO-M8N (concurrent GNSS)",
+      "reason_rejected": "< 2 m accuracy and GPS+GLONASS+Galileo—preferred for critical applications."
+    },
+    {
+      "approach": "LoRa APRS position beacon",
+      "reason_rejected": "No GPS on-device; relies on ground network—unsuitable for mobile robots."
+    }
+  ],
+  "verification_notes": "FACT: 'GPS Module — NMEA Sentence Parsing and Fix Accuracy' confirms NMEA sentences and 2.5–5 m CEP accuracy.",
+  "supporting_fact_titles": [
+    "GPS Module — NMEA Sentence Parsing and Fix Accuracy",
+    "A* Pathfinding Algorithm"
+  ]
+}

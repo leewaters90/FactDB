@@ -1,0 +1,21 @@
+{
+  "title": "IR Night-Vision Camera Module",
+  "component_category": "sensing",
+  "design_question": "How to enable video surveillance in zero-light environments?",
+  "selected_approach": "Board camera with 1/3\" CMOS sensor and onboard 850 nm IR LED array (6–12 LEDs, 5–10 m night range). Composite or USB-UVC output; pairs with an FPV transmitter or USB capture card on the control station.",
+  "rationale": "850 nm IR is invisible to human eye yet clearly detected by the sensor. All-in-one camera+LED board costs < £10. Suitable for spy/patrol robots and night patrol drones.",
+  "alternatives": [
+    {
+      "approach": "Thermal MLX90640",
+      "reason_rejected": "Detects heat through darkness—no IR illumination needed but lower resolution."
+    },
+    {
+      "approach": "Starlight Sony sensor",
+      "reason_rejected": "Usable at 0.001 lux without IR illumination but 5× cost."
+    }
+  ],
+  "verification_notes": "FACT: 'Infrared Cliff Detection for Robot Vacuums' confirms 850 nm IR reflectance detection principle.",
+  "supporting_fact_titles": [
+    "Infrared Cliff Detection for Robot Vacuums"
+  ]
+}

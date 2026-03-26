@@ -1,0 +1,17 @@
+{
+  "title": "NTP UTC Timestamped Data Logging",
+  "component_category": "communication",
+  "design_question": "How to ensure accurate UTC timestamps on all logged events?",
+  "selected_approach": "SNTP sync on boot and every 6 h via public NTP pool. DS3231 RTC (±2 ppm) maintains time during network outages.",
+  "rationale": "SNTP accuracy ≈1–50 ms—adequate for sensor logs and audit trails. RTC backup prevents timestamp gaps during WiFi outages.",
+  "alternatives": [
+    {
+      "approach": "Free-running MCU timer",
+      "reason_rejected": "Drifts ±5 min/day without NTP sync—unacceptable for audit logs."
+    }
+  ],
+  "verification_notes": "FACT: 'NTP Time Synchronisation for Data Logging' confirms SNTP accuracy <50 ms and WMO ±1 s requirement.",
+  "supporting_fact_titles": [
+    "NTP Time Synchronisation for Data Logging"
+  ]
+}

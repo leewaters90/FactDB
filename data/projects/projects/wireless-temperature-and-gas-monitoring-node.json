@@ -1,0 +1,22 @@
+{
+  "title": "Wireless Temperature and Gas Monitoring Node",
+  "description": "Battery-powered wireless sensor node detecting combustible gas and temperature with MQ-3 sensor and nRF24L01 link to a central hub. Relay alarm triggered on threshold breach; deep sleep between measurements for long battery life.",
+  "objective": "Detect ≥ 100 ppm alcohol/combustible gas in ≤ 5 s; transmit alert in ≤ 500 ms; ≥ 6-month battery at 1-min sensing interval.",
+  "constraints": "3× AA alkaline; ≤ £15 per node; ≤ 50 m indoor range; IP30.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "MQTT Protocol for IoT Sensor Data",
+    "ADC Resolution and Measurement Precision"
+  ],
+  "design_element_titles": [
+    "MQ-3 Alcohol and Combustible Gas Sensor",
+    "nRF24L01 2.4 GHz RF Transceiver Link",
+    "Arduino Uno/Nano MCU Platform",
+    "MCU Deep-Sleep Duty Cycle Power Management"
+  ],
+  "element_usage_notes": {
+    "MQ-3 Alcohol and Combustible Gas Sensor": "RS/R0 threshold 0.4 for alarm; 30 s preheat on wake-up before sample.",
+    "nRF24L01 2.4 GHz RF Transceiver Link": "PTX mode; 1-min intervals; hub is PRX coordinator; auto-ACK 250 kbps."
+  }
+}

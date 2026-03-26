@@ -1,0 +1,26 @@
+{
+  "id": "08e7f376-82f1-5788-b9d1-32f4c4b2da52",
+  "title": "Differential Drive Robot Kinematics",
+  "domain": "mechanical",
+  "category": "robotics",
+  "subcategory": "motion kinematics",
+  "detail_level": "intermediate",
+  "content": "A differential-drive robot controls heading and speed using two independently driven wheels.  Forward speed: v = (v_R + v_L) / 2; angular rate: ω = (v_R − v_L) / L, where L is the wheelbase.",
+  "extended_content": "Dead-reckoning pose update: x(t+dt) = x(t) + v·cos(θ)·dt, y(t+dt) = y(t) + v·sin(θ)·dt, θ(t+dt) = θ(t) + ω·dt. Odometry error accumulates due to wheel slip, floor irregularities, and encoder resolution.  Typical robot-vacuum wheelbase L = 150–200 mm, wheel diameter 60–80 mm, wheel encoder 360–1200 CPR.  Angular position precision: Δθ = (ΔN_L − ΔN_R) · π · D / (CPR · L) radians.  Fusion with LiDAR SLAM corrects accumulated odometry error.",
+  "formula": "v = (v_R + v_L)/2 ;  ω = (v_R − v_L)/L",
+  "units": "v: m/s, ω: rad/s, L: m",
+  "source": "Siegwart, Nourbakhsh & Scaramuzza, Introduction to Autonomous Mobile Robots, MIT Press, 2011",
+  "source_url": null,
+  "confidence_score": 0.98,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "differential-drive",
+    "kinematics",
+    "odometry",
+    "robotics",
+    "robot-vacuum",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}

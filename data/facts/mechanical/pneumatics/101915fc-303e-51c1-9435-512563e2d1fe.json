@@ -1,0 +1,26 @@
+{
+  "id": "101915fc-303e-51c1-9435-512563e2d1fe",
+  "title": "Pneumatic Cylinder Force and Stroke",
+  "domain": "mechanical",
+  "category": "pneumatics",
+  "subcategory": "actuators",
+  "detail_level": "intermediate",
+  "content": "The theoretical push force of a double-acting pneumatic cylinder is F = P · A, where P is gauge pressure and A = π·D²/4 is the piston bore area.  Pull force on the rod side is reduced by the rod cross-section area.",
+  "extended_content": "Push force: F_push = P · (π·D²/4).  Pull force: F_pull = P · (π·(D²−d²)/4), where d = rod diameter.  Typical shop-air pressure: 6–8 bar (600–800 kPa).  Example: D = 50 mm, P = 6 bar → F_push = 600,000 × π × 0.05²/4 ≈ 1178 N (120 kg force).  Stroke speed: v = Q_air / A, where Q_air is volumetric flow (m³/s) governed by the control valve Cv rating.  Cushioning built into the end caps reduces impact force on stroke end.  ISO 15552 (formerly ISO 6431) covers metric cylinder dimensions.  Safety: cylinders must be rated for at least 1.5× working pressure; pressure relief valve mandatory on compressor output.",
+  "formula": "F_push = P · π·D²/4 ;  F_pull = P · π·(D²−d²)/4",
+  "units": "F: N, P: Pa, D: m",
+  "source": "Parker Hannifin Pneumatic Design Guide; ISO 15552:2004",
+  "source_url": null,
+  "confidence_score": 0.98,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "pneumatic",
+    "cylinder",
+    "force",
+    "actuator",
+    "mechatronics",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}

@@ -215,6 +215,10 @@ class Fact(Base):
     created_by: str = Column(String(200), nullable=True)
     updated_by: str = Column(String(200), nullable=True)
 
+    # --- Usage tracking ---
+    use_count: int = Column(Integer, nullable=False, default=0)
+    last_used_at: datetime = Column(DateTime(timezone=True), nullable=True)
+
     # --- Relationships ---
     tags = relationship(
         "Tag",
@@ -246,6 +250,12 @@ class Fact(Base):
         back_populates="target_fact",
         cascade="all, delete-orphan",
     )
+    usage_logs = relationship(
+        "FactUsageLog",
+        back_populates="fact",
+        cascade="all, delete-orphan",
+        order_by="FactUsageLog.used_at.desc()",
+    )
 
     def __repr__(self) -> str:
         return f"<Fact id={self.id!r} title={self.title!r} status={self.status!r}>"
@@ -272,6 +282,8 @@ class Fact(Base):
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
             "created_by": self.created_by,
+            "use_count": self.use_count,
+            "last_used_at": self.last_used_at.isoformat() if self.last_used_at else None,
         }
 
 
@@ -424,4 +436,37 @@ class FactRelationship(Base):
         return (
             f"<FactRelationship {self.source_fact_id!r} "
             f"--[{self.relationship_type}]--> {self.target_fact_id!r}>"
+        )
+
+
+# ---------------------------------------------------------------------------
+# FactUsageLog
+# ---------------------------------------------------------------------------
+
+
+class FactUsageLog(Base):
+    """
+    Records each time a fact is used (e.g. returned from search, used during
+    inference or reasoning).  Paired with the denormalised ``use_count`` /
+    ``last_used_at`` columns on :class:`Fact` for fast ranking queries.
+    """
+
+    __tablename__ = "fact_usage_logs"
+
+    id: str = Column(String(36), primary_key=True, default=_new_uuid)
+    fact_id: str = Column(
+        String(36), ForeignKey("facts.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    used_at: datetime = Column(
+        DateTime(timezone=True), nullable=False, default=_utcnow
+    )
+    context: str = Column(String(200), nullable=True)   # e.g. "search", "inference", "reasoning"
+    used_by: str = Column(String(200), nullable=True)
+
+    fact = relationship("Fact", back_populates="usage_logs")
+
+    def __repr__(self) -> str:
+        return (
+            f"<FactUsageLog fact_id={self.fact_id!r} "
+            f"context={self.context!r} used_at={self.used_at!r}>"
         )

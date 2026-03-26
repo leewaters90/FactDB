@@ -1,0 +1,23 @@
+{
+  "title": "Voice-Controlled Home Automation Hub",
+  "description": "Offline voice recognition controller switching mains loads (lights, fans, pumps) via solid-state relays, with MQTT status reporting and BLE fallback app control. No cloud dependency.",
+  "objective": "Recognise 10 voice commands offline; ≤ 500 ms response; control ≥ 4 mains channels; ≥ 30 operations/day.",
+  "constraints": "230 V; DIN-rail mount; no cloud dependency; CE-compliant; ≤ £45 BOM.",
+  "domain": "systems",
+  "status": "in_design",
+  "supporting_fact_titles": [
+    "MQTT Protocol for IoT Sensor Data",
+    "Bluetooth Low Energy (BLE) for App Control"
+  ],
+  "design_element_titles": [
+    "Voice Recognition UART Speech Module",
+    "Solid-State Relay Mains Actuator Switching",
+    "ESP32 WiFi + MQTT IoT Telemetry",
+    "BLE GATT Smartphone App Interface",
+    "MQTT QoS-1 Secure Event Logger"
+  ],
+  "element_usage_notes": {
+    "Voice Recognition UART Speech Module": "LD3320 UART @ 9600 baud; 20-word vocabulary; 1-shot user retrain supported.",
+    "Solid-State Relay Mains Actuator Switching": "4-channel SSR board; 230 V / 10 A per channel; zero-cross switching."
+  }
+}

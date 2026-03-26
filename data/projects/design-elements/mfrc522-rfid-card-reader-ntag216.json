@@ -1,0 +1,22 @@
+{
+  "title": "MFRC522 RFID Card Reader (NTAG216)",
+  "component_category": "sensing",
+  "design_question": "Which RFID standard provides adequate security for an office access-control system?",
+  "selected_approach": "MFRC522 reader + NTAG216 NFC tags (ISO 14443A, 7-byte UID). SPI at 10 MHz. UID + timestamp HMAC-SHA256 signed in firmware.",
+  "rationale": "NTAG216 has a unique 7-byte UID not easily cloned; HMAC prevents replay attacks. Mifare Classic CRYPTO1 is broken since 2008.",
+  "alternatives": [
+    {
+      "approach": "Mifare Classic 1K",
+      "reason_rejected": "CRYPTO1 cipher broken; UID cloneable with £5 device—rejected on security grounds."
+    },
+    {
+      "approach": "Fingerprint sensor AS608",
+      "reason_rejected": "GDPR complexity for biometric data; higher cost—rejected."
+    }
+  ],
+  "verification_notes": "FACT: 'RFID/NFC Reader — ISO 14443 / 15693 Interface' explicitly warns about Mifare Classic CRYPTO1 weakness and recommends NTAG216.",
+  "supporting_fact_titles": [
+    "RFID/NFC Reader — ISO 14443 / 15693 Interface",
+    "I²C Serial Communication Protocol"
+  ]
+}

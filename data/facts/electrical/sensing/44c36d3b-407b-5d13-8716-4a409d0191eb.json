@@ -1,0 +1,27 @@
+{
+  "id": "44c36d3b-407b-5d13-8716-4a409d0191eb",
+  "title": "Capacitive Flex Sensor — Finger Bend Angle Measurement",
+  "domain": "electrical",
+  "category": "sensing",
+  "subcategory": "gesture recognition",
+  "detail_level": "intermediate",
+  "content": "A resistive flex sensor (Spectra Symbol 2.2″/4.5″) increases resistance from ≈ 10 kΩ (flat) to ≈ 35 kΩ (fully bent). Fitted inside a glove over each finger joint, a voltage-divider circuit converts resistance to an ADC-readable voltage for measuring bend angle.",
+  "extended_content": "Voltage divider: V_out = V_cc × R_load / (R_flex + R_load). Typical R_load = 47 kΩ gives V_out range 1.5–3.0 V on 5 V supply. Calibration: flat = 0°, max bend ≈ 90° per joint; linear interpolation. IMU supplement: adding MPU-6050 on wrist measures wrist orientation to map full hand pose to robot joint angles. 5-finger glove maps to 5-DOF servo arm via lookup table. Alternative: StretchSense capacitive glove for ±1° accuracy at 30× higher cost—rejected for educational builds.",
+  "formula": null,
+  "units": null,
+  "source": "Spectra Symbol Flex Sensor Datasheet; glove-based robotic arm literature",
+  "source_url": null,
+  "confidence_score": 0.92,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "flex sensor",
+    "gesture",
+    "glove",
+    "robot arm",
+    "hand motion",
+    "sensing",
+    "mechatronics"
+  ],
+  "created_by": "seed"
+}

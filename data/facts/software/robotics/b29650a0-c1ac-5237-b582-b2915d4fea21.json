@@ -1,0 +1,26 @@
+{
+  "id": "b29650a0-c1ac-5237-b582-b2915d4fea21",
+  "title": "Coverage Path Planning — Boustrophedon (Lawnmower) Algorithm",
+  "domain": "software",
+  "category": "robotics",
+  "subcategory": "path planning",
+  "detail_level": "intermediate",
+  "content": "Boustrophedon coverage path planning sweeps a robot back and forth in parallel lanes (like ploughing a field) to guarantee complete area coverage with minimal overlap, maximising cleaning efficiency.",
+  "extended_content": "The working width w equals the effective brush or suction width. Step between lanes = w × (1 − overlap_fraction); 10–20% overlap compensates for odometry error.  Total path length ≈ A / w, where A is area.  Cellular decomposition variants divide the map into convex cells (using critical points of obstacle boundary), each swept independently.  Robot vacuums combine boustrophedon (for open areas) with wall-following (perimeter first) and spot-clean (spiral) modes.  Coverage fraction > 98% achievable in obstacle-free rooms; drops with higher obstacle density.",
+  "formula": "Path length ≈ A / (w · (1 − overlap))",
+  "units": "m (path), m² (area A), m (width w)",
+  "source": "Choset et al., Principles of Robot Motion, MIT Press, 2005; Zelinsky et al. (1993)",
+  "source_url": null,
+  "confidence_score": 0.96,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "coverage",
+    "path-planning",
+    "boustrophedon",
+    "algorithm",
+    "robot-vacuum",
+    "software"
+  ],
+  "created_by": "seed"
+}

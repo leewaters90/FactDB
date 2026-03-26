@@ -1,0 +1,22 @@
+{
+  "title": "SCD41 NDIR CO₂ Sensing Module",
+  "component_category": "sensing",
+  "design_question": "Which CO₂ technology provides ±50 ppm accuracy without user recalibration?",
+  "selected_approach": "Sensirion SCD41 NDIR sensor (I²C, ±40 ppm, ABC self-calibration). On-chip temperature and pressure compensation.",
+  "rationale": "NDIR is a primary technique (Beer-Lambert law) with <2 %/year drift. ABC algorithm uses fresh-air reference automatically—no user action needed.",
+  "alternatives": [
+    {
+      "approach": "MQ-135 metal-oxide sensor",
+      "reason_rejected": "Heavy cross-sensitivity to multiple gases; weeks of burn-in; not selective for CO₂—rejected."
+    },
+    {
+      "approach": "MH-Z19B NDIR",
+      "reason_rejected": "Acceptable accuracy but lacks on-chip RH compensation."
+    }
+  ],
+  "verification_notes": "FACT: 'NDIR CO₂ Sensor — Non-Dispersive Infrared' confirms Beer-Lambert principle and ABC baseline correction.",
+  "supporting_fact_titles": [
+    "NDIR CO₂ Sensor — Non-Dispersive Infrared",
+    "I²C Serial Communication Protocol"
+  ]
+}

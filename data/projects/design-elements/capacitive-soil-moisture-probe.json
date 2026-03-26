@@ -1,0 +1,22 @@
+{
+  "title": "Capacitive Soil Moisture Probe",
+  "component_category": "sensing",
+  "design_question": "How to measure soil VWC accurately without electrode corrosion?",
+  "selected_approach": "Capacitive soil moisture sensor inserted 5 cm deep; voltage output 1.2–3.0 V read by MCU 12-bit ADC. Calibrated against gravimetric method per soil type.",
+  "rationale": "Capacitive probes resist corrosion and provide a continuous voltage linearly proportional to VWC. ADC resolution of 0.8 mV at 3.3 V full-scale gives ≈0.5 % VWC resolution—adequate for the 20–60 % target range.",
+  "alternatives": [
+    {
+      "approach": "Resistive YL-69 probe",
+      "reason_rejected": "Electrolytic corrosion within weeks; nonlinear response—rejected."
+    },
+    {
+      "approach": "TDR probe",
+      "reason_rejected": "High accuracy but >£40 and complex RF circuitry—over-engineered."
+    }
+  ],
+  "verification_notes": "FACT: 'Capacitive Soil Moisture Sensing' confirms 1.2–3.0 V output and temperature compensation above 30 °C. FACT: 'ADC Resolution' confirms 0.8 mV/LSB at 3.3 V.",
+  "supporting_fact_titles": [
+    "Capacitive Soil Moisture Sensing",
+    "ADC Resolution and Measurement Precision"
+  ]
+}

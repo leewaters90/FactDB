@@ -1,0 +1,28 @@
+{
+  "id": "3e93dfbc-1900-5bff-80fb-b8802b3d0fb2",
+  "title": "TFMini-S Micro LiDAR — 0.1–12 m Time-of-Flight",
+  "domain": "electrical",
+  "category": "sensing",
+  "subcategory": "LiDAR",
+  "detail_level": "intermediate",
+  "content": "The Benewake TFMini-S is a compact (42×15×16 mm, 5 g) 850 nm infrared ToF LiDAR measuring single-point distance 0.1–12 m at 100–1000 Hz over UART or I²C with ±1 % or ±2 cm accuracy.",
+  "extended_content": "Supply: 5 V, 120 mA average. Serial: 115 200 baud (default), 9-byte frame (header 0x59 0x59, dist_L, dist_H, …). I²C address: 0x10. Indoor accuracy: ±6 mm (0.1–6 m). Outdoor range: 6 m in bright sunlight. FOV: 2.3° full angle. Signal quality byte: discard readings with strength < 100 (transparent or dusty surfaces). Drone use: downward-facing for altitude hold < 10 m; forward-facing for obstacle detection from 0.5 m. Alternative: HC-SR04 ultrasonic—cheaper but 40 ms/sample; VL53L1X—shorter range (4 m).",
+  "formula": null,
+  "units": null,
+  "source": "Benewake TFMini-S Product Manual v1.7.1",
+  "source_url": null,
+  "confidence_score": 0.96,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "LiDAR",
+    "TFMini",
+    "time-of-flight",
+    "distance",
+    "sensing",
+    "drone",
+    "mechatronics",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

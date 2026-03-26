@@ -1,0 +1,18 @@
+{
+  "title": "ESP32 WiFi + MQTT IoT Telemetry",
+  "component_category": "communication",
+  "design_question": "How to transmit sensor data to a home server with minimum energy and zero external hardware cost?",
+  "selected_approach": "ESP32 WiFi to home router. MQTT over TCP (QoS 0–1) to Mosquitto broker. WiFi active <1 s per cycle; reconnect using stored credentials.",
+  "rationale": "ESP32 integrates WiFi+BLE on-chip—zero external component cost. MQTT QoS 0 minimises transmission time; QoS 1 for critical events.",
+  "alternatives": [
+    {
+      "approach": "LoRa point-to-point",
+      "reason_rejected": "No home router needed but requires separate gateway hardware—overkill for ≤100 m indoor range."
+    }
+  ],
+  "verification_notes": "FACT: 'MQTT Protocol for IoT Sensor Data' confirms QoS 0 overhead. FACT: 'ESP32 WiFi + BLE System-on-Chip' confirms deep-sleep ≈10 µA.",
+  "supporting_fact_titles": [
+    "MQTT Protocol for IoT Sensor Data",
+    "ESP32 WiFi + BLE System-on-Chip"
+  ]
+}

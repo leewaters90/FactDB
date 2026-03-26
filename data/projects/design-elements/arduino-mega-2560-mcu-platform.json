@@ -1,0 +1,23 @@
+{
+  "title": "Arduino Mega 2560 MCU Platform",
+  "component_category": "control",
+  "design_question": "Which MCU handles projects with many I/O pins and multiple serial buses?",
+  "selected_approach": "ATmega2560-based Arduino Mega 2560 (5 V, 16 MHz, 54 digital I/O, 16 ADC channels, 4 hardware UARTs, 20 PWM pins). Programmed via Arduino IDE; shields stack directly.",
+  "rationale": "54 I/O pins support large servo arrays, multiple sensors, and 4 independent serial devices (RF, GPS, Bluetooth, LCD) without software serial emulation overhead. Cost ~£10—acceptable for lab projects.",
+  "alternatives": [
+    {
+      "approach": "Arduino Uno",
+      "reason_rejected": "Only 14 digital pins and 1 hardware UART—insufficient for complex projects."
+    },
+    {
+      "approach": "ESP32",
+      "reason_rejected": "WiFi/BLE onboard but 3.3 V I/O requires level-shifting for 5 V modules."
+    }
+  ],
+  "verification_notes": "FACT: 'Forward and Inverse Kinematics — Serial Robot Arm' confirms servo array requirements for 5+ DOF arms.",
+  "supporting_fact_titles": [
+    "Forward and Inverse Kinematics — Serial Robot Arm",
+    "RC Servo Motor PWM Control",
+    "Stepper Motor Drive — Full Step and Microstepping"
+  ]
+}

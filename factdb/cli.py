@@ -25,6 +25,7 @@ import click
 from tabulate import tabulate
 
 from factdb.database import get_session_factory, init_db, reset_engine
+from factdb.json_store import DEFAULT_FACTS_DIR, JsonFactStore
 from factdb.models import DetailLevel, EngineeringDomain, FactStatus, RelationshipType
 from factdb.repository import FactRepository
 from factdb.reasoning import ReasoningEngine
@@ -35,6 +36,14 @@ from factdb.verification import VerificationWorkflow
 def _make_session(db_url: str | None = None):
     factory = get_session_factory(db_url)
     return factory()
+
+
+def _make_repo(session, facts_dir: str | None = None, *, with_json_store: bool = True) -> FactRepository:
+    """Return a FactRepository, optionally wired to a JsonFactStore."""
+    json_store = None
+    if with_json_store:
+        json_store = JsonFactStore(facts_dir or DEFAULT_FACTS_DIR)
+    return FactRepository(session, json_store=json_store)
 
 
 # ---------------------------------------------------------------------------
@@ -49,11 +58,18 @@ def _make_session(db_url: str | None = None):
     default=None,
     help="SQLAlchemy database URL (overrides FACTDB_DATABASE_URL env var).",
 )
+@click.option(
+    "--facts-dir",
+    envvar="FACTDB_FACTS_DIR",
+    default=None,
+    help="Root directory for JSON fact files (default: data/facts/ next to project).",
+)
 @click.pass_context
-def cli(ctx, db):
+def cli(ctx, db, facts_dir):
     """FactDB — Engineering fact database and reasoning engine."""
     ctx.ensure_object(dict)
     ctx.obj["db"] = db
+    ctx.obj["facts_dir"] = facts_dir
 
 
 # ---------------------------------------------------------------------------
@@ -96,6 +112,30 @@ def seed(ctx):
 
 
 # ---------------------------------------------------------------------------
+# seed-devices
+# ---------------------------------------------------------------------------
+
+
+@cli.command("seed-devices")
+@click.pass_context
+def seed_devices_cmd(ctx):
+    """Seed the database with device-domain engineering facts."""
+    from factdb.device_seeder import seed_devices
+
+    reset_engine()
+    init_db(ctx.obj.get("db"))
+    session = _make_session(ctx.obj.get("db"))
+    try:
+        result = seed_devices(session)
+        click.echo(
+            f"Device facts seeded: {result['created']} created, "
+            f"{result['skipped']} skipped, "
+            f"{result['relationships']} relationships created."
+        )
+    finally:
+        session.close()
+
+# ---------------------------------------------------------------------------
 # search
 # ---------------------------------------------------------------------------
 
@@ -109,8 +149,10 @@ def seed(ctx):
 @click.option("--tag", "tags", multiple=True, help="Tag filter (repeatable).")
 @click.option("--limit", default=20, show_default=True, help="Max results.")
 @click.option("--json", "as_json", is_flag=True, help="Output as JSON.")
+@click.option("--record-usage", "record_usage", is_flag=True, default=False, help="Record usage for returned facts.")
+@click.option("--by", default=None, help="Identity to record in usage log.")
 @click.pass_context
-def search(ctx, query, domain, category, level, status, tags, limit, as_json):
+def search(ctx, query, domain, category, level, status, tags, limit, as_json, record_usage, by):
     """Search facts by keyword and/or filters."""
     reset_engine()
     init_db(ctx.obj.get("db"))
@@ -129,7 +171,12 @@ def search(ctx, query, domain, category, level, status, tags, limit, as_json):
             status=status_enum,
             tags=list(tags) if tags else None,
             limit=limit,
+            record_usage=record_usage,
+            usage_by=by,
         )
+
+        if record_usage:
+            session.commit()
 
         if as_json:
             click.echo(json.dumps([f.to_dict() for f in results], indent=2))
@@ -217,6 +264,58 @@ def show(ctx, fact_id):
 
 
 # ---------------------------------------------------------------------------
+# most-used
+# ---------------------------------------------------------------------------
+
+
+@cli.command("most-used")
+@click.option("--limit", default=20, show_default=True, help="Number of facts to show.")
+@click.option("--min-count", default=1, show_default=True, help="Minimum use count.")
+@click.option("--domain", default=None, help="Filter by engineering domain.")
+@click.option("--json", "as_json", is_flag=True, help="Output as JSON.")
+@click.pass_context
+def most_used_cmd(ctx, limit, min_count, domain, as_json):
+    """List most-used facts, ordered by use count descending.
+
+    Highlights high-value facts for prioritised verification and maintenance.
+    """
+    reset_engine()
+    init_db(ctx.obj.get("db"))
+    session = _make_session(ctx.obj.get("db"))
+    try:
+        repo = FactRepository(session)
+        domain_enum = EngineeringDomain(domain) if domain else None
+        facts = repo.list_most_used(limit=limit, min_use_count=min_count, domain=domain_enum)
+
+        if not facts:
+            click.echo("No facts with recorded usage yet.")
+            return
+
+        if as_json:
+            click.echo(json.dumps([f.to_dict() for f in facts], indent=2))
+        else:
+            rows = [
+                [
+                    f.id[:8],
+                    f.use_count,
+                    f.last_used_at.strftime("%Y-%m-%d %H:%M") if f.last_used_at else "—",
+                    _val(f.status),
+                    (f.title[:55] + "…") if len(f.title) > 55 else f.title,
+                ]
+                for f in facts
+            ]
+            click.echo(
+                tabulate(
+                    rows,
+                    headers=["ID", "Uses", "Last Used", "Status", "Title"],
+                    tablefmt="simple",
+                )
+            )
+    finally:
+        session.close()
+
+
+# ---------------------------------------------------------------------------
 # add  (interactive)
 # ---------------------------------------------------------------------------
 
@@ -248,7 +347,7 @@ def add(ctx, title, content, domain, category, subcategory, level, source, tags,
     init_db(ctx.obj.get("db"))
     session = _make_session(ctx.obj.get("db"))
     try:
-        repo = FactRepository(session)
+        repo = _make_repo(session, ctx.obj.get("facts_dir"))
         tag_list = [t.strip() for t in tags.split(",") if t.strip()] if tags else []
         fact = repo.create(
             title=title,
@@ -263,6 +362,9 @@ def add(ctx, title, content, domain, category, subcategory, level, source, tags,
         )
         session.commit()
         click.echo(f"Created fact {fact.id!r}: {fact.title!r}")
+        if repo.json_store is not None:
+            path = repo.json_store.fact_path(fact.to_dict())
+            click.echo(f"JSON file written: {path}")
     finally:
         session.close()
 
@@ -438,6 +540,115 @@ def export(ctx, domain, status, output):
 
 
 # ---------------------------------------------------------------------------
+# export-json
+# ---------------------------------------------------------------------------
+
+
+@cli.command("export-json")
+@click.option(
+    "--output-dir",
+    default=None,
+    help="Root directory for JSON files (default: data/facts/ next to project).",
+)
+@click.option("--domain", default=None, help="Filter by domain.")
+@click.option("--status", default=None, help="Filter by lifecycle status.")
+@click.pass_context
+def export_json_cmd(ctx, output_dir, domain, status):
+    """Export all facts to a folder tree of JSON files.
+
+    Each fact is written to:
+
+        {output-dir}/{domain}/{category}/{fact-id}.json
+
+    The resulting tree is human-readable, diff-friendly, and can be edited
+    directly then re-imported with the ``import-json`` command.
+    """
+    reset_engine()
+    init_db(ctx.obj.get("db"))
+    session = _make_session(ctx.obj.get("db"))
+    try:
+        repo = FactRepository(session)
+        domain_enum = EngineeringDomain(domain) if domain else None
+        status_enum = FactStatus(status) if status else None
+        facts = repo.list_all(domain=domain_enum, status=status_enum, limit=10000)
+
+        store = JsonFactStore(output_dir or ctx.obj.get("facts_dir") or DEFAULT_FACTS_DIR)
+        written = 0
+        for fact in facts:
+            store.write_fact(fact.to_dict())
+            written += 1
+
+        click.echo(f"Exported {written} fact(s) to {store.base_dir}")
+    finally:
+        session.close()
+
+
+# ---------------------------------------------------------------------------
+# import-json
+# ---------------------------------------------------------------------------
+
+
+@cli.command("import-json")
+@click.option(
+    "--input-dir",
+    default=None,
+    help="Root directory of JSON fact files (default: data/facts/ next to project).",
+)
+@click.option("--by", default="import", show_default=True, help="Identity for the import operation.")
+@click.option("--dry-run", is_flag=True, help="Report what would be imported without writing.")
+@click.pass_context
+def import_json_cmd(ctx, input_dir, by, dry_run):
+    """Import facts from a JSON folder tree into the database.
+
+    Reads all ``*.json`` files found recursively under the input directory
+    and upserts each fact — creating it if the ID is new, updating it if the
+    fact already exists.
+
+    This is the reverse of ``export-json`` and is the recommended workflow
+    for making bulk edits: export → edit files → import.
+    """
+    reset_engine()
+    init_db(ctx.obj.get("db"))
+    session = _make_session(ctx.obj.get("db"))
+    try:
+        store = JsonFactStore(input_dir or ctx.obj.get("facts_dir") or DEFAULT_FACTS_DIR)
+        all_dicts = store.load_all()
+
+        if not all_dicts:
+            click.echo(f"No JSON fact files found under {store.base_dir}")
+            return
+
+        if dry_run:
+            click.echo(f"[dry-run] Would import {len(all_dicts)} fact file(s) from {store.base_dir}")
+            for d in all_dicts[:10]:
+                click.echo(f"  • {d.get('id', '?')[:8]}  {d.get('title', '?')}")
+            if len(all_dicts) > 10:
+                click.echo(f"  … and {len(all_dicts) - 10} more")
+            return
+
+        repo = FactRepository(session)
+        created = updated = errors = 0
+        for d in all_dicts:
+            try:
+                _, was_created = repo.upsert_from_dict(d, imported_by=by)
+                if was_created:
+                    created += 1
+                else:
+                    updated += 1
+            except Exception as exc:
+                click.echo(f"  Warning: skipped {d.get('id', '?')!r} — {exc}", err=True)
+                errors += 1
+
+        session.commit()
+        click.echo(
+            f"Import complete: {created} created, {updated} updated, {errors} skipped "
+            f"(from {store.base_dir})"
+        )
+    finally:
+        session.close()
+
+
+# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
@@ -469,6 +680,162 @@ def _print_facts_table(facts) -> None:
         )
     )
     click.echo(f"\n{len(facts)} fact(s) found.")
+
+
+# ---------------------------------------------------------------------------
+# seed-projects
+# ---------------------------------------------------------------------------
+
+
+@cli.command("seed-projects")
+@click.pass_context
+def seed_projects_cmd(ctx):
+    """Seed shared DesignElements and mechatronics project designs."""
+    from factdb.project_seeder import seed_projects
+
+    reset_engine()
+    init_db(ctx.obj.get("db"))
+    session = _make_session(ctx.obj.get("db"))
+    try:
+        result = seed_projects(session)
+        click.echo(
+            f"DesignElements: {result['elements_created']} created, "
+            f"{result['elements_skipped']} skipped."
+        )
+        click.echo(
+            f"Projects: {result['projects_created']} created, "
+            f"{result['projects_skipped']} skipped."
+        )
+        click.echo(f"Project-element links: {result['links_created']} processed.")
+    finally:
+        session.close()
+
+
+# ---------------------------------------------------------------------------
+# list-projects
+# ---------------------------------------------------------------------------
+
+
+@cli.command("list-projects")
+@click.option("--status", default=None, help="Filter by project status.")
+@click.option("--domain", default=None, help="Filter by engineering domain.")
+@click.option("--limit", default=50, show_default=True)
+@click.option("--json", "as_json", is_flag=True, help="Output as JSON.")
+@click.pass_context
+def list_projects_cmd(ctx, status, domain, limit, as_json):
+    """List mechatronics projects."""
+    from factdb.project_models import ProjectStatus
+    from factdb.project_repository import ProjectRepository
+
+    reset_engine()
+    init_db(ctx.obj.get("db"))
+    session = _make_session(ctx.obj.get("db"))
+    try:
+        repo = ProjectRepository(session)
+        status_enum = ProjectStatus(status) if status else None
+        projects = repo.list_projects(status=status_enum, domain=domain, limit=limit)
+        if not projects:
+            click.echo("No projects found.")
+            return
+        if as_json:
+            click.echo(json.dumps([p.to_dict() for p in projects], indent=2))
+        else:
+            rows = [
+                [
+                    p.id[:8] + "…",
+                    _val(p.domain),
+                    _val(p.status),
+                    len(p.element_links),
+                    p.title[:60],
+                ]
+                for p in projects
+            ]
+            click.echo(tabulate(rows, headers=["ID", "Domain", "Status", "Elements", "Title"]))
+            click.echo(f"\n{len(projects)} project(s) found.")
+    finally:
+        session.close()
+
+
+# ---------------------------------------------------------------------------
+# show-project
+# ---------------------------------------------------------------------------
+
+
+@cli.command("show-project")
+@click.argument("project_title")
+@click.pass_context
+def show_project_cmd(ctx, project_title):
+    """Show full details of a project including its design elements."""
+    from factdb.project_repository import ProjectRepository
+
+    reset_engine()
+    init_db(ctx.obj.get("db"))
+    session = _make_session(ctx.obj.get("db"))
+    try:
+        repo = ProjectRepository(session)
+        project = repo.get_project_by_title(project_title)
+        if project is None:
+            click.echo(f"Project not found: {project_title!r}", err=True)
+            sys.exit(1)
+        click.echo(f"\n{'='*70}")
+        click.echo(f"  {project.title}")
+        click.echo(f"{'='*70}")
+        click.echo(f"  Status  : {_val(project.status)}")
+        click.echo(f"  Domain  : {_val(project.domain)}")
+        click.echo(f"  Objective: {project.objective or '—'}")
+        click.echo(f"  Constraints: {project.constraints or '—'}")
+        click.echo(f"\n  Description:\n    {project.description}")
+        click.echo(f"\n  Design Elements ({len(project.element_links)}):")
+        for link in project.element_links:
+            el = link.element
+            note = f"  [{link.usage_notes}]" if link.usage_notes else ""
+            click.echo(f"    [{_val(el.component_category):14}] {el.title}{note}")
+        click.echo(f"{'='*70}\n")
+    finally:
+        session.close()
+
+
+# ---------------------------------------------------------------------------
+# list-elements
+# ---------------------------------------------------------------------------
+
+
+@cli.command("list-elements")
+@click.option("--category", default=None, help="Filter by component category.")
+@click.option("--limit", default=100, show_default=True)
+@click.option("--json", "as_json", is_flag=True, help="Output as JSON.")
+@click.pass_context
+def list_elements_cmd(ctx, category, limit, as_json):
+    """List shared design elements."""
+    from factdb.project_models import ComponentCategory
+    from factdb.project_repository import ProjectRepository
+
+    reset_engine()
+    init_db(ctx.obj.get("db"))
+    session = _make_session(ctx.obj.get("db"))
+    try:
+        repo = ProjectRepository(session)
+        cat_enum = ComponentCategory(category) if category else None
+        elements = repo.list_design_elements(component_category=cat_enum, limit=limit)
+        if not elements:
+            click.echo("No design elements found.")
+            return
+        if as_json:
+            click.echo(json.dumps([e.to_dict() for e in elements], indent=2))
+        else:
+            rows = [
+                [
+                    e.id[:8] + "…",
+                    _val(e.component_category),
+                    len(e.project_links),
+                    e.title[:60],
+                ]
+                for e in elements
+            ]
+            click.echo(tabulate(rows, headers=["ID", "Category", "Projects", "Title"]))
+            click.echo(f"\n{len(elements)} element(s) found.")
+    finally:
+        session.close()
 
 
 if __name__ == "__main__":

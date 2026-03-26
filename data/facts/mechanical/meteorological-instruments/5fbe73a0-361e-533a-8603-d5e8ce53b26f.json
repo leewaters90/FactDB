@@ -1,0 +1,25 @@
+{
+  "id": "5fbe73a0-361e-533a-8603-d5e8ce53b26f",
+  "title": "Cup Anemometer — Wind Speed Measurement",
+  "domain": "mechanical",
+  "category": "meteorological instruments",
+  "subcategory": "wind measurement",
+  "detail_level": "intermediate",
+  "content": "A three-cup anemometer converts wind speed to a rotational frequency. Wind speed is proportional to rotation rate: V = k · f, where k is the instrument calibration factor and f is the rotation frequency.",
+  "extended_content": "Typical calibration factors: k ≈ 0.75–1.0 m/s per Hz for a standard 100 mm cup set.  A reed switch or Hall-effect sensor generates one or more pulses per revolution, counted by a microcontroller.  Starting threshold ('threshold wind speed') is typically 0.3–0.5 m/s.  WMO specification requires measurement range 0.2–75 m/s with ±0.5 m/s accuracy below 5 m/s and ±10% above.  Ultrasonic anemometers have no moving parts and better low-wind response.",
+  "formula": "V_wind = k · f_rotation",
+  "units": "V: m/s, f: Hz",
+  "source": "WMO-No.8 Guide to Instruments, Ch.5; R.M. Young 05103 Manual",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "wind-speed",
+    "anemometer",
+    "meteorology",
+    "mechanical",
+    "weather-station"
+  ],
+  "created_by": "seed"
+}

@@ -1,0 +1,17 @@
+{
+  "title": "MCU Deep-Sleep Duty Cycle Power Management",
+  "component_category": "power",
+  "design_question": "How to minimise average current on a battery node that samples every N minutes?",
+  "selected_approach": "MCU enters deep sleep (5–10 µA) between measurement windows. I_avg = I_active·(t_on/T) + I_sleep. Peripheral VCC gated by GPIO MOSFET.",
+  "rationale": "Deep sleep reduces active-fraction contribution by 1000×. Peripheral gating prevents sensor quiescent drain between samples.",
+  "alternatives": [
+    {
+      "approach": "Always-on with idle loop",
+      "reason_rejected": "Active current 25–80 mA continuously; battery life <10 h on 2 Ah—rejected."
+    }
+  ],
+  "verification_notes": "FACT: 'Low-Power Microcontroller Sleep Modes' confirms I_avg formula and 0.1–5 µA deep sleep range for ARM Cortex-M0+/ESP32.",
+  "supporting_fact_titles": [
+    "Low-Power Microcontroller Sleep Modes"
+  ]
+}

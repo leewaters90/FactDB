@@ -10,6 +10,7 @@ use the composite indexes defined on the ``facts`` table.
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Sequence
 
 from sqlalchemy import or_, select, text
@@ -20,6 +21,7 @@ from factdb.models import (
     EngineeringDomain,
     Fact,
     FactStatus,
+    FactUsageLog,
     Tag,
 )
 
@@ -68,6 +70,9 @@ class FactSearch:
         include_inactive: bool = False,
         limit: int = 50,
         offset: int = 0,
+        record_usage: bool = False,
+        usage_context: str | None = "search",
+        usage_by: str | None = None,
     ) -> Sequence[Fact]:
         """
         Search facts using a combination of keyword and structured filters.
@@ -89,13 +94,33 @@ class FactSearch:
             include_inactive: Include soft-deleted facts when ``True``.
             limit:            Maximum results to return (default 50).
             offset:           Pagination offset (default 0).
+            record_usage:     When ``True``, increment :attr:`Fact.use_count` and
+                              append a :class:`~factdb.models.FactUsageLog` row for
+                              every fact returned.  Defaults to ``False``.
+            usage_context:    Context label written to the usage log when
+                              *record_usage* is ``True`` (default ``"search"``).
+            usage_by:         Identity of the caller written to the usage log.
 
         Returns:
             Sequence of matching :class:`~factdb.models.Fact` objects ordered
             by descending confidence score then ascending title.
         """
         if query and self._fts5_enabled():
-            return self._search_fts5(
+            results = self._search_fts5(
+                query=query,
+                domain=domain,
+                category=category,
+                subcategory=subcategory,
+                detail_level=detail_level,
+                status=status,
+                tags=tags,
+                min_confidence=min_confidence,
+                include_inactive=include_inactive,
+                limit=limit,
+                offset=offset,
+            )
+        else:
+            results = self._search_like(
                 query=query,
                 domain=domain,
                 category=category,
@@ -109,19 +134,22 @@ class FactSearch:
                 offset=offset,
             )
 
-        return self._search_like(
-            query=query,
-            domain=domain,
-            category=category,
-            subcategory=subcategory,
-            detail_level=detail_level,
-            status=status,
-            tags=tags,
-            min_confidence=min_confidence,
-            include_inactive=include_inactive,
-            limit=limit,
-            offset=offset,
-        )
+        if record_usage and results:
+            now = datetime.now(timezone.utc)
+            for fact in results:
+                fact.use_count = (fact.use_count or 0) + 1
+                fact.last_used_at = now
+                self.session.add(
+                    FactUsageLog(
+                        fact_id=fact.id,
+                        context=usage_context,
+                        used_by=usage_by,
+                        used_at=now,
+                    )
+                )
+            self.session.flush()
+
+        return results
 
     # ------------------------------------------------------------------
     # FTS5 path

@@ -1,0 +1,18 @@
+{
+  "title": "Complementary Filter IMU Attitude Fusion",
+  "component_category": "control",
+  "design_question": "How to fuse gyro and accelerometer for stable tilt estimation with minimal CPU load?",
+  "selected_approach": "θ = α·(θ_prev + ω·dt) + (1−α)·θ_accel, α=0.98 at 200 Hz. Computationally trivial vs Kalman filter.",
+  "rationale": "Complementary filter: one multiply-add per axis per cycle—negligible on any MCU. Stable and tunable via α. Accuracy sufficient for ±5° balance target.",
+  "alternatives": [
+    {
+      "approach": "Kalman EKF",
+      "reason_rejected": "Lower noise but matrix operations heavy on 8-bit MCU; complementary filter meets spec—use Kalman if upgrading to STM32."
+    }
+  ],
+  "verification_notes": "FACT: 'Kalman Filter for Sensor Fusion' provides the EKF upgrade path. FACT: 'IMU' confirms gyro drift and need for accel correction.",
+  "supporting_fact_titles": [
+    "IMU (Inertial Measurement Unit) for Robot Navigation",
+    "Kalman Filter for Sensor Fusion"
+  ]
+}

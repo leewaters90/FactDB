@@ -1,0 +1,25 @@
+{
+  "id": "a419c000-8c67-5196-b7d8-f16968919a23",
+  "title": "Ohm's Law",
+  "domain": "electrical",
+  "category": "circuit theory",
+  "subcategory": "DC circuits",
+  "detail_level": "fundamental",
+  "content": "The current through a conductor is directly proportional to the voltage across it and inversely proportional to its resistance: V = I · R.",
+  "extended_content": "Ohm's Law applies to linear, resistive, and time-invariant elements at constant temperature.  It forms the basis for DC circuit analysis and is used alongside Kirchhoff's laws for complex networks.",
+  "formula": "V = I · R",
+  "units": "V: Volts, I: Amperes, R: Ohms (Ω)",
+  "source": "Hayt & Kemmerly, Engineering Circuit Analysis, 8th ed.",
+  "source_url": null,
+  "confidence_score": 1.0,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "circuit",
+    "voltage",
+    "current",
+    "resistance",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

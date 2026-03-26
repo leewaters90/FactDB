@@ -1,0 +1,27 @@
+{
+  "id": "e1e04d2b-95aa-5861-aefe-a9b2fa1ee806",
+  "title": "Particle Filter Algorithm for Robot Localisation (Monte Carlo)",
+  "domain": "software",
+  "category": "robotics",
+  "subcategory": "probabilistic localisation",
+  "detail_level": "advanced",
+  "content": "A particle filter (Monte Carlo Localisation, MCL) represents the robot's posterior belief over pose as a set of M weighted samples (particles) and updates them with motion and sensor models.",
+  "extended_content": "Algorithm: (1) Predict — propagate each particle through the motion model with noise; (2) Update — weight each particle by the likelihood of the sensor observation given that pose; (3) Resample — draw M new particles with replacement proportional to weights.  Computational cost: O(M) per step.  Typical M = 200–2000 particles for a 10×10 m room.  Kidnapped-robot problem (sudden relocation) handled by injecting random particles.  MCL converges after ≈ 5–30 pose updates.  Adaptive MCL (AMCL) adjusts M dynamically for efficiency.",
+  "formula": null,
+  "units": null,
+  "source": "Thrun, Burgard & Fox, Probabilistic Robotics, MIT Press, 2005, Ch.4–8",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "particle-filter",
+    "MCL",
+    "localisation",
+    "probabilistic",
+    "robotics",
+    "robot-vacuum",
+    "software"
+  ],
+  "created_by": "seed"
+}

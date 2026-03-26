@@ -1,0 +1,22 @@
+{
+  "title": "Klann / Theo-Jansen Leg Linkage Mechanism",
+  "component_category": "mechanical",
+  "design_question": "How to produce smooth bipedal or multi-legged walking motion from a single rotating crank?",
+  "selected_approach": "Theo Jansen or Klann 6-bar linkage: one DC motor crank drives 4- or 8-leg set via coupler links producing a near-sinusoidal foot trajectory. All legs share a common drive shaft with phase offsets (45° or 90°) for smooth gait.",
+  "rationale": "Single-motor drive simplifies electronics: one L298N channel drives all legs simultaneously. Jansen linkage creates a natural walking gait with ground clearance. Fabricated from 3 mm acrylic or laser-cut plywood at < £10 materials.",
+  "alternatives": [
+    {
+      "approach": "Servo-per-leg hexapod",
+      "reason_rejected": "Independent control of each joint—more versatile but 12+ servos required."
+    },
+    {
+      "approach": "Wheeled locomotion",
+      "reason_rejected": "Simpler but cannot handle uneven terrain obstacles the leg linkage traverses."
+    }
+  ],
+  "verification_notes": "FACT: 'Slider-Crank Mechanism — Rotary to Linear Conversion' provides the base theory for crank-coupler kinematic analysis.",
+  "supporting_fact_titles": [
+    "Slider-Crank Mechanism — Rotary to Linear Conversion",
+    "DC Motor Speed Control via PWM"
+  ]
+}

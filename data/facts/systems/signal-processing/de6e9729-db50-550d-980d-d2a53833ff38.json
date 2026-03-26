@@ -1,0 +1,24 @@
+{
+  "id": "de6e9729-db50-550d-980d-d2a53833ff38",
+  "title": "Nyquist Sampling Theorem",
+  "domain": "systems",
+  "category": "signal processing",
+  "subcategory": "sampling",
+  "detail_level": "intermediate",
+  "content": "A continuous signal must be sampled at a rate at least twice its highest frequency component to be perfectly reconstructed: f_s ≥ 2·f_max.",
+  "extended_content": "Sampling below the Nyquist rate causes aliasing — high-frequency components fold back and corrupt lower-frequency content.  Anti-aliasing low-pass filters are applied before sampling to remove frequencies above f_s / 2 (the Nyquist frequency).",
+  "formula": "f_s ≥ 2 · f_max",
+  "units": "Hz",
+  "source": "Oppenheim & Schafer, Discrete-Time Signal Processing, 3rd ed.",
+  "source_url": null,
+  "confidence_score": 1.0,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "signal-processing",
+    "sampling",
+    "systems",
+    "frequency"
+  ],
+  "created_by": "seed"
+}

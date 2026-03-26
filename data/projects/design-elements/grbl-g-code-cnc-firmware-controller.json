@@ -1,0 +1,22 @@
+{
+  "title": "Grbl G-code CNC Firmware Controller",
+  "component_category": "software",
+  "design_question": "Which firmware interprets G-code and generates step pulses for a 2-axis plotter?",
+  "selected_approach": "Grbl on ATmega328P (or STM32). Accepts G0/G1/G2/G3 over USB-CDC. 30 kHz step rate. Trapezoidal acceleration profiles.",
+  "rationale": "Grbl is battle-tested open-source CNC firmware with extensive community support and built-in CoreXY kinematics.",
+  "alternatives": [
+    {
+      "approach": "Marlin",
+      "reason_rejected": "Aimed at 3D printing—higher flash footprint; overkill for 2D plotter."
+    },
+    {
+      "approach": "Custom step-generator",
+      "reason_rejected": "Reinvents the wheel; months of development—rejected."
+    }
+  ],
+  "verification_notes": "FACT: 'G-code and CNC Motion Control' confirms Grbl achieves 30 kHz step rate on ATmega328P and supports CoreXY natively.",
+  "supporting_fact_titles": [
+    "G-code and CNC Motion Control",
+    "Stepper Motor Drive — Full Step and Microstepping"
+  ]
+}

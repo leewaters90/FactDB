@@ -1,0 +1,352 @@
+[
+  {
+    "source_title": "Second Law of Thermodynamics — Entropy",
+    "target_title": "First Law of Thermodynamics",
+    "relationship_type": "depends_on",
+    "weight": 0.9,
+    "description": "The Second Law builds on the framework introduced by the First Law."
+  },
+  {
+    "source_title": "Carnot Efficiency",
+    "target_title": "Second Law of Thermodynamics — Entropy",
+    "relationship_type": "derived_from",
+    "weight": 1.0,
+    "description": "Carnot efficiency is a direct consequence of the Second Law."
+  },
+  {
+    "source_title": "Carnot Efficiency",
+    "target_title": "First Law of Thermodynamics",
+    "relationship_type": "depends_on",
+    "weight": 0.8,
+    "description": "Energy balance (1st Law) is needed alongside entropy (2nd Law)."
+  },
+  {
+    "source_title": "Hooke's Law — Linear Elasticity",
+    "target_title": "Factor of Safety",
+    "relationship_type": "supports",
+    "weight": 0.9,
+    "description": "Knowing the elastic stress-strain relation enables FoS calculations."
+  },
+  {
+    "source_title": "Hooke's Law — Linear Elasticity",
+    "target_title": "Beam Bending — Flexure Formula",
+    "relationship_type": "prerequisite",
+    "weight": 1.0,
+    "description": "Flexure formula assumes linear elastic material behaviour."
+  },
+  {
+    "source_title": "Beam Bending — Flexure Formula",
+    "target_title": "Euler's Column Buckling Formula",
+    "relationship_type": "supports",
+    "weight": 0.7,
+    "description": "Understanding bending stresses supports column stability analysis."
+  },
+  {
+    "source_title": "Kirchhoff's Voltage Law (KVL)",
+    "target_title": "Ohm's Law",
+    "relationship_type": "depends_on",
+    "weight": 0.8,
+    "description": "KVL circuit analysis uses Ohm's Law for resistive voltage drops."
+  },
+  {
+    "source_title": "Kirchhoff's Current Law (KCL)",
+    "target_title": "Ohm's Law",
+    "relationship_type": "depends_on",
+    "weight": 0.8,
+    "description": "Nodal analysis combines KCL with Ohm's Law."
+  },
+  {
+    "source_title": "PID Controller — Transfer Function",
+    "target_title": "Nyquist Sampling Theorem",
+    "relationship_type": "depends_on",
+    "weight": 0.7,
+    "description": "Digital PID implementation must respect the Nyquist sampling criterion."
+  },
+  {
+    "source_title": "ADC Resolution and Measurement Precision",
+    "target_title": "Nyquist–Shannon Sampling Theorem",
+    "relationship_type": "depends_on",
+    "weight": 0.8,
+    "description": "Correct ADC sampling requires the Nyquist criterion to be met."
+  },
+  {
+    "source_title": "NTC Thermistor Temperature Sensing",
+    "target_title": "ADC Resolution and Measurement Precision",
+    "relationship_type": "depends_on",
+    "weight": 0.9,
+    "description": "Thermistor voltage output must be digitised by the ADC."
+  },
+  {
+    "source_title": "RTD (PT100/PT1000) Temperature Measurement",
+    "target_title": "ADC Resolution and Measurement Precision",
+    "relationship_type": "depends_on",
+    "weight": 0.9,
+    "description": "RTD resistance is converted to voltage for ADC input."
+  },
+  {
+    "source_title": "Sensor Calibration and Traceability to SI",
+    "target_title": "NTC Thermistor Temperature Sensing",
+    "relationship_type": "supports",
+    "weight": 0.9,
+    "description": "Calibration improves the accuracy of thermistor readings."
+  },
+  {
+    "source_title": "Sensor Calibration and Traceability to SI",
+    "target_title": "MEMS Barometric Pressure Sensor",
+    "relationship_type": "supports",
+    "weight": 0.9,
+    "description": "Pressure sensor calibration is required for accurate QNH data."
+  },
+  {
+    "source_title": "Solar Panel Sizing for Remote IoT Stations",
+    "target_title": "Li-Ion Battery Capacity and Energy Calculation",
+    "relationship_type": "depends_on",
+    "weight": 0.9,
+    "description": "Battery sizing is required before determining solar panel output."
+  },
+  {
+    "source_title": "Low-Power Microcontroller Sleep Modes",
+    "target_title": "Solar Panel Sizing for Remote IoT Stations",
+    "relationship_type": "supports",
+    "weight": 0.8,
+    "description": "Lower average current reduces required panel and battery size."
+  },
+  {
+    "source_title": "MQTT Protocol for IoT Sensor Data",
+    "target_title": "NTP Time Synchronisation for Data Logging",
+    "relationship_type": "depends_on",
+    "weight": 0.7,
+    "description": "Accurate timestamps on MQTT messages require synchronised clocks."
+  },
+  {
+    "source_title": "LoRa / LoRaWAN — LPWAN for Remote Telemetry",
+    "target_title": "MQTT Protocol for IoT Sensor Data",
+    "relationship_type": "supports",
+    "weight": 0.7,
+    "description": "MQTT can be carried over a LoRaWAN uplink."
+  },
+  {
+    "source_title": "Radiation Shield for Meteorological Temperature Sensors",
+    "target_title": "NTC Thermistor Temperature Sensing",
+    "relationship_type": "supports",
+    "weight": 0.95,
+    "description": "A radiation shield is essential for accurate thermistor readings."
+  },
+  {
+    "source_title": "IP (Ingress Protection) Rating — IEC 60529",
+    "target_title": "I²C Serial Communication Protocol",
+    "relationship_type": "supports",
+    "weight": 0.6,
+    "description": "Enclosure IP rating protects the electronics hosting the I²C bus."
+  },
+  {
+    "source_title": "SLAM — Simultaneous Localisation and Mapping",
+    "target_title": "Particle Filter Algorithm for Robot Localisation (Monte Carlo)",
+    "relationship_type": "depends_on",
+    "weight": 0.9,
+    "description": "Particle filter MCL is a core algorithm for SLAM localisation."
+  },
+  {
+    "source_title": "SLAM — Simultaneous Localisation and Mapping",
+    "target_title": "2D LiDAR Distance Measurement Principle",
+    "relationship_type": "depends_on",
+    "weight": 0.95,
+    "description": "LiDAR point clouds are the primary sensor input for LiDAR SLAM."
+  },
+  {
+    "source_title": "Coverage Path Planning — Boustrophedon (Lawnmower) Algorithm",
+    "target_title": "SLAM — Simultaneous Localisation and Mapping",
+    "relationship_type": "depends_on",
+    "weight": 0.85,
+    "description": "Coverage planning requires a consistent map from SLAM."
+  },
+  {
+    "source_title": "A* Pathfinding Algorithm",
+    "target_title": "SLAM — Simultaneous Localisation and Mapping",
+    "relationship_type": "depends_on",
+    "weight": 0.8,
+    "description": "A* navigates the occupancy grid map produced by SLAM."
+  },
+  {
+    "source_title": "Differential Drive Robot Kinematics",
+    "target_title": "Wheel Encoder Odometry",
+    "relationship_type": "depends_on",
+    "weight": 0.95,
+    "description": "Differential drive pose estimation depends on encoder odometry."
+  },
+  {
+    "source_title": "SLAM — Simultaneous Localisation and Mapping",
+    "target_title": "Differential Drive Robot Kinematics",
+    "relationship_type": "depends_on",
+    "weight": 0.85,
+    "description": "SLAM motion model uses differential-drive kinematic equations."
+  },
+  {
+    "source_title": "DC Motor Speed Control via PWM",
+    "target_title": "H-Bridge Motor Driver Circuit",
+    "relationship_type": "depends_on",
+    "weight": 1.0,
+    "description": "PWM speed control is applied through the H-bridge driver."
+  },
+  {
+    "source_title": "Brushless DC (BLDC) Motor for Suction Fan",
+    "target_title": "Suction Pressure and Airflow in Vacuum Systems",
+    "relationship_type": "supports",
+    "weight": 0.9,
+    "description": "BLDC motor performance determines the achievable suction and airflow."
+  },
+  {
+    "source_title": "HEPA Filter Efficiency and Filtration Grade",
+    "target_title": "Suction Pressure and Airflow in Vacuum Systems",
+    "relationship_type": "depends_on",
+    "weight": 0.8,
+    "description": "HEPA filter pressure drop directly reduces system airflow."
+  },
+  {
+    "source_title": "Robot Runtime Estimation from Battery Capacity",
+    "target_title": "Li-Ion Battery Capacity and Energy Calculation",
+    "relationship_type": "derived_from",
+    "weight": 1.0,
+    "description": "Runtime estimation formula is derived from battery capacity equations."
+  },
+  {
+    "source_title": "Automatic Charging Dock — IR Beacon Homing",
+    "target_title": "Infrared Cliff Detection for Robot Vacuums",
+    "relationship_type": "example_of",
+    "weight": 0.5,
+    "description": "Both systems use modulated IR sensing; docking homing is a related application."
+  },
+  {
+    "source_title": "OTA Firmware Update for Embedded Devices",
+    "target_title": "Bluetooth Low Energy (BLE) for App Control",
+    "relationship_type": "supports",
+    "weight": 0.6,
+    "description": "BLE can be used as the transport channel for OTA updates."
+  },
+  {
+    "source_title": "IMU (Inertial Measurement Unit) for Robot Navigation",
+    "target_title": "Differential Drive Robot Kinematics",
+    "relationship_type": "supports",
+    "weight": 0.75,
+    "description": "IMU angular rate supplements wheel odometry for improved pose estimation."
+  },
+  {
+    "source_title": "Particle Filter Algorithm for Robot Localisation (Monte Carlo)",
+    "target_title": "A* Pathfinding Algorithm",
+    "relationship_type": "supports",
+    "weight": 0.7,
+    "description": "Accurate localisation from MCL provides reliable start pose for A*."
+  },
+  {
+    "source_title": "I²C Serial Communication Protocol",
+    "target_title": "IMU (Inertial Measurement Unit) for Robot Navigation",
+    "relationship_type": "supports",
+    "weight": 0.8,
+    "description": "IMU sensors typically communicate with the MCU over I²C or SPI."
+  },
+  {
+    "source_title": "Low-Power Microcontroller Sleep Modes",
+    "target_title": "Robot Runtime Estimation from Battery Capacity",
+    "relationship_type": "supports",
+    "weight": 0.7,
+    "description": "MCU sleep modes reduce standby power, extending robot battery life."
+  },
+  {
+    "source_title": "Stepper Motor Drive — Full Step and Microstepping",
+    "target_title": "G-code and CNC Motion Control",
+    "relationship_type": "depends_on",
+    "weight": 1.0,
+    "description": "G-code CNC controllers drive stepper motors to execute moves."
+  },
+  {
+    "source_title": "G-code and CNC Motion Control",
+    "target_title": "DC Motor Speed Control via PWM",
+    "relationship_type": "example_of",
+    "weight": 0.5,
+    "description": "G-code motion planning is a specific application of programmatic actuator control."
+  },
+  {
+    "source_title": "Kalman Filter for Sensor Fusion",
+    "target_title": "IMU (Inertial Measurement Unit) for Robot Navigation",
+    "relationship_type": "supports",
+    "weight": 0.95,
+    "description": "Kalman filter combines IMU gyro and accel for stable attitude estimate."
+  },
+  {
+    "source_title": "Kalman Filter for Sensor Fusion",
+    "target_title": "Nyquist–Shannon Sampling Theorem",
+    "relationship_type": "depends_on",
+    "weight": 0.8,
+    "description": "Kalman filter measurements must be sampled above the Nyquist rate."
+  },
+  {
+    "source_title": "N-Channel MOSFET as a Low-Side Power Switch",
+    "target_title": "H-Bridge Motor Driver Circuit",
+    "relationship_type": "prerequisite",
+    "weight": 0.9,
+    "description": "H-bridge circuits are built from four MOSFETs acting as switches."
+  },
+  {
+    "source_title": "CT Clamp Current Sensing and RMS Calculation",
+    "target_title": "ADC Resolution and Measurement Precision",
+    "relationship_type": "depends_on",
+    "weight": 0.9,
+    "description": "CT clamp output must be digitised by an ADC for RMS calculation."
+  },
+  {
+    "source_title": "RC Servo Motor PWM Control",
+    "target_title": "Forward and Inverse Kinematics — Serial Robot Arm",
+    "relationship_type": "supports",
+    "weight": 0.85,
+    "description": "Servo motors execute joint angle commands from IK solutions in robot arms."
+  },
+  {
+    "source_title": "Forward and Inverse Kinematics — Serial Robot Arm",
+    "target_title": "DC Motor Speed Control via PWM",
+    "relationship_type": "depends_on",
+    "weight": 0.7,
+    "description": "Joint actuators (servos or DC motors with encoders) execute IK-derived angle commands."
+  },
+  {
+    "source_title": "NDIR CO₂ Sensor — Non-Dispersive Infrared",
+    "target_title": "I²C Serial Communication Protocol",
+    "relationship_type": "depends_on",
+    "weight": 0.7,
+    "description": "Modern NDIR CO₂ modules (e.g. SCD41) communicate via I²C."
+  },
+  {
+    "source_title": "Capacitive Soil Moisture Sensing",
+    "target_title": "ADC Resolution and Measurement Precision",
+    "relationship_type": "depends_on",
+    "weight": 0.9,
+    "description": "Soil moisture sensor voltage output is read by MCU ADC."
+  },
+  {
+    "source_title": "ESP32 WiFi + BLE System-on-Chip",
+    "target_title": "MQTT Protocol for IoT Sensor Data",
+    "relationship_type": "supports",
+    "weight": 0.9,
+    "description": "ESP32 WiFi stack carries MQTT messages to the cloud broker."
+  },
+  {
+    "source_title": "ESP32 WiFi + BLE System-on-Chip",
+    "target_title": "Bluetooth Low Energy (BLE) for App Control",
+    "relationship_type": "supports",
+    "weight": 0.9,
+    "description": "ESP32 integrated BLE is the hardware enabling BLE app connectivity."
+  },
+  {
+    "source_title": "RFID/NFC Reader — ISO 14443 / 15693 Interface",
+    "target_title": "I²C Serial Communication Protocol",
+    "relationship_type": "supports",
+    "weight": 0.7,
+    "description": "RFID reader ICs (MFRC522) support I²C in addition to SPI."
+  },
+  {
+    "source_title": "PM2.5 Optical Particle Counter",
+    "target_title": "NDIR CO₂ Sensor — Non-Dispersive Infrared",
+    "relationship_type": "supports",
+    "weight": 0.6,
+    "description": "PM2.5 and CO₂ sensors complement each other in complete air quality monitors."
+  }
+]

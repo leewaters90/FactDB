@@ -1,0 +1,27 @@
+{
+  "id": "bdc3f7f3-dbc7-5115-8e4b-5e30dcacf142",
+  "title": "Load Cell and Wheatstone Bridge",
+  "domain": "electrical",
+  "category": "sensors",
+  "subcategory": "force / weight sensing",
+  "detail_level": "intermediate",
+  "content": "A load cell converts force or weight into an electrical signal via strain gauges arranged in a Wheatstone bridge.  Bridge output: V_out = V_ex · (GF · ε) / 2, where GF is the gauge factor and ε is the strain.",
+  "extended_content": "Full-bridge load cell (4 active gauges): V_out/V_ex = GF·ε (higher sensitivity, temperature-compensated).  Typical sensitivity: 1–3 mV/V full-scale.  Rated capacity: 1 kg – 50 t (for crane/industrial).  Output amplified with instrumentation amplifier (INA128, HX711 24-bit ADC dedicated load cell IC).  HX711 provides 24-bit resolution at 10/80 SPS; reads directly with Arduino/ESP32 via 2-wire clocked interface.  Calibration: two-point with known masses (zero + full span).  Overload rating typically 150% of nominal; ultimate capacity 300% before permanent deformation.  Creep and hysteresis < 0.05% FS for S-type / beam type cells.",
+  "formula": "V_out = V_excitation · GF · ε / 2  (half-bridge)",
+  "units": "V_out: mV, ε: dimensionless (µε), GF ≈ 2",
+  "source": "National Instruments, Strain Gauge Measurement Tutorial; Vishay Micro-Measurements Technical Note TN-514",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "load-cell",
+    "strain-gauge",
+    "Wheatstone-bridge",
+    "force",
+    "weight",
+    "mechatronics",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

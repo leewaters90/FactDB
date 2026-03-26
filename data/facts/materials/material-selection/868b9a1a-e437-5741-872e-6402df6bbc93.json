@@ -1,0 +1,25 @@
+{
+  "id": "868b9a1a-e437-5741-872e-6402df6bbc93",
+  "title": "Ashby Material Selection — Property Charts",
+  "domain": "materials",
+  "category": "material selection",
+  "subcategory": "performance indices",
+  "detail_level": "advanced",
+  "content": "Material performance indices (e.g. E/ρ for stiffness-limited beams) allow objective comparison of materials on Ashby charts by plotting relevant properties on logarithmic axes.",
+  "extended_content": "Common indices: E^(1/2)/ρ (minimum weight beam, stiffness-limited), σ_y/ρ (minimum weight, strength-limited), K_Ic/σ_y (fracture toughness / yield strength for damage tolerance).  Constraint lines on log-log axes separate feasible materials.",
+  "formula": null,
+  "units": null,
+  "source": "Ashby, Materials Selection in Mechanical Design, 5th ed.",
+  "source_url": null,
+  "confidence_score": 1.0,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "materials",
+    "selection",
+    "ashby",
+    "design",
+    "weight"
+  ],
+  "created_by": "seed"
+}

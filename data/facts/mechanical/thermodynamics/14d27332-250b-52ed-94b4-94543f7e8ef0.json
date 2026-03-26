@@ -1,0 +1,24 @@
+{
+  "id": "14d27332-250b-52ed-94b4-94543f7e8ef0",
+  "title": "First Law of Thermodynamics",
+  "domain": "mechanical",
+  "category": "thermodynamics",
+  "subcategory": "energy conservation",
+  "detail_level": "fundamental",
+  "content": "Energy cannot be created or destroyed; it can only be converted from one form to another.  For a closed system: ΔU = Q − W.",
+  "extended_content": "The internal energy change (ΔU) of a system equals the heat added (Q) minus the work done by the system (W).  In differential form: dU = δQ − δW.  For a flow process the steady-flow energy equation adds enthalpy, kinetic energy, and potential energy terms.",
+  "formula": "ΔU = Q − W",
+  "units": "Joules (J)",
+  "source": "Cengel & Boles, Thermodynamics: An Engineering Approach, 8th ed.",
+  "source_url": null,
+  "confidence_score": 1.0,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "thermodynamics",
+    "energy",
+    "fundamental-law",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}

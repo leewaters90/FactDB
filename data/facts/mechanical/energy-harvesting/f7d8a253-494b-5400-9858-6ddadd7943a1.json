@@ -1,0 +1,27 @@
+{
+  "id": "f7d8a253-494b-5400-9858-6ddadd7943a1",
+  "title": "Wave Energy Conversion — Oscillating Water Column Principle",
+  "domain": "mechanical",
+  "category": "energy harvesting",
+  "subcategory": "wave power",
+  "detail_level": "advanced",
+  "content": "An Oscillating Water Column (OWC) device captures ocean wave energy by allowing wave action to alternately compress and expand a trapped air column, driving a Wells turbine coupled to a generator.",
+  "extended_content": "Wave power flux (per unit width): P/w = ρg²H²T / (32π) where H = wave height, T = period. At 1 m height and 7 s period: ≈ 4.9 kW/m. OWC capture efficiency: 20–30 % in practice. Mini linear generator alternative: permanent magnet on a float sliding through a coil—simpler, suitable for IoT buoy power. Combined with PV panel and LiFePO₄ battery for hybrid buoy power. Seawater corrosion: submerged components require 316L SS or HDPE; IP68 electrical cable glands.",
+  "formula": "P/w = ρ g² H² T / (32π)",
+  "units": "Power per unit wave front width: W/m",
+  "source": "Falcão, 'Wave Energy Utilisation', Renewable and Sustainable Energy Reviews, 2010",
+  "source_url": null,
+  "confidence_score": 0.93,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "wave energy",
+    "OWC",
+    "oscillating water column",
+    "marine",
+    "renewable",
+    "energy harvesting",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}

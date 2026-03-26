@@ -1,0 +1,27 @@
+{
+  "id": "c54bbdcb-5624-5de8-b3fd-a14892045f6d",
+  "title": "I²C Serial Communication Protocol",
+  "domain": "electrical",
+  "category": "digital interfaces",
+  "subcategory": "serial communication",
+  "detail_level": "intermediate",
+  "content": "I²C (Inter-Integrated Circuit) is a two-wire synchronous serial bus (SDA + SCL) that allows multiple master and slave devices to communicate over short distances using 7-bit (or 10-bit) addresses.",
+  "extended_content": "Standard mode: 100 kbps; Fast mode: 400 kbps; Fast-plus: 1 Mbps; High-speed: 3.4 Mbps.  Open-drain bus requires pull-up resistors (typically 4.7 kΩ at 100 kHz, 2.2 kΩ at 400 kHz).  In a weather-station design, I²C connects MCU to pressure sensors (BMP390), RH/T sensors (SHT4x), real-time clocks, and EEPROM on a single bus.  Bus capacitance limit: 400 pF (cable length ≈ 1 m). Address conflicts between sensors of the same type are resolved with ADDR select pins or I²C multiplexers (PCA9548).",
+  "formula": null,
+  "units": null,
+  "source": "NXP I²C-bus Specification and User Manual Rev. 7 (2021)",
+  "source_url": null,
+  "confidence_score": 0.99,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "I2C",
+    "serial",
+    "bus",
+    "interface",
+    "embedded",
+    "weather-station",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

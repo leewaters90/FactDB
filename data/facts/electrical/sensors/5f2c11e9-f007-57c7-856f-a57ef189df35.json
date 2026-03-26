@@ -1,0 +1,26 @@
+{
+  "id": "5f2c11e9-f007-57c7-856f-a57ef189df35",
+  "title": "Capacitive Relative Humidity Sensing",
+  "domain": "electrical",
+  "category": "sensors",
+  "subcategory": "humidity sensing",
+  "detail_level": "intermediate",
+  "content": "Capacitive humidity sensors measure relative humidity (RH) by detecting the change in dielectric permittivity of a hygroscopic polymer film placed between two electrodes as it absorbs water vapour.",
+  "extended_content": "Sensor capacitance increases approximately linearly with RH (∼0.2–0.5 pF / %RH for a 100 pF baseline).  Integrated modules (e.g., Sensirion SHT4x, Honeywell HIH) combine a capacitive RH element with an on-chip temperature sensor and a 16-bit sigma–delta ADC, delivering ±1.8 %RH accuracy over 0–100 %RH.  Hysteresis is typically <1 %RH and response time 4–8 s (1/e, 63% step response). The sensor element must be protected from condensation, dust, and chemical contaminants while remaining exposed to ambient air via a filter membrane.",
+  "formula": null,
+  "units": "% RH (relative humidity)",
+  "source": "Sensirion SHT4x Datasheet; WMO-No.8 Guide to Instruments and Methods of Observation",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "humidity",
+    "capacitive",
+    "RH",
+    "sensor",
+    "weather-station",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

@@ -1,0 +1,27 @@
+{
+  "id": "c5f5db6f-7a54-543e-b526-7ca36123c717",
+  "title": "Ultrasonic Piezoelectric Atomiser (Humidifier)",
+  "domain": "mechanical",
+  "category": "fluid atomisation",
+  "subcategory": "ultrasonic humidification",
+  "detail_level": "intermediate",
+  "content": "An ultrasonic atomiser uses a piezoelectric disc vibrating at 1–3 MHz to generate standing waves on the water surface, ejecting micro-droplets (1–5 µm) as a cool mist without heating.",
+  "extended_content": "Drop diameter: D ≈ (8π·σ / (ρ·f²))^(1/3) (Lang equation), where σ = surface tension, ρ = density, f = frequency.  At 1.7 MHz: D ≈ 3–5 µm (respirable range — appropriate for humidification; verify mineral deposit accumulation at higher hardness).  Efficiency: 40–100 mL/h at 3–5 W; far more efficient than resistive-heating humidifiers.  Driver circuit: half-bridge with inductance matching to piezo impedance peak at resonance frequency.  RH control: humidity sensor (SHT41) + PI controller adjusts PWM duty cycle of atomiser.  Hard water deposits (scale) on transducer reduce efficiency — use demineralised water or periodic citric acid cleaning.  Silent operation: 20–30 dB(A) vs 50+ dB(A) for fan humidifiers.",
+  "formula": "D_droplet ≈ (8π·σ / (ρ·f²))^(1/3)  (Lang 1962)",
+  "units": "D: µm, σ: N/m, ρ: kg/m³, f: Hz",
+  "source": "Lang, Ultrasonic Atomisation of Liquid, J. Acoust. Soc. Am., 1962; Ultrasonic Transducer Application Guide, Murata",
+  "source_url": null,
+  "confidence_score": 0.96,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "ultrasonic",
+    "atomiser",
+    "humidifier",
+    "piezoelectric",
+    "mist",
+    "mechatronics",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}

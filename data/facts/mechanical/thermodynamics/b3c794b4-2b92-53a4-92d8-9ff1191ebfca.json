@@ -1,0 +1,24 @@
+{
+  "id": "b3c794b4-2b92-53a4-92d8-9ff1191ebfca",
+  "title": "Second Law of Thermodynamics — Entropy",
+  "domain": "mechanical",
+  "category": "thermodynamics",
+  "subcategory": "entropy",
+  "detail_level": "fundamental",
+  "content": "The total entropy of an isolated system can only increase over time or remain constant in ideal (reversible) processes.",
+  "extended_content": "Entropy (S) is a measure of disorder or unavailable energy.  For any real process the entropy generation is non-negative: dS_total ≥ 0.  The Clausius inequality states: ∮ δQ/T ≤ 0 for a cycle.  Practical consequence: heat engines cannot achieve 100% efficiency.",
+  "formula": "dS ≥ δQ / T",
+  "units": "J/K",
+  "source": "Cengel & Boles, Thermodynamics: An Engineering Approach, 8th ed.",
+  "source_url": null,
+  "confidence_score": 1.0,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "thermodynamics",
+    "entropy",
+    "fundamental-law",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}

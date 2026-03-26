@@ -1,0 +1,21 @@
+{
+  "title": "TCS3200 Color Sensor for Product Sorting",
+  "component_category": "sensing",
+  "design_question": "How to classify product colour for automated sorting?",
+  "selected_approach": "TCS3200 RGB photodiode array (8×8 filtered array + frequency converter). MCU reads R, G, B pulse frequencies; converts to RGB 0–255 scale after white-balance calibration on each product run.",
+  "rationale": "TCS3200 gives repeatable colour classification under controlled illumination. < £2 cost. Simple digital frequency output eliminates need for ADC. Classification accuracy > 95 % for distinct colours at 2–5 cm sensing distance.",
+  "alternatives": [
+    {
+      "approach": "Camera + OpenCV colour detection",
+      "reason_rejected": "Higher accuracy and shape recognition but requires Raspberry Pi and 10× cost."
+    },
+    {
+      "approach": "Proximity colour TCS34725 (I²C)",
+      "reason_rejected": "Better ambient-light rejection but smaller die—similar cost."
+    }
+  ],
+  "verification_notes": "FACT: 'ADC Resolution and Measurement Precision' confirms frequency-to-colour mapping accuracy constraints.",
+  "supporting_fact_titles": [
+    "ADC Resolution and Measurement Precision"
+  ]
+}

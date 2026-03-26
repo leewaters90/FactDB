@@ -1,0 +1,27 @@
+{
+  "id": "7d851812-0e46-5bdf-ab7b-072f87adbfce",
+  "title": "OTA Firmware Update for Embedded Devices",
+  "domain": "software",
+  "category": "embedded systems",
+  "subcategory": "firmware management",
+  "detail_level": "intermediate",
+  "content": "Over-the-Air (OTA) firmware updates deliver new software to embedded devices wirelessly, enabling remote bug fixes, feature additions, and security patches without physical access.",
+  "extended_content": "OTA requires: (1) dual-bank flash (active + staging) or delta patching; (2) secure transport (TLS/DTLS); (3) image integrity check (SHA-256 hash + RSA/ECDSA signature); (4) rollback to last good image on boot failure.  Robot vacuums use WiFi (HTTP/HTTPS or MQTT) to download firmware from cloud (AWS IoT Jobs, Azure IoT Hub).  Minimum flash requirement: 2 × image size + metadata.  Update must be atomic — power loss during write must not brick the device; watchdog timer triggers rollback if the new firmware fails to confirm itself within N seconds.",
+  "formula": null,
+  "units": null,
+  "source": "Moran et al., Embedded Systems Security, Elsevier; ESP-IDF OTA Guide; Mbed OS OTA Framework",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "OTA",
+    "firmware",
+    "update",
+    "security",
+    "IoT",
+    "robot-vacuum",
+    "software"
+  ],
+  "created_by": "seed"
+}

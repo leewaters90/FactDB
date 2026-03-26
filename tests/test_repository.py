@@ -292,3 +292,199 @@ class TestRelationships:
 
         with pytest.raises(ValueError, match="Fact not found"):
             repo.add_relationship(f1.id, "ghost", RelationshipType.SUPPORTS)
+
+
+# ---------------------------------------------------------------------------
+# Usage tracking
+# ---------------------------------------------------------------------------
+
+
+class TestUsageTracking:
+    def test_record_usage_increments_count(self, db_session):
+        repo = FactRepository(db_session)
+        fact = _make_fact(repo)
+        db_session.commit()
+
+        assert fact.use_count == 0
+        assert fact.last_used_at is None
+
+        repo.record_usage(fact.id, context="inference", used_by="agent")
+        db_session.commit()
+
+        db_session.refresh(fact)
+        assert fact.use_count == 1
+        assert fact.last_used_at is not None
+
+    def test_record_usage_accumulates(self, db_session):
+        repo = FactRepository(db_session)
+        fact = _make_fact(repo)
+        db_session.commit()
+
+        for _ in range(5):
+            repo.record_usage(fact.id)
+        db_session.commit()
+
+        db_session.refresh(fact)
+        assert fact.use_count == 5
+
+    def test_record_usage_creates_log_rows(self, db_session):
+        from factdb.models import FactUsageLog
+        from sqlalchemy import select
+
+        repo = FactRepository(db_session)
+        fact = _make_fact(repo)
+        db_session.commit()
+
+        repo.record_usage(fact.id, context="search", used_by="user1")
+        repo.record_usage(fact.id, context="reasoning", used_by="agent")
+        db_session.commit()
+
+        logs = db_session.execute(
+            select(FactUsageLog).where(FactUsageLog.fact_id == fact.id)
+        ).scalars().all()
+        assert len(logs) == 2
+        contexts = {log.context for log in logs}
+        assert contexts == {"search", "reasoning"}
+
+    def test_record_usage_nonexistent_raises(self, db_session):
+        repo = FactRepository(db_session)
+        with pytest.raises(ValueError, match="Fact not found"):
+            repo.record_usage("ghost-id")
+
+    def test_list_most_used_ordering(self, db_session):
+        repo = FactRepository(db_session)
+        f1 = _make_fact(repo, title="Rarely Used")
+        f2 = _make_fact(repo, title="Often Used")
+        db_session.commit()
+
+        repo.record_usage(f1.id)
+        for _ in range(3):
+            repo.record_usage(f2.id)
+        db_session.commit()
+
+        results = repo.list_most_used(limit=10)
+        assert results[0].id == f2.id
+        assert results[1].id == f1.id
+
+    def test_list_most_used_min_count_filter(self, db_session):
+        repo = FactRepository(db_session)
+        f1 = _make_fact(repo, title="Used Once")
+        f2 = _make_fact(repo, title="Used Five Times")
+        db_session.commit()
+
+        repo.record_usage(f1.id)
+        for _ in range(5):
+            repo.record_usage(f2.id)
+        db_session.commit()
+
+        results = repo.list_most_used(min_use_count=2)
+        assert len(results) == 1
+        assert results[0].id == f2.id
+
+    def test_list_most_used_excludes_unused(self, db_session):
+        repo = FactRepository(db_session)
+        _make_fact(repo, title="Never Used")
+        db_session.commit()
+
+        results = repo.list_most_used(min_use_count=1)
+        assert len(results) == 0
+
+    def test_list_most_used_domain_filter(self, db_session):
+        repo = FactRepository(db_session)
+        f_mech = _make_fact(repo, title="Mechanical Fact", domain=EngineeringDomain.MECHANICAL)
+        f_elec = _make_fact(repo, title="Electrical Fact", domain=EngineeringDomain.ELECTRICAL)
+        db_session.commit()
+
+        repo.record_usage(f_mech.id)
+        repo.record_usage(f_elec.id)
+        db_session.commit()
+
+        results = repo.list_most_used(domain=EngineeringDomain.MECHANICAL)
+        assert len(results) == 1
+        assert results[0].id == f_mech.id
+
+
+# ---------------------------------------------------------------------------
+# upsert_from_dict
+# ---------------------------------------------------------------------------
+
+
+class TestUpsertFromDict:
+    def _fact_dict(self, **overrides):
+        base = dict(
+            id="bbbbbbbb-0000-0000-0000-000000000001",
+            title="Upsert Test Fact",
+            content="Content here.",
+            domain="electrical",
+            category="circuit theory",
+            detail_level="fundamental",
+            status="draft",
+            confidence_score=0.9,
+            tags=["tag-a", "tag-b"],
+            created_by="importer",
+            version=1,
+        )
+        base.update(overrides)
+        return base
+
+    def test_creates_new_fact(self, db_session):
+        repo = FactRepository(db_session)
+        data = self._fact_dict()
+        fact, created = repo.upsert_from_dict(data)
+        db_session.commit()
+
+        assert created is True
+        assert fact.id == data["id"]
+        assert fact.title == data["title"]
+        assert fact.content == data["content"]
+
+    def test_preserves_id_from_dict(self, db_session):
+        repo = FactRepository(db_session)
+        data = self._fact_dict()
+        fact, _ = repo.upsert_from_dict(data)
+        db_session.commit()
+        assert fact.id == data["id"]
+
+    def test_imports_tags(self, db_session):
+        repo = FactRepository(db_session)
+        data = self._fact_dict()
+        fact, _ = repo.upsert_from_dict(data)
+        db_session.commit()
+        tag_names = {t.name for t in fact.tags}
+        assert tag_names == {"tag-a", "tag-b"}
+
+    def test_updates_existing_fact(self, db_session):
+        repo = FactRepository(db_session)
+        data = self._fact_dict()
+        fact, created = repo.upsert_from_dict(data)
+        db_session.commit()
+        assert created is True
+
+        updated_data = {**data, "title": "Updated Title", "content": "New content."}
+        fact2, created2 = repo.upsert_from_dict(updated_data)
+        db_session.commit()
+
+        assert created2 is False
+        assert fact2.id == data["id"]
+        assert fact2.title == "Updated Title"
+        assert fact2.content == "New content."
+
+    def test_import_is_idempotent(self, db_session):
+        from factdb.models import Fact
+        from sqlalchemy import select, func
+
+        repo = FactRepository(db_session)
+        data = self._fact_dict()
+        repo.upsert_from_dict(data)
+        repo.upsert_from_dict(data)
+        db_session.commit()
+
+        count = db_session.execute(
+            select(func.count()).select_from(Fact).where(Fact.id == data["id"])
+        ).scalar()
+        assert count == 1
+
+    def test_missing_id_raises_key_error(self, db_session):
+        repo = FactRepository(db_session)
+        with pytest.raises(KeyError):
+            repo.upsert_from_dict({"title": "no id", "content": "x"})

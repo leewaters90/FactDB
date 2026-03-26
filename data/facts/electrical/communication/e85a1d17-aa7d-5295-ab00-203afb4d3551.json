@@ -1,0 +1,28 @@
+{
+  "id": "e85a1d17-aa7d-5295-ab00-203afb4d3551",
+  "title": "Bluetooth Classic SPP — HC-05 Serial Bridge Module",
+  "domain": "electrical",
+  "category": "communication",
+  "subcategory": "Bluetooth",
+  "detail_level": "intermediate",
+  "content": "The HC-05 is a Bluetooth 2.0 EDR Serial Port Profile (SPP) module bridging a UART to a Bluetooth wireless link at up to 115 200 baud. HC-05 supports both Master and Slave roles; HC-06 is Slave-only.",
+  "extended_content": "Supply voltage: 3.6–6 V; logic TX/RX at 3.3 V (level-shift for 5 V MCUs). Pairing PIN: 1234 or 0000 default; configured with AT commands at 38 400 baud. Throughput: ~230 kbps maximum; typical latency < 100 ms. Range: 10 m (Class 2); 100 m (Class 1). Android Bluetooth SPP apps connect over the paired RFCOMM channel and stream ASCII or binary data as a virtual serial port. Comparison: BLE (HM-10 / ESP32) is preferred for iOS because Apple requires MFi certification for Classic BT SPP.",
+  "formula": null,
+  "units": null,
+  "source": "HC-05 AT Command Datasheet; Bluetooth SIG SPP Profile v1.2",
+  "source_url": null,
+  "confidence_score": 0.95,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "Bluetooth",
+    "HC-05",
+    "SPP",
+    "UART",
+    "wireless",
+    "communication",
+    "Android",
+    "mechatronics"
+  ],
+  "created_by": "seed"
+}

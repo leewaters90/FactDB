@@ -1,0 +1,21 @@
+{
+  "title": "8-Sensor TCRT5000 IR Reflectance Array",
+  "component_category": "sensing",
+  "design_question": "How many IR reflectance sensors give sub-millimetre line position for PID?",
+  "selected_approach": "8 TCRT5000 sensors spaced 10 mm (80 mm span), modulated at 38 kHz. Position = weighted average of reflectance values.",
+  "rationale": "8 sensors give smooth, differentiable error signal required by PID derivative term. 38 kHz modulation rejects ambient IR.",
+  "alternatives": [
+    {
+      "approach": "Camera + OpenCV",
+      "reason_rejected": "3–5 W vs 0.1 W; latency 30–50 ms vs <1 ms—rejected for speed."
+    },
+    {
+      "approach": "Single IR sensor + bang-bang",
+      "reason_rejected": "Bang-bang causes oscillatory weaving on curves—rejected."
+    }
+  ],
+  "verification_notes": "FACT: 'PID Controller — Transfer Function'—continuous error signal needed for K_d term; weighted average provides this.",
+  "supporting_fact_titles": [
+    "PID Controller — Transfer Function"
+  ]
+}

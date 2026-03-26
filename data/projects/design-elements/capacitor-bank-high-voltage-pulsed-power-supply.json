@@ -1,0 +1,22 @@
+{
+  "title": "Capacitor Bank High-Voltage Pulsed Power Supply",
+  "component_category": "power",
+  "design_question": "How to deliver a very high instantaneous current pulse to accelerate a ferromagnetic projectile?",
+  "selected_approach": "Bank of 400 V electrolytic capacitors (total 1–10 mF, 500–2000 J). Charged via high-voltage flyback or boost converter from 12 V. SCR/IGBT triggered by MCU to discharge through copper solenoid coil in < 1 ms, producing a magnetic pulse accelerating the projectile.",
+  "rationale": "Capacitor bank provides multi-kA pulse impossible from a battery alone. Energy E = ½ CV² ; 10 mF at 400 V = 800 J per shot. Stage 2 and 3 coils timed by photogate projectile sensors.",
+  "alternatives": [
+    {
+      "approach": "Direct battery discharge",
+      "reason_rejected": "Insufficient peak current (limited by internal resistance)."
+    },
+    {
+      "approach": "Gas-powered (pneumatic)",
+      "reason_rejected": "Higher muzzle velocity but regulated under firearms law in most jurisdictions."
+    }
+  ],
+  "verification_notes": "FACT: 'Eddy Current Braking Principle' provides the electromagnetic induction theory underpinning coil-gun acceleration.",
+  "supporting_fact_titles": [
+    "Eddy Current Braking Principle",
+    "N-Channel MOSFET as a Low-Side Power Switch"
+  ]
+}

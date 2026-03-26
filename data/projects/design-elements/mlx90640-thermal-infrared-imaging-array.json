@@ -1,0 +1,22 @@
+{
+  "title": "MLX90640 Thermal Infrared Imaging Array",
+  "component_category": "sensing",
+  "design_question": "How to detect hot bodies, fever, or fire without visible light?",
+  "selected_approach": "MLX90640 32×24 FIR array (I²C, 3.3 V). ESP32 reads 64 Hz frames via Melexis API, applies calibration, publishes hotspot temperature and grid to MQTT. Displayed as colour-mapped heatmap on OLED or remote dashboard.",
+  "rationale": "Detects body heat at 5 m distance with ±1 °C accuracy. I²C interface is simple to integrate. At £20 it is the most cost-effective FIR array for fever screening and fire detection.",
+  "alternatives": [
+    {
+      "approach": "FLIR Lepton 3.5 (160×120)",
+      "reason_rejected": "4× resolution but £150 and requires SPI + specialised breakout."
+    },
+    {
+      "approach": "AMG8833 (8×8)",
+      "reason_rejected": "Cheaper (£15) but 8×8 resolution too coarse for reliable screening."
+    }
+  ],
+  "verification_notes": "FACT: 'MLX90640 Far-Infrared Thermal Camera Array' confirms 32×24 pixels, ±1 °C, 64 Hz, I²C 0x33.",
+  "supporting_fact_titles": [
+    "MLX90640 Far-Infrared Thermal Camera Array",
+    "I²C Serial Communication Protocol"
+  ]
+}

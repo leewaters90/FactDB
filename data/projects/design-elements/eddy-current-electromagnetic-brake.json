@@ -1,0 +1,22 @@
+{
+  "title": "Eddy-Current Electromagnetic Brake",
+  "component_category": "actuation",
+  "design_question": "How to provide contactless, wear-free braking using electromagnetic induction?",
+  "selected_approach": "Electromagnet coil positioned adjacent to a rotating aluminium or copper disc on the wheel/axle. MCU-controlled MOSFET ramps coil current 0–12 V for variable braking torque. Braking force scales with disc speed and coil current squared.",
+  "rationale": "No friction pads—zero wear and instant response. Braking torque is proportional to current and speed, enabling precise modulated braking for emergency stop systems. Effective at vehicle speeds > 5 km/h.",
+  "alternatives": [
+    {
+      "approach": "Hydraulic disc brake",
+      "reason_rejected": "Higher braking force at zero speed but requires fluid system."
+    },
+    {
+      "approach": "Regenerative BLDC braking",
+      "reason_rejected": "Recovers energy but requires BLDC traction motor."
+    }
+  ],
+  "verification_notes": "FACT: 'Eddy Current Braking Principle' confirms torque ∝ I² × ω relationship.",
+  "supporting_fact_titles": [
+    "Eddy Current Braking Principle",
+    "N-Channel MOSFET as a Low-Side Power Switch"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "title": "Waterproof IP67 Marine Enclosure Design",
+  "component_category": "mechanical",
+  "design_question": "How to protect electronics in an underwater or marine environment?",
+  "selected_approach": "Clear polycarbonate dome or ABS housing with dual O-ring groove seals on each joint surface (O-ring cross-section 3 mm, squeeze 20–25 %). Cable penetrations via polyurethane cable glands rated IP68. Silica gel desiccant pack inside; pressure equalization valve optional.",
+  "rationale": "IP67 (1 m immersion, 30 min) achieved with correctly dimensioned and lubricated O-rings. Polycarbonate provides optical transparency for cameras. Desiccant prevents condensation fogging optics.",
+  "alternatives": [
+    {
+      "approach": "Commercial Pelican-style case",
+      "reason_rejected": "IP67 rated but heavy and opaque—unsuitable for camera housings."
+    },
+    {
+      "approach": "Conformal coating only",
+      "reason_rejected": "IP43 at best—insufficient for submersion."
+    }
+  ],
+  "verification_notes": "FACT: 'IP (Ingress Protection) Rating — IEC 60529' confirms IP67 test: 1 m immersion for 30 min.",
+  "supporting_fact_titles": [
+    "IP (Ingress Protection) Rating — IEC 60529"
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "id": "e224383a-da16-50aa-a5b3-e666535bc84e",
+  "title": "MQ-Series Metal-Oxide Gas Sensor — Alcohol, CO, LPG",
+  "domain": "electrical",
+  "category": "sensing",
+  "subcategory": "gas detection",
+  "detail_level": "intermediate",
+  "content": "MQ-series sensors (MQ-2 LPG/smoke, MQ-3 alcohol, MQ-135 air quality) use a heated SnO₂ metal-oxide film whose resistance decreases in the presence of the target gas, producing an analog voltage read by an ADC.",
+  "extended_content": "Heater supply: 5 V, 150–200 mW. Load resistor RL sets the sensitivity curve: lower RL for high concentrations, higher RL for trace levels. Sensitivity: Rs/R0 = A × C^B (log-log linear) where R0 is the resistance in clean air and C is gas concentration in ppm. MQ-3 (ethanol): 0.04–4 mg/L; threshold for vehicle ignition lock ≈ 0.05 mg/L. Cross-sensitivity: all MQ sensors respond to multiple gases; not selective. Warm-up: 48 h for first use; 30–60 s preheat on each power-on. Temperature/humidity correction required over −20 to +50 °C. Alternative: electrochemical cell for precision BAC (±0.005 %) at 10× higher cost.",
+  "formula": null,
+  "units": null,
+  "source": "Zhengzhou Winsen Electronics MQ-3 / MQ-2 / MQ-135 Datasheets",
+  "source_url": null,
+  "confidence_score": 0.93,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "gas sensor",
+    "MQ-3",
+    "MQ-2",
+    "alcohol",
+    "CO",
+    "LPG",
+    "metal-oxide",
+    "sensing",
+    "mechatronics"
+  ],
+  "created_by": "seed"
+}

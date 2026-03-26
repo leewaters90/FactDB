@@ -1,0 +1,26 @@
+{
+  "id": "e6d994fd-24af-5517-b676-4bbd93dee423",
+  "title": "Infrared Cliff Detection for Robot Vacuums",
+  "domain": "electrical",
+  "category": "sensors",
+  "subcategory": "safety sensing",
+  "detail_level": "fundamental",
+  "content": "Downward-facing infrared (IR) emitter–detector pairs detect floor discontinuities (stairs, drops) by measuring the drop in reflected IR intensity when the floor surface is absent or far away.",
+  "extended_content": "Each cliff sensor consists of an IR LED and a phototransistor or photodiode angled at ≈ 15–45° from vertical.  Floor proximity: reflected signal is strong; cliff detected: reflected signal falls below threshold.  A typical robot vacuum has 4 cliff sensors (corners) operating at 38 kHz modulation to reject ambient light. Failure mode: dark or highly absorptive carpet reduces reflectance; threshold calibration per floor type is required.  Cliff detection triggers immediate motor stop and reverse within ≈ 20 ms (safety requirement).",
+  "formula": null,
+  "units": null,
+  "source": "iRobot Open Interface Specification; Neato Robotics Technical Docs",
+  "source_url": null,
+  "confidence_score": 0.96,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "cliff-detection",
+    "IR",
+    "safety",
+    "sensor",
+    "robot-vacuum",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

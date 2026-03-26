@@ -1,0 +1,24 @@
+{
+  "title": "BLE Hand-Gesture Glove Controller",
+  "description": "Wearable glove embedding five-channel flex sensors and MPU-6050 IMU to map hand gestures to servo commands. Streams gesture data over BLE for robot arm or prosthetic control applications.",
+  "objective": "Recognise 8 distinct static gestures; ≤ 50 ms BLE latency; ≥ 8 h battery; 10 m BLE range.",
+  "constraints": "Fits adult size-M glove; Li-Po ≤ 200 mAh; USB-C charge; no skin electrodes.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Bluetooth Low Energy (BLE) for App Control",
+    "IMU (Inertial Measurement Unit) for Robot Navigation",
+    "RC Servo Motor PWM Control"
+  ],
+  "design_element_titles": [
+    "Flex Sensor Hand-Gesture Glove Interface",
+    "MPU-6050 IMU Gyro + Accel (I²C)",
+    "BLE GATT Smartphone App Interface",
+    "RC Servo Joint Actuator",
+    "Li-Po 3.7 V USB-C Rechargeable Battery Pack"
+  ],
+  "element_usage_notes": {
+    "Flex Sensor Hand-Gesture Glove Interface": "Five 2.2-inch flex sensors; ADC averaged over 16 samples; 10 kΩ voltage divider.",
+    "RC Servo Joint Actuator": "Mapped to prosthetic finger tendons via Bowden cable; 1 servo per digit."
+  }
+}

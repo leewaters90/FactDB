@@ -1,0 +1,17 @@
+{
+  "title": "SPS30 PM2.5 Optical Particle Sensor",
+  "component_category": "sensing",
+  "design_question": "How to measure PM2.5 and PM10 in a compact enclosure without external fan plumbing?",
+  "selected_approach": "Sensirion SPS30 (UART/I²C, built-in fan + laser, PM1/2.5/4/10 in µg/m³). Auto-cleaning fan cycle every 168 h.",
+  "rationale": "SPS30 is self-contained, factory-calibrated, and auto-cleaning extends service life to 8 years. ±10 % accuracy vs ±30 % for single-photodiode alternatives.",
+  "alternatives": [
+    {
+      "approach": "Sharp GP2Y1010AU0F",
+      "reason_rejected": "No particle-size classification; gives total dust count only—rejected."
+    }
+  ],
+  "verification_notes": "FACT: 'PM2.5 Optical Particle Counter' confirms Mie scattering principle and humidity cross-sensitivity above 75 % RH.",
+  "supporting_fact_titles": [
+    "PM2.5 Optical Particle Counter"
+  ]
+}

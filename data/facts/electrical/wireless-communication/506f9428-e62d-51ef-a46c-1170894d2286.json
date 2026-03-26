@@ -1,0 +1,27 @@
+{
+  "id": "506f9428-e62d-51ef-a46c-1170894d2286",
+  "title": "Bluetooth Low Energy (BLE) for App Control",
+  "domain": "electrical",
+  "category": "wireless communication",
+  "subcategory": "short-range",
+  "detail_level": "intermediate",
+  "content": "BLE (Bluetooth Low Energy, Bluetooth 4.0+) provides short-range wireless connectivity (10–100 m) at very low energy consumption, making it suitable for mobile-app control of robot vacuums.",
+  "extended_content": "BLE operates in the 2.4 GHz ISM band using 40 channels (3 advertising, 37 data).  Peak current: 10–15 mA TX; average current with 100 ms connection interval: ≈ 0.1–1 mA.  Max throughput: ≈ 1 Mbps PHY (BLE 5.0); application data ≈ 50–250 kbps.  GATT profile (Generic Attribute Profile) defines services and characteristics for robot control (start/stop, mode, cleaning map).  BLE is used for initial pairing and local control; WiFi is used for cloud connectivity and firmware updates.",
+  "formula": null,
+  "units": null,
+  "source": "Bluetooth SIG, Bluetooth Core Specification v5.3; Nordic Semiconductor BLE Guide",
+  "source_url": null,
+  "confidence_score": 0.98,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "BLE",
+    "Bluetooth",
+    "wireless",
+    "app-control",
+    "IoT",
+    "robot-vacuum",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

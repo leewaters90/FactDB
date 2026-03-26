@@ -1,0 +1,25 @@
+{
+  "id": "37b162e3-4aeb-5866-8b85-91c279ae33d5",
+  "title": "Tipping Bucket Rain Gauge",
+  "domain": "mechanical",
+  "category": "meteorological instruments",
+  "subcategory": "precipitation measurement",
+  "detail_level": "fundamental",
+  "content": "A tipping bucket rain gauge funnels rainfall into a small, balanced seesaw bucket that tips (generating a switch closure) each time it collects a fixed volume of water, typically 0.2 mm of precipitation.",
+  "extended_content": "Each tip is detected by a reed switch and counted by the data logger. Total rainfall (mm) = tip count × bucket resolution.  Common resolutions: 0.1, 0.2, or 0.5 mm per tip.  High-intensity rain causes under-counting because water continues to fall while the bucket is tipping (dead time ≈ 150 ms); correction algorithms exist.  The funnel orifice diameter (typically 200 mm) must be kept free of debris and insects.  In freezing conditions, a heating element prevents ice blockage.",
+  "formula": "Rainfall (mm) = N_tips × resolution_per_tip",
+  "units": "mm (precipitation depth)",
+  "source": "WMO-No.8 Guide to Instruments, Ch.6",
+  "source_url": null,
+  "confidence_score": 0.98,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "rainfall",
+    "precipitation",
+    "tipping-bucket",
+    "gauge",
+    "weather-station"
+  ],
+  "created_by": "seed"
+}

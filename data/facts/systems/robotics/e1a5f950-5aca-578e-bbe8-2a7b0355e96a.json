@@ -1,0 +1,27 @@
+{
+  "id": "e1a5f950-5aca-578e-bbe8-2a7b0355e96a",
+  "title": "Wheel Encoder Odometry",
+  "domain": "systems",
+  "category": "robotics",
+  "subcategory": "position estimation",
+  "detail_level": "intermediate",
+  "content": "Quadrature encoders attached to drive wheels count pulses to measure wheel rotation.  Distance per pulse: Δd = π · D_wheel / CPR, where D_wheel is wheel diameter and CPR is counts per revolution.",
+  "extended_content": "Quadrature encoding uses two phase-offset signals (A and B) to determine both direction and count, giving 4× resolution per physical slot (4·CPR effective resolution).  Typical robot-vacuum encoder: 600 CPR magnetic or optical; effective resolution ≈ 0.1 mm per count for a 75 mm wheel.  Slip detection: if commanded motor speed and encoder-measured speed diverge beyond a threshold, the robot slows down or triggers a stuck condition.  Cumulative odometry error typically 1–3% of path length.",
+  "formula": "Δd = π · D_wheel / (4 · CPR_physical)",
+  "units": "m (metres per count)",
+  "source": "Borenstein, Everett & Feng, Navigating Mobile Robots, A.K. Peters, 1996",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "encoder",
+    "odometry",
+    "wheel",
+    "position",
+    "robotics",
+    "robot-vacuum",
+    "systems"
+  ],
+  "created_by": "seed"
+}

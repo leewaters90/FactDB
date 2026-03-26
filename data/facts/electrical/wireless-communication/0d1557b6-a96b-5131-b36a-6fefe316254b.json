@@ -1,0 +1,27 @@
+{
+  "id": "0d1557b6-a96b-5131-b36a-6fefe316254b",
+  "title": "LoRa / LoRaWAN — LPWAN for Remote Telemetry",
+  "domain": "electrical",
+  "category": "wireless communication",
+  "subcategory": "LPWAN",
+  "detail_level": "intermediate",
+  "content": "LoRa (Long Range) is a chirp spread-spectrum modulation technique enabling data rates of 0.3–50 kbps over distances of 2–15 km (urban–rural) with sub-milliwatt receiver sensitivity (−137 dBm).",
+  "extended_content": "LoRaWAN defines the network layer; frequency bands: 868 MHz (Europe), 915 MHz (Americas), 923 MHz (Asia-Pacific); duty-cycle restrictions apply (1% in EU).  Link budget: EIRP + path gain − noise = SNR margin.  Spreading factor (SF7–SF12) trades data rate for range: SF12 gives maximum range but reduces throughput to 250 bps.  Ideal for battery-powered weather stations transmitting small payloads (< 50 bytes) every few minutes; a 2 Ah battery can last >2 years with daily uploads.",
+  "formula": null,
+  "units": null,
+  "source": "LoRa Alliance LoRaWAN Specification v1.0.4; Semtech SX1276 Datasheet",
+  "source_url": null,
+  "confidence_score": 0.96,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "LoRa",
+    "LoRaWAN",
+    "LPWAN",
+    "wireless",
+    "IoT",
+    "weather-station",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

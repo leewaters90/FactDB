@@ -1,0 +1,26 @@
+{
+  "id": "9656995e-0cbc-5d8a-a85c-94b1405dab02",
+  "title": "CT Clamp Current Sensing and RMS Calculation",
+  "domain": "electrical",
+  "category": "electrical measurement",
+  "subcategory": "current sensing",
+  "detail_level": "intermediate",
+  "content": "A split-core current transformer (CT clamp) non-invasively measures AC current by magnetic induction: I_secondary = I_primary / N, where N is the turns ratio.  RMS current is computed from sampled waveform: I_rms = √(1/N · Σ i²).",
+  "extended_content": "CT secondary outputs a small AC voltage across a burden resistor R_burden: V_out = (I_primary / N) · R_burden.  For SCT-013-000 (100 A, 50 mA): N = 2000, R_burden ≈ 33 Ω → 0–1.65 V peak.  MCU ADC: bias mid-supply with voltage divider; digitise at ≥ 2 kHz for 50/60 Hz mains.  True power P = (1/N) · Σ(v_n · i_n) (requires simultaneous voltage sampling for power factor).  Phase offset of CT must be corrected in software.  Safety: never open-circuit a current transformer under load (high voltage spike on secondary).",
+  "formula": "I_rms = √(1/N · Σ iₙ²) ;  I_secondary = I_primary / N_turns",
+  "units": "A (amps), V (burden voltage)",
+  "source": "OpenEnergyMonitor Documentation; Bryan et al., Practical Current Transformer Application Note",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "CT-clamp",
+    "current-sensing",
+    "RMS",
+    "energy-meter",
+    "mechatronics",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

@@ -1,0 +1,25 @@
+{
+  "id": "f736f19a-dd80-59aa-bd7e-3af3263612cf",
+  "title": "Euler's Column Buckling Formula",
+  "domain": "civil",
+  "category": "structural engineering",
+  "subcategory": "column buckling",
+  "detail_level": "intermediate",
+  "content": "The critical axial load at which a slender column buckles elastically is P_cr = π²·E·I / (K·L)², where K is the effective-length factor.",
+  "extended_content": "E is Young's modulus, I is the second moment of area about the weak axis, L is the unsupported length, and K depends on end conditions (K=1 for pin-pin, K=0.5 for fixed-fixed, K=2 for fixed-free cantilever).  Valid only in the elastic (Euler) range; use Johnson's formula for stocky columns.",
+  "formula": "P_cr = π² E I / (K L)²",
+  "units": "N",
+  "source": "Gere & Goodno, Mechanics of Materials, 8th ed.",
+  "source_url": null,
+  "confidence_score": 1.0,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "buckling",
+    "columns",
+    "structural",
+    "civil",
+    "compression"
+  ],
+  "created_by": "seed"
+}

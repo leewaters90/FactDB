@@ -1,0 +1,23 @@
+{
+  "title": "Flex Sensor Hand-Gesture Glove Interface",
+  "component_category": "sensing",
+  "design_question": "How to translate finger bend angles into servo commands for a robotic arm?",
+  "selected_approach": "5× Spectra Symbol 2.2″ flex sensors sewn onto glove fingers. Each sensor in voltage-divider (47 kΩ load); ADC reads 0–1023. Linear mapping: 0° (flat) → min PWM; 90° (bent) → max servo PWM. MPU-6050 on wrist adds 3-axis orientation for wrist joint.",
+  "rationale": "Direct analogue mapping gives intuitive zero-latency control. nRF24L01 on glove transmits 5 servo values + IMU data at 20 Hz. Total glove cost < £15.",
+  "alternatives": [
+    {
+      "approach": "Data glove with Hall sensors",
+      "reason_rejected": "Lower hysteresis but requires permanent magnets on each finger segment."
+    },
+    {
+      "approach": "Computer vision hand tracking (MediaPipe)",
+      "reason_rejected": "Camera-based; affected by occlusion—rejected for wearable."
+    }
+  ],
+  "verification_notes": "FACT: 'Capacitive Flex Sensor — Finger Bend Angle Measurement' confirms voltage divider circuit and mapping procedure.",
+  "supporting_fact_titles": [
+    "Capacitive Flex Sensor — Finger Bend Angle Measurement",
+    "RC Servo Motor PWM Control",
+    "IMU (Inertial Measurement Unit) for Robot Navigation"
+  ]
+}

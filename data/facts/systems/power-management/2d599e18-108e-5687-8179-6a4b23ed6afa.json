@@ -1,0 +1,26 @@
+{
+  "id": "2d599e18-108e-5687-8179-6a4b23ed6afa",
+  "title": "Robot Runtime Estimation from Battery Capacity",
+  "domain": "systems",
+  "category": "power management",
+  "subcategory": "runtime estimation",
+  "detail_level": "fundamental",
+  "content": "Estimated robot operating time is: t_run = (C_Ah × V_nom × DoD) / P_avg, where P_avg is the average power draw during operation.",
+  "extended_content": "Typical robot-vacuum power budget: suction motor 15–25 W, drive motors 2×1.5 W, main brush motor 2 W, computing/sensing 2–5 W; total ≈ 23–37 W.  A 2600 mAh 14.4 V Li-ion pack (37.4 Wh × 0.85 DoD = 31.8 Wh usable) gives: t = 31.8 / 30 ≈ 63 minutes — consistent with typical 60–90 min claims.  Battery life decreases with carpet type (higher suction needed) and charging temperature (charge above 10 °C and below 45 °C for Li-ion longevity).",
+  "formula": "t_run = (C_Ah · V_nom · DoD) / P_avg",
+  "units": "t: hours, C: Ah, V: V, P: W",
+  "source": "Linden & Reddy, Handbook of Batteries, 4th ed.; Dyson V7 Technical Documentation",
+  "source_url": null,
+  "confidence_score": 0.96,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "battery",
+    "runtime",
+    "power",
+    "Li-ion",
+    "robot-vacuum",
+    "systems"
+  ],
+  "created_by": "seed"
+}

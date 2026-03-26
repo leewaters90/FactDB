@@ -1,0 +1,21 @@
+{
+  "title": "Pan-Tilt Servo Camera Gimbal",
+  "component_category": "mechanical",
+  "design_question": "How to aim a camera or sensor in any horizontal and vertical direction?",
+  "selected_approach": "Two RC servos (SG90 or MG90S) in pan-tilt bracket. Pan servo rotates ±90°; tilt servo elevates ±60°. Controlled by joystick potentiometers via MCU PWM, or autonomously tracking a detected object.",
+  "rationale": "Pan-tilt bracket adds full hemisphere coverage at < £5. SG90 servos provide 1.8 kg·cm torque—adequate for cameras < 100 g. Standard PWM interface requires no additional driver ICs.",
+  "alternatives": [
+    {
+      "approach": "3-axis brushless gimbal (BGC)",
+      "reason_rejected": "Electronic stabilisation—needed for drone cinematography but 10× cost."
+    },
+    {
+      "approach": "Fixed camera mount",
+      "reason_rejected": "No aiming flexibility."
+    }
+  ],
+  "verification_notes": "FACT: 'RC Servo Motor PWM Control' confirms SG90 50 Hz PWM and 1–2 ms pulse range.",
+  "supporting_fact_titles": [
+    "RC Servo Motor PWM Control"
+  ]
+}

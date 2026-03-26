@@ -1,0 +1,22 @@
+{
+  "title": "Eccentric Cam Vibration Massager Drive",
+  "component_category": "mechanical",
+  "design_question": "How to generate therapeutic periodic percussion using a simple motor mechanism?",
+  "selected_approach": "DC gear motor (12 V, 60–120 RPM) driving an eccentric cam (offset mass on shaft). Cam pushes a foam or roller head through a spring-loaded follower producing 1–2 Hz deep-tissue percussion. Speed controlled by PWM for variable intensity.",
+  "rationale": "Eccentric cam converts rotation to reciprocating linear force with zero additional mechanisms. Motor gear ratio sets percussion depth and frequency. < £8 mechanism.",
+  "alternatives": [
+    {
+      "approach": "Linear vibration motor (coin/ERM)",
+      "reason_rejected": "High frequency (200 Hz) vibration for surface massage—insufficient for deep tissue percussion."
+    },
+    {
+      "approach": "Servo-driven rack piston",
+      "reason_rejected": "Precise stroke but 5× cost and noisier."
+    }
+  ],
+  "verification_notes": "FACT: 'Slider-Crank Mechanism — Rotary to Linear Conversion' describes the cam-follower equivalent rotary-to-linear conversion.",
+  "supporting_fact_titles": [
+    "Slider-Crank Mechanism — Rotary to Linear Conversion",
+    "DC Motor Speed Control via PWM"
+  ]
+}

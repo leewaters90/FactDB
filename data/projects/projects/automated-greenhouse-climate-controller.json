@@ -1,0 +1,26 @@
+{
+  "title": "Automated Greenhouse Climate Controller",
+  "description": "Multi-zone controller managing temperature, RH, CO₂, soil moisture, and lighting for a 6×3 m hobby greenhouse. Grafana dashboard over WiFi.",
+  "objective": "T 18–26 °C (±1 °C); RH 60–80 %; CO₂ 800–1200 ppm; soil VWC 30–60 %.",
+  "constraints": "Mains 230 V; safety interlock on heating; ≤ 4 sensor zones; 30-day local retention.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Capacitive Soil Moisture Sensing",
+    "Capacitive Relative Humidity Sensing",
+    "NDIR CO₂ Sensor — Non-Dispersive Infrared"
+  ],
+  "design_element_titles": [
+    "Capacitive Soil Moisture Probe",
+    "SHT41 Digital Temperature and RH Sensing",
+    "SCD41 NDIR CO₂ Sensing Module",
+    "I²C TCA9548A Multi-Device Sensor Bus",
+    "N-Channel MOSFET Low-Side Load Switch",
+    "Solid-State Relay Mains Actuator Switching",
+    "ESP32 WiFi + MQTT IoT Telemetry"
+  ],
+  "element_usage_notes": {
+    "N-Channel MOSFET Low-Side Load Switch": "Controls 12 V irrigation solenoids (4 zones).",
+    "Solid-State Relay Mains Actuator Switching": "Switches 230 V fan, heater, and LED driver."
+  }
+}

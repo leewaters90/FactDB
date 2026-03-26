@@ -1,0 +1,26 @@
+{
+  "id": "d78b5e05-279a-5990-8040-545c9c5c9d73",
+  "title": "Slider-Crank Mechanism — Rotary to Linear Conversion",
+  "domain": "mechanical",
+  "category": "mechanisms",
+  "subcategory": "kinematic linkages",
+  "detail_level": "intermediate",
+  "content": "A slider-crank converts continuous rotary motion to reciprocating linear motion.  Piston displacement: x = r·cos(θ) + √(L² − r²·sin²(θ)), where r = crank radius, L = connecting rod length, θ = crank angle.",
+  "extended_content": "Stroke = 2r (full travel of the slider).  Velocity of slider: ẋ = −r·ω·sin(θ)·[1 + r·cos(θ)/√(L²−r²sin²θ)].  For long connecting rods (L >> r), motion approximates SHM: x ≈ r·cos(θ).  Scotch yoke variant: produces exact SHM, larger side loads on the yoke slot.  Applications: piston engines, pumps, pneumatic hammers, shakers, gearless variable-ratio transmissions.  Crank offset (offset slider-crank) shifts TDC/BDC timing for asymmetric stroke profiles.  Balancing: rotating masses balanced by counterweights; reciprocating masses partially balanced.",
+  "formula": "x = r·cos(θ) + √(L² − r²·sin²(θ))  ;  stroke = 2r",
+  "units": "x: m, r: m, L: m, θ: rad",
+  "source": "Norton, Design of Machinery, 5th ed.; Shigley's Mechanical Engineering Design, Ch.2",
+  "source_url": null,
+  "confidence_score": 0.98,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "slider-crank",
+    "mechanism",
+    "reciprocating",
+    "linear-motion",
+    "mechatronics",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}

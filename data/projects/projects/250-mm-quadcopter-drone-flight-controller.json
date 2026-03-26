@@ -1,0 +1,24 @@
+{
+  "title": "250 mm Quadcopter Drone Flight Controller",
+  "description": "250 mm wheelbase quad with custom STM32F4 flight controller, ICM-42688-P IMU, cascaded PID attitude control at 4 kHz inner loop, and 4× BLHeli-32 ESCs.",
+  "objective": "Hover ±5 cm altitude; attitude hold ±2°; response bandwidth >20 Hz.",
+  "constraints": "AUW ≤ 500 g with 4S 1500 mAh LiPo; ≥ 5 min flight.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "IMU (Inertial Measurement Unit) for Robot Navigation",
+    "Kalman Filter for Sensor Fusion",
+    "PID Controller — Transfer Function",
+    "Brushless DC (BLDC) Motor for Suction Fan"
+  ],
+  "design_element_titles": [
+    "ICM-42688-P High-Rate IMU via SPI",
+    "Mahony IMU Attitude + Heading Filter",
+    "Cascaded PID Rate and Attitude Controller",
+    "BLDC 2306 Motor + BLHeli-32 ESC Drive",
+    "4S LiPo Flight Power Budget"
+  ],
+  "element_usage_notes": {
+    "Cascaded PID Rate and Attitude Controller": "Outer attitude 50 Hz; inner rate 4 kHz. Betaflight RPM filter."
+  }
+}

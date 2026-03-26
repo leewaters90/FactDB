@@ -8,7 +8,7 @@ transaction boundaries.
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import List, Optional, Sequence
+from typing import TYPE_CHECKING, List, Optional, Sequence
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -19,10 +19,14 @@ from factdb.models import (
     Fact,
     FactRelationship,
     FactStatus,
+    FactUsageLog,
     FactVersion,
     RelationshipType,
     Tag,
 )
+
+if TYPE_CHECKING:
+    from factdb.json_store import JsonFactStore
 
 
 # ---------------------------------------------------------------------------
@@ -53,10 +57,18 @@ class FactRepository:
     **not** committed inside this class — the caller is responsible for
     calling ``session.commit()`` (or letting the ``get_session`` context
     manager do so automatically).
+
+    Args:
+        session:    Active SQLAlchemy session.
+        json_store: Optional :class:`~factdb.json_store.JsonFactStore`.
+                    When provided, every write operation (create, update,
+                    delete) is mirrored to the corresponding JSON file so
+                    that the on-disk folder tree stays in sync with SQLite.
     """
 
-    def __init__(self, session: Session) -> None:
+    def __init__(self, session: Session, json_store: JsonFactStore | None = None) -> None:
         self.session = session
+        self.json_store = json_store
 
     # ------------------------------------------------------------------
     # Create
@@ -133,6 +145,9 @@ class FactRepository:
 
         # Record initial version
         self._snapshot_version(fact, changed_by=created_by, change_reason="Initial creation")
+
+        if self.json_store is not None:
+            self.json_store.write_fact(fact.to_dict())
 
         return fact
 
@@ -244,6 +259,9 @@ class FactRepository:
         self.session.flush()
         self._snapshot_version(fact, changed_by=changed_by, change_reason=change_reason)
 
+        if self.json_store is not None:
+            self.json_store.move_fact(fact_id, fact.to_dict())
+
         return fact
 
     # ------------------------------------------------------------------
@@ -272,6 +290,9 @@ class FactRepository:
         fact.updated_by = deleted_by
         fact.updated_at = datetime.now(timezone.utc)
         self.session.flush()
+
+        if self.json_store is not None:
+            self.json_store.delete_fact(fact_id)
 
     # ------------------------------------------------------------------
     # Relationships
@@ -353,6 +374,164 @@ class FactRepository:
             .order_by(FactVersion.version)
         )
         return self.session.execute(stmt).scalars().all()
+
+    # ------------------------------------------------------------------
+    # Usage tracking
+    # ------------------------------------------------------------------
+
+    def record_usage(
+        self,
+        fact_id: str,
+        context: str | None = None,
+        used_by: str | None = None,
+    ) -> FactUsageLog:
+        """
+        Record that a fact was used and increment its usage counter.
+
+        Increments :attr:`Fact.use_count`, updates :attr:`Fact.last_used_at`,
+        and appends a :class:`~factdb.models.FactUsageLog` row so that
+        per-use context is retained for audit and prioritisation purposes.
+
+        Args:
+            fact_id:  Primary key of the fact that was used.
+            context:  Short label describing the call-site, e.g.
+                      ``"search"``, ``"inference"``, or ``"reasoning"``.
+            used_by:  Identity of the caller (user or agent name).
+
+        Returns:
+            The new :class:`~factdb.models.FactUsageLog` instance.
+
+        Raises:
+            ValueError: If the fact is not found.
+        """
+        fact = self.get(fact_id)
+        if fact is None:
+            raise ValueError(f"Fact not found: {fact_id!r}")
+
+        fact.use_count = (fact.use_count or 0) + 1
+        fact.last_used_at = datetime.now(timezone.utc)
+
+        log = FactUsageLog(fact_id=fact_id, context=context, used_by=used_by)
+        self.session.add(log)
+        self.session.flush()
+        return log
+
+    def list_most_used(
+        self,
+        limit: int = 20,
+        min_use_count: int = 1,
+        domain: EngineeringDomain | None = None,
+    ) -> Sequence[Fact]:
+        """
+        Return active facts ranked by descending use count.
+
+        Useful for identifying high-value facts that should be prioritised
+        for verification and maintenance.
+
+        Args:
+            limit:         Maximum number of results (default 20).
+            min_use_count: Only include facts used at least this many times
+                           (default 1, i.e. at least once).
+            domain:        Optional domain filter.
+
+        Returns:
+            Sequence of :class:`~factdb.models.Fact` objects ordered by
+            ``use_count`` descending, then ``last_used_at`` descending.
+        """
+        stmt = (
+            select(Fact)
+            .where(Fact.is_active == True, Fact.use_count >= min_use_count)  # noqa: E712
+        )
+        if domain is not None:
+            stmt = stmt.where(Fact.domain == domain)
+        stmt = stmt.order_by(Fact.use_count.desc(), Fact.last_used_at.desc()).limit(limit)
+        return self.session.execute(stmt).scalars().all()
+
+    def upsert_from_dict(
+        self,
+        data: dict,
+        imported_by: str | None = None,
+    ) -> tuple[Fact, bool]:
+        """
+        Create or update a fact from a plain dictionary (e.g. loaded from a
+        JSON file).
+
+        If a fact with the same ``"id"`` already exists in the database it is
+        updated with the content fields from *data*.  Otherwise a new
+        :class:`~factdb.models.Fact` row is inserted, preserving the
+        original ``"id"`` from the file so subsequent imports remain
+        idempotent.
+
+        Fields **not** overwritten on an existing fact: ``use_count``,
+        ``last_used_at``, ``is_active``, ``created_at``, and any version
+        history.
+
+        Args:
+            data:        Plain dictionary with fact fields.  Must contain at
+                         least ``"id"``, ``"title"``, and ``"content"``.
+            imported_by: Identity recorded as the change author.
+
+        Returns:
+            ``(fact, created)`` where *created* is ``True`` when a new row
+            was inserted, ``False`` when an existing row was updated.
+
+        Raises:
+            KeyError: If *data* is missing the required ``"id"`` field.
+        """
+        fact_id = data["id"]
+        existing = self.get(fact_id)
+
+        # Fields that can be imported from the JSON file
+        content_fields = {
+            "title", "content", "extended_content", "formula", "units",
+            "source", "source_url", "confidence_score", "status",
+            "domain", "category", "subcategory", "detail_level",
+        }
+
+        if existing is None:
+            # Insert with the ID preserved from the file.
+            domain_raw = data.get("domain", "general")
+            detail_raw = data.get("detail_level", "fundamental")
+            status_raw = data.get("status", "draft")
+
+            domain = EngineeringDomain(domain_raw) if domain_raw else EngineeringDomain.GENERAL
+            detail = DetailLevel(detail_raw) if detail_raw else DetailLevel.FUNDAMENTAL
+            status = FactStatus(status_raw) if status_raw else FactStatus.DRAFT
+
+            fact = Fact(
+                id=fact_id,
+                title=data["title"],
+                content=data["content"],
+                domain=domain,
+                category=data.get("category"),
+                subcategory=data.get("subcategory"),
+                detail_level=detail,
+                extended_content=data.get("extended_content"),
+                formula=data.get("formula"),
+                units=data.get("units"),
+                source=data.get("source"),
+                source_url=data.get("source_url"),
+                confidence_score=float(data.get("confidence_score", 1.0)),
+                status=status,
+                version=int(data.get("version", 1)),
+                created_by=data.get("created_by") or imported_by,
+                updated_by=imported_by,
+            )
+            self.session.add(fact)
+            self.session.flush()
+
+            for tag_name in data.get("tags") or []:
+                fact.tags.append(get_or_create_tag(self.session, str(tag_name).strip()))
+            self.session.flush()
+
+            self._snapshot_version(fact, changed_by=imported_by, change_reason="Imported from JSON")
+            return fact, True
+
+        # Update existing fact with content from the file.
+        kwargs = {k: data[k] for k in content_fields if k in data}
+        if "tags" in data:
+            kwargs["tags"] = data["tags"]
+        return self.update(fact_id, changed_by=imported_by, change_reason="Imported from JSON", **kwargs), False
 
     # ------------------------------------------------------------------
     # Internal helpers

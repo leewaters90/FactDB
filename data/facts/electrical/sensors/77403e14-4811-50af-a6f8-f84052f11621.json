@@ -1,0 +1,26 @@
+{
+  "id": "77403e14-4811-50af-a6f8-f84052f11621",
+  "title": "NTC Thermistor Temperature Sensing",
+  "domain": "electrical",
+  "category": "sensors",
+  "subcategory": "temperature sensing",
+  "detail_level": "intermediate",
+  "content": "A Negative Temperature Coefficient (NTC) thermistor decreases in resistance as temperature rises.  Its resistance–temperature relationship is described by the Steinhart–Hart equation: 1/T = A + B·ln(R) + C·(ln(R))³.",
+  "extended_content": "NTC thermistors offer high sensitivity (~4%/°C) and low cost, making them the dominant choice for weather-station air-temperature measurement. Typical range: −40 °C to +125 °C; accuracy ±0.1–0.5 °C after calibration. A voltage-divider circuit with a precision resistor converts resistance to a voltage suitable for an ADC input.  Self-heating error (I²R) must be minimised by keeping excitation current below 100 µA.",
+  "formula": "1/T = A + B·ln(R) + C·(ln(R))³",
+  "units": "T: K, R: Ω",
+  "source": "Steinhart & Hart, Deep-Sea Research, 1968; Measurement Specialties NTC Application Note",
+  "source_url": null,
+  "confidence_score": 0.98,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "temperature",
+    "thermistor",
+    "NTC",
+    "sensor",
+    "weather-station",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

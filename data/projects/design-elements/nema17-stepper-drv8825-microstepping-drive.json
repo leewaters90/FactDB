@@ -1,0 +1,17 @@
+{
+  "title": "NEMA17 Stepper + DRV8825 Microstepping Drive",
+  "component_category": "actuation",
+  "design_question": "Which stepper driver minimises vibration at low speeds for precision plotting?",
+  "selected_approach": "DRV8825 at 1/32 microstepping, 1.5 A limit. TMC2209 StealthChop2 preferred for silent operation and sensorless homing.",
+  "rationale": "TMC2209 SpreadCycle/StealthChop2 eliminates mid-speed resonance and audible noise vs A4988 (max 1/16 step, screech).",
+  "alternatives": [
+    {
+      "approach": "A4988 (1/16 max)",
+      "reason_rejected": "Only 1/16 step resolution; audible resonance at mid-speed—rejected."
+    }
+  ],
+  "verification_notes": "FACT: 'Stepper Motor Drive — Full Step and Microstepping' confirms DRV8825 max 1/32 and torque-speed trade-off.",
+  "supporting_fact_titles": [
+    "Stepper Motor Drive — Full Step and Microstepping"
+  ]
+}

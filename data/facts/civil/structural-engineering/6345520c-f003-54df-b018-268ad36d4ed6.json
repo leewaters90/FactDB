@@ -1,0 +1,25 @@
+{
+  "id": "6345520c-f003-54df-b018-268ad36d4ed6",
+  "title": "Beam Bending — Flexure Formula",
+  "domain": "civil",
+  "category": "structural engineering",
+  "subcategory": "beam theory",
+  "detail_level": "intermediate",
+  "content": "The bending stress in a beam at distance y from the neutral axis is σ = M·y / I.",
+  "extended_content": "M is the applied bending moment, y is the distance from the neutral axis, and I is the second moment of area.  Maximum stress occurs at the extreme fibres (y = c).  The section modulus Z = I/c simplifies design: σ_max = M / Z.",
+  "formula": "σ = M · y / I",
+  "units": "σ: Pa, M: N·m, y: m, I: m⁴",
+  "source": "Gere & Goodno, Mechanics of Materials, 8th ed.",
+  "source_url": null,
+  "confidence_score": 1.0,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "bending",
+    "beam",
+    "structural",
+    "civil",
+    "stress"
+  ],
+  "created_by": "seed"
+}

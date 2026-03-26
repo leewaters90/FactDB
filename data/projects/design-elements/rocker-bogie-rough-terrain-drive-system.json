@@ -1,0 +1,22 @@
+{
+  "title": "Rocker-Bogie Rough-Terrain Drive System",
+  "component_category": "mechanical",
+  "design_question": "How to traverse obstacles up to 2× wheel diameter without active suspension?",
+  "selected_approach": "Rocker-bogie 6-wheel passive suspension (3 wheels per side, differential bar links). Each wheel independently DC-gear-motor-driven. Passive geometry distributes load across all 6 wheels over rocks/steps.",
+  "rationale": "Passive rocker-bogie requires no actuated suspension—only 6 motor controllers. Proven on Mars rovers to traverse 25 cm obstacles with 25 cm diameter wheels. No electronics in the pivot joints.",
+  "alternatives": [
+    {
+      "approach": "4-wheel independent suspension",
+      "reason_rejected": "Simpler but handles obstacles only up to 1× wheel diameter."
+    },
+    {
+      "approach": "Track drive",
+      "reason_rejected": "Better obstacle climbing but lower efficiency on flat surfaces."
+    }
+  ],
+  "verification_notes": "FACT: 'Differential Drive Robot Kinematics' covers independent wheel speed control principles applicable to the 6-drive system.",
+  "supporting_fact_titles": [
+    "Differential Drive Robot Kinematics",
+    "DC Motor Speed Control via PWM"
+  ]
+}

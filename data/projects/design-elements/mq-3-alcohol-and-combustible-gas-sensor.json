@@ -1,0 +1,22 @@
+{
+  "title": "MQ-3 Alcohol and Combustible Gas Sensor",
+  "component_category": "sensing",
+  "design_question": "How to detect alcohol vapour concentration for ignition interlock applications?",
+  "selected_approach": "MQ-3 SnO₂ metal-oxide sensor (5 V heater, analog A0 out). Voltage divider with 200 kΩ load resistor. ADC reading compared to threshold calibrated to 0.05 mg/L (legal BAC limit) during sensor warm-up ≥ 30 s.",
+  "rationale": "MQ-3 is selective to ethanol at low concentrations and costs < £2. Relay output interrupts ignition circuit when threshold exceeded. Preheat managed by microcontroller power-on sequence.",
+  "alternatives": [
+    {
+      "approach": "Electrochemical BAC sensor",
+      "reason_rejected": "±0.005 % BAC precision but costs 10× and requires periodic electrolyte replacement."
+    },
+    {
+      "approach": "MQ-135",
+      "reason_rejected": "Broad air quality sensor; lower ethanol selectivity."
+    }
+  ],
+  "verification_notes": "FACT: 'MQ-Series Metal-Oxide Gas Sensor — Alcohol, CO, LPG' confirms 30 s preheat and R0 calibration procedure.",
+  "supporting_fact_titles": [
+    "MQ-Series Metal-Oxide Gas Sensor — Alcohol, CO, LPG",
+    "ADC Resolution and Measurement Precision"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "title": "N-Channel MOSFET Low-Side Load Switch",
+  "component_category": "actuation",
+  "design_question": "How to switch a DC or 12 V inductive load (valve, lock, fan) from a 3.3 V GPIO?",
+  "selected_approach": "IRLZ44N N-channel MOSFET (logic-level, 55 V, 47 A). Gate driven via 100 Ω resistor. 1N4007 flyback diode for inductive loads.",
+  "rationale": "Logic-level V_th ≈ 1–2 V means 3.3 V GPIO fully enhances the gate. R_DS(on)<0.022 Ω minimises conduction loss.",
+  "alternatives": [
+    {
+      "approach": "Relay module SRD-05VDC",
+      "reason_rejected": "100 mA coil current too high for battery nodes; audible click—rejected."
+    }
+  ],
+  "verification_notes": "FACT: 'N-Channel MOSFET as a Low-Side Power Switch' confirms IRLZ44N suitability and flyback diode requirement.",
+  "supporting_fact_titles": [
+    "N-Channel MOSFET as a Low-Side Power Switch"
+  ]
+}

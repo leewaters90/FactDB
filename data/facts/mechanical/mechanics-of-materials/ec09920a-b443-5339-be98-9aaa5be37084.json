@@ -1,0 +1,24 @@
+{
+  "id": "ec09920a-b443-5339-be98-9aaa5be37084",
+  "title": "Factor of Safety",
+  "domain": "mechanical",
+  "category": "mechanics of materials",
+  "subcategory": "design",
+  "detail_level": "fundamental",
+  "content": "The factor of safety (FoS) is the ratio of the material's failure strength to the maximum expected applied stress: FoS = S_f / σ.",
+  "extended_content": "A FoS > 1 provides a margin against unexpected overloads, material variability, and modelling errors.  Typical values: structural steel 1.5–4, pressure vessels 3–5, aerospace 1.2–1.5 (weight-critical).  A FoS that is too high wastes material and increases cost/weight.",
+  "formula": "FoS = S_failure / σ_applied",
+  "units": "dimensionless",
+  "source": "Shigley's Mechanical Engineering Design, 10th ed.",
+  "source_url": null,
+  "confidence_score": 1.0,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "safety",
+    "design",
+    "stress",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}

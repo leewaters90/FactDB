@@ -1,0 +1,22 @@
+{
+  "title": "Pneumatic Cylinder + 5/2 Solenoid Valve Actuator",
+  "component_category": "actuation",
+  "design_question": "How to produce fast, high-force linear strokes in a reciprocating cutting or forming mechanism?",
+  "selected_approach": "Double-acting pneumatic cylinder (bore 32–63 mm, stroke 50–200 mm) controlled by a 12 V 5/2-way solenoid valve. Compressed air supply at 4–7 bar. MCU drives solenoid via MOSFET; cylinder extends/retracts in < 100 ms.",
+  "rationale": "Pneumatic cylinders provide 500–3000 N force at 6 bar with < 50 ms stroke time—exceeding what a DC motor can achieve at comparable cost. Ideal for punching, paper cup forming, and hacksaw reciprocation.",
+  "alternatives": [
+    {
+      "approach": "Linear servo or stepper-driven leadscrew",
+      "reason_rejected": "Precise position but < 200 N force and 10× slower stroke."
+    },
+    {
+      "approach": "Hydraulic cylinder",
+      "reason_rejected": "Higher force but requires hydraulic pump and oil—impractical for lab scale."
+    }
+  ],
+  "verification_notes": "FACT: 'Pneumatic Cylinder Force and Stroke' confirms F = P × A formula. FACT: 'Solenoid Valve for Pneumatic and Fluid Control' confirms 5/2 valve logic.",
+  "supporting_fact_titles": [
+    "Pneumatic Cylinder Force and Stroke",
+    "Solenoid Valve for Pneumatic and Fluid Control"
+  ]
+}

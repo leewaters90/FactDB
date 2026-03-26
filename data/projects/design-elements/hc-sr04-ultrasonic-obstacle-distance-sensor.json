@@ -1,0 +1,22 @@
+{
+  "title": "HC-SR04 Ultrasonic Obstacle-Distance Sensor",
+  "component_category": "sensing",
+  "design_question": "How to detect obstacles at 2 cm–4 m range with a low-cost sensor?",
+  "selected_approach": "HC-SR04 module (40 kHz burst, ToF measurement). MCU triggers a 10 µs pulse on TRIG; measures echo pulse width on ECHO pin. Distance = (pulse_µs × 0.0343) / 2 cm.",
+  "rationale": "HC-SR04 provides ≤ 3 mm resolution, ±3 mm accuracy over 20–200 cm, at < £1. Standard Arduino NewPing library simplifies usage. Adequate for obstacle avoidance at robot walking speeds ≤ 0.5 m/s.",
+  "alternatives": [
+    {
+      "approach": "TFMini-S LiDAR",
+      "reason_rejected": "Better for 0.1 m–12 m at higher accuracy but costs 20× more."
+    },
+    {
+      "approach": "Sharp IR distance",
+      "reason_rejected": "Faster (38 ms) but nonlinear analog output; narrower range."
+    }
+  ],
+  "verification_notes": "FACT: 'Ultrasonic Proximity Sensor — ToF Distance Measurement' confirms 40 kHz frequency and ±3 mm accuracy.",
+  "supporting_fact_titles": [
+    "Ultrasonic Proximity Sensor — ToF Distance Measurement",
+    "Differential Drive Robot Kinematics"
+  ]
+}

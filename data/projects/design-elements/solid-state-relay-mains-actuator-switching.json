@@ -1,0 +1,17 @@
+{
+  "title": "Solid-State Relay Mains Actuator Switching",
+  "component_category": "actuation",
+  "design_question": "How to switch 230 V AC loads (fan, heater, LED driver) silently from a 3.3 V GPIO?",
+  "selected_approach": "Fotek SSR-40DA solid-state relay per mains load. DC control input 3–32 V (3.3 V compatible). Zero-crossing switch. Thermal fuse on heater mat as secondary interlock.",
+  "rationale": "SSR: no moving parts, silent, zero-crossing reduces EMI, rated 500 000+ cycles vs relay ≈100 000 cycles.",
+  "alternatives": [
+    {
+      "approach": "Mechanical relay",
+      "reason_rejected": "100 000 cycle limit; audible click; contact wear—rejected for continuous duty."
+    }
+  ],
+  "verification_notes": "FACT: 'N-Channel MOSFET as a Low-Side Power Switch'—applies to DC; for 230 V AC, opto-isolated SSR is the safe standard.",
+  "supporting_fact_titles": [
+    "N-Channel MOSFET as a Low-Side Power Switch"
+  ]
+}

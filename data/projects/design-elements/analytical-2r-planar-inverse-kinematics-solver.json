@@ -1,0 +1,17 @@
+{
+  "title": "Analytical 2R Planar Inverse Kinematics Solver",
+  "component_category": "software",
+  "design_question": "How to convert (x,y) Cartesian targets to joint angles in <1 ms?",
+  "selected_approach": "θ₂ = ±acos((x²+y²−l₁²−l₂²)/(2l₁l₂)). θ₁ = atan2(y,x) − atan2(l₂·sin θ₂, l₁+l₂·cos θ₂). Elbow-up solution selected by default; joint limit check before command.",
+  "rationale": "Analytical IK runs in <1 ms (exact, deterministic) vs iterative Jacobian (10–100 ms) that may fail near singularities.",
+  "alternatives": [
+    {
+      "approach": "Jacobian pseudo-inverse iteration",
+      "reason_rejected": "Required for non-planar/redundant arms; slower, may not converge—analytical is exact for 2R planar."
+    }
+  ],
+  "verification_notes": "FACT: 'Forward and Inverse Kinematics — Serial Robot Arm' provides the exact θ₂ = ±acos(…) formula and singularity conditions.",
+  "supporting_fact_titles": [
+    "Forward and Inverse Kinematics — Serial Robot Arm"
+  ]
+}
