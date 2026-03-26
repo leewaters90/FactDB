@@ -1,0 +1,27 @@
+{
+  "id": "165b0978-d87d-566b-b963-2d71a5e602f3",
+  "title": "360-Degree Fire Detection and Suppression System",
+  "domain": "electrical",
+  "category": "fire-safety",
+  "subcategory": "fire suppression",
+  "detail_level": "intermediate",
+  "content": "A 360° fire protection system uses multiple flame sensors (IR UV or optical) arranged at regular angular intervals. When flame is detected, a motorised nozzle/pan-tilt platform aims a suppression jet (water/CO₂/dry powder) at the fire source.",
+  "extended_content": "Sensor types: 1) UV/IR dual-band (Honeywell DF-51006) — detects 2.8–3.0 µm CO₂ emission band + UV 185–260 nm. Response < 30 ms. False alarm rejection ratio > 1000:1. 2) Optical (photodiode) — low cost, susceptible to sunlight. 360° coverage: 4 sensors × 90° FOV or 8 × 45°. Pan-tilt platform: 2 servos (0–360° pan, 0–90° tilt), aims nozzle at computed azimuth+elevation. Fire angle: θ = arctan(distance sensor signals). Suppression: solenoid valve opens water/CO₂ supply. MCU logic: detect → localize → aim → actuate valve → monitor → close valve. NFPA 13 standard: residential sprinkler at 74°C fusible link. CO₂ total flooding: 34% v/v concentration extinguishes most fires.",
+  "formula": "θ_fire = arctan2(S_y, S_x) (azimuth from sensor array) ;  CO₂_conc ≥ 0.34 (total flood)",
+  "units": "θ: deg, S: relative sensor signal",
+  "source": "NFPA 13-2022 Standard for the Installation of Sprinkler Systems; ISO 7240-10 Flame Detectors; Honeywell DF-51006 Datasheet",
+  "source_url": null,
+  "confidence_score": 0.94,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "fire-detection",
+    "suppression",
+    "360-degree",
+    "flame-sensor",
+    "solenoid",
+    "safety",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

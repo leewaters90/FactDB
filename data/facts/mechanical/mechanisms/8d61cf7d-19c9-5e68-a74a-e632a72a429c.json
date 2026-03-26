@@ -1,0 +1,27 @@
+{
+  "id": "8d61cf7d-19c9-5e68-a74a-e632a72a429c",
+  "title": "Scissor Lift / Pantograph — Mechanical Advantage and Geometry",
+  "domain": "mechanical",
+  "category": "mechanisms",
+  "subcategory": "lifting mechanisms",
+  "detail_level": "intermediate",
+  "content": "A scissor jack uses crossing link pairs. Height h = n·L·sin(θ), width w = 2·L·cos(θ), n = number of scissor stages. Lifting force F_lift from horizontal actuator force F_h: F_lift = F_h·cos(θ)/(2n·sin(θ)) = F_h/(2n·tan(θ)).",
+  "extended_content": "Electric forklift scissor mechanism: worm gear motor drives lead screw (horizontal actuator), converting rotation to horizontal compression/extension. MA increases as θ decreases (θ→0 → MA→∞ but speed→0). Speed: v_lift = F_h·v_h·cos(θ)/(F_lift) — velocity ratio. Minimum platform height H_min = n·L·sin(θ_min) at θ_min ≈ 10°. Maximum height at θ_max = 80°. Load capacity: structural analysis of link pin shear, bearing stress at pivot. Common mini-forklift: 1–5 kg load, 2-stage scissor, lead screw 2 mm pitch, 100 RPM motor → 0.2 mm/s lift.",
+  "formula": "h = n·L·sin(θ) ;  F_lift/F_h = cos(θ)/(2n·sin(θ))",
+  "units": "h: m, L: m (link half-length), θ: rad, F: N",
+  "source": "Norton, Machine Design, 5th ed.; Dunlop & Hartley, Mechanisms & Machine Theory; Mabie & Reinholtz, Mechanisms and Dynamics of Machinery",
+  "source_url": null,
+  "confidence_score": 0.96,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "scissor-lift",
+    "forklift",
+    "pantograph",
+    "mechanical-advantage",
+    "lead-screw",
+    "lifting",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}

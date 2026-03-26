@@ -1,0 +1,27 @@
+{
+  "id": "083551ab-7a7b-5cf5-869c-1a640b8cb58c",
+  "title": "Rain Sensor — Resistive / Capacitive Detection Module",
+  "domain": "electrical",
+  "category": "sensors",
+  "subcategory": "environmental sensing",
+  "detail_level": "fundamental",
+  "content": "A resistive rain sensor uses interdigitated PCB traces: water bridges traces reducing resistance from >1 MΩ (dry) to <10 kΩ (wet). An LM393 comparator converts the resistance change to a digital HIGH/LOW output for microcontroller input.",
+  "extended_content": "Types: 1) Resistive (PCB comb trace) — simple, low cost < £1, 3.3–5 V, digital + analog outputs. 2) Optical (IR refraction) — detects droplets on glass via total internal reflection change, used in automotive wipers. 3) Capacitive — fringe capacitance increases with water film. Response time: resistive 50–200 ms. Sensitivity set by LM393 potentiometer threshold. Operating range: 3.3–5 V, current 15–20 mA. False triggers: condensation, dust. PCB maintenance: clean with isopropanol. Arduino: analogRead > threshold triggers servo umbrella deployment or wipers.",
+  "formula": "R_wet < 10 kΩ (V_out = LOW) ;  R_dry > 1 MΩ (V_out = HIGH)",
+  "units": "R: Ω, V: V",
+  "source": "Arduino Rain Sensor Module Datasheet; Bosch RBSS Rain/Light/Solar Sensor Technical Documentation; IEEE Sensors Journal",
+  "source_url": null,
+  "confidence_score": 0.93,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "rain-sensor",
+    "LM393",
+    "resistive",
+    "moisture",
+    "environmental",
+    "sensing",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

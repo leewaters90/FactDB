@@ -1,0 +1,27 @@
+{
+  "id": "b6e5941e-a712-5593-924f-ab02827fdbf5",
+  "title": "Wire Cutting and Insulation Stripping — Blade Mechanics",
+  "domain": "mechanical",
+  "category": "mechanisms",
+  "subcategory": "cutting mechanisms",
+  "detail_level": "intermediate",
+  "content": "Wire stripping uses two opposing V-notch blades that penetrate insulation to controlled depth without cutting conductor. Blade gap g = conductor_diameter + 0.1 mm clearance. Cutting force F = σ_UTS × A_insulation / (efficiency factor 0.6–0.8).",
+  "extended_content": "Automatic wire stripper sequence: 1) Feed — servo/stepper advances wire by strip length L (programmable 5–50 mm). 2) Clamp — jaws hold wire. 3) Cut — blades close to set depth (adjusted by cam stop). 4) Pull — blades retract while jaws hold wire, stripping insulation. 5) Release. Blade material: hardened tool steel HRC 58–62. Wire sizes: AWG 20–26 (0.5–1.5 mm²). Conductor damage detection: inline resistance check post-strip. Solenoid-actuated or servo-actuated blade drive. Throughput: 300–600 wires/hour automated. Wire cutter (full cut): shear blade F_cut = π × d_wire² / 4 × σ_UTS(copper) = 210 MPa × area.",
+  "formula": "F_strip ≈ σ_UTS · A_insul · L_contact / η ;  blade_gap = d_conductor + 0.1 mm",
+  "units": "F: N, σ: MPa, A: mm², L: mm, d: mm",
+  "source": "IPC/WHMA-A-620 Wire Harness Standard; Panduit Wire Processing Guide; Schleuniger Application Notes",
+  "source_url": null,
+  "confidence_score": 0.93,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "wire-stripping",
+    "cutting",
+    "blade",
+    "automation",
+    "servo",
+    "insulation",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}

@@ -1,0 +1,28 @@
+{
+  "id": "89e52206-20a8-578c-aa74-258d27fea643",
+  "title": "Android Bluetooth SPP to Arduino Serial Bridge",
+  "domain": "electrical",
+  "category": "wireless-communication",
+  "subcategory": "Bluetooth serial",
+  "detail_level": "fundamental",
+  "content": "An HC-05 Bluetooth module paired with an Android app provides a wireless serial port profile (SPP) link to Arduino. Android sends ASCII command strings; Arduino parses bytes via SoftwareSerial or HardwareSerial.",
+  "extended_content": "HC-05 parameters: 2.4 GHz BT 2.0 SPP, default baud 9600 (AT+UART=115200,0,0 to change), default PIN \"1234\" or \"0000\", pairing range 10 m. Android app options: 1) MIT App Inventor (free, no-code) with Bluetooth client block. 2) Arduino Bluetooth Controller (play store). 3) Custom Android app via BluetoothSocket (UUID 00001101-0000-1000-8000-00805F9B34FB for SPP). Protocol design: fixed-length packet e.g. STX + CMD(1 byte) + DATA(4 bytes) + ETX or ASCII \"F050B-30\\n\" (forward 50%, turn -30%). Arduino loop: read Serial, parse command, set motor PWM. Latency: 10–30 ms. Range extension: HC-05 class 2, add external antenna for 50 m.",
+  "formula": "baud_rate = 9600–115200 ;  packet_latency ≈ 10–30 ms",
+  "units": "baud: bits/s, latency: ms",
+  "source": "HC-05 AT Command Manual; MIT App Inventor BT Documentation; Android Developer Bluetooth Guide",
+  "source_url": null,
+  "confidence_score": 0.96,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "Bluetooth",
+    "HC-05",
+    "Android",
+    "SPP",
+    "Arduino",
+    "serial",
+    "wireless-communication",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

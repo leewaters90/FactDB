@@ -1,0 +1,27 @@
+{
+  "id": "d6d47665-6c33-55f1-ac40-657ee8e135aa",
+  "title": "Air Hockey Table — Puck Lift by Air Cushion and Rebound Dynamics",
+  "domain": "mechanical",
+  "category": "fluid-mechanics",
+  "subcategory": "air bearings",
+  "detail_level": "fundamental",
+  "content": "An air hockey table creates a thin air film (0.1–0.5 mm) through a perforated playing surface to levitate a puck, reducing friction coefficient to µ ≈ 0.0001 (from µ ≈ 0.4 dry). The puck slides freely, reflecting elastically from cushioned rails.",
+  "extended_content": "Blower specifications: centrifugal fan, 200–400 Pa static pressure, 0.5–1.5 m³/min airflow. Hole pattern: 1.5–2 mm dia holes at 20–30 mm spacing, open area ratio 0.5–1.0%. Air layer thickness h ≈ Q/(A·v_exit); puck levitation requires gauge pressure P_gauge = F_puck/A_puck ≈ 0.2 N / 0.01 m² = 20 Pa. Puck rebound: angle of incidence ≈ angle of reflection (elastic); e = coefficient of restitution 0.85–0.95 for acrylic puck on acrylic surface. Score detection: IR photogate at goal slot detects puck passage. Motor drive: brushless 12 V centrifugal fan 40–80 W. Puck mass: 15–25 g; diameter 65 mm. Mallet mass: 25–40 g.",
+  "formula": "P_lift = F_puck / A_puck ;  µ_air ≈ 0.0001 (vs 0.4 dry)",
+  "units": "P: Pa, F: N, A: m², Q: m³/s, µ: dimensionless",
+  "source": "Munson et al., Fundamentals of Fluid Mechanics, 8th ed.; Air Hockey International Rules; Khonsari & Booser, Applied Tribology",
+  "source_url": null,
+  "confidence_score": 0.93,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "air-hockey",
+    "air-bearing",
+    "puck",
+    "fluid-mechanics",
+    "blower",
+    "friction",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}

@@ -1,0 +1,27 @@
+{
+  "id": "7efe63d1-6a71-553e-b9e5-7fe6441db95b",
+  "title": "Cam and Follower Mechanism — Displacement Profiles",
+  "domain": "mechanical",
+  "category": "mechanisms",
+  "subcategory": "cam mechanisms",
+  "detail_level": "intermediate",
+  "content": "A cam converts rotary motion to controlled linear or oscillating motion via a follower. Follower displacement is governed by the cam profile. Common profiles: uniform velocity (triangular), simple harmonic, cycloidal, modified sine.",
+  "extended_content": "Cycloidal profile minimises acceleration jerk (infinite jerk → fatigue). Max follower acceleration a_max = 2πh/β² × ω² (cycloidal) where h = lift, β = cam angle, ω = angular velocity. Pressure angle φ: tan(φ) = dy/dθ / (R_base + y), must stay < 30° to avoid excessive side thrust on follower. For ventilator bellows cam: eccentric disc (simple harmonic) gives smooth piston displacement, lift = stroke = tidal volume/piston_area ≈ 400–600 mL / 50 cm² = 8–12 mm. Cam RPM = breaths/min = 12–20. Return spring force > inertia + load. Cam material: hardened steel 50–60 HRC follower pad required.",
+  "formula": "a_max = 2π·h·ω²/β² (cycloidal) ;  tan(φ) = (dy/dθ)/(R_b + y)",
+  "units": "a: m/s², h: m, ω: rad/s, β: rad, φ: deg",
+  "source": "Shigley's Mechanical Engineering Design, 10th ed., Ch. 16; Norton, Design of Machinery, 5th ed.; Rothbart, Cam Design Handbook",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "cam",
+    "follower",
+    "mechanism",
+    "ventilator",
+    "cycloidal",
+    "displacement",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}

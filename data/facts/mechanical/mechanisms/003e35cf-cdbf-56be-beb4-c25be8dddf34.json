@@ -1,0 +1,27 @@
+{
+  "id": "003e35cf-cdbf-56be-beb4-c25be8dddf34",
+  "title": "Folding Table Hinge — Self-Locking and Motorised Actuation",
+  "domain": "mechanical",
+  "category": "mechanisms",
+  "subcategory": "folding mechanisms",
+  "detail_level": "fundamental",
+  "content": "A self-folding table uses motorised hinge actuators (servo or DC gear motor with lead screw) to fold/unfold table leaves. Self-locking requires either a worm gear (gear ratio > 20:1 provides back-drive protection) or an over-centre locking hinge.",
+  "extended_content": "Actuation options: 1) Servo (HS-755HB, 35 kg·cm) per hinge — direct PWM control. 2) DC gear motor + limit switches — position feedback via microswitch. 3) Linear actuator (12 V, 10 mm/s, 500 N) — push/pull table leaf via push-rod linkage. Table leaf mass: 2–5 kg; torque at hinge T = m·g·L_cm = 3 × 9.81 × 0.3 = 8.8 N·m per leaf (L_cm = distance to CG). Safety: soft-start PWM to prevent impact; obstacle detection via current sensing (stall detection). Fold/unfold time: 3–8 s. MCU trigger: IR sensor detects user approach; voice command; button. Stored position memory with EEPROM.",
+  "formula": "T_hinge = m·g·L_cm ;  worm gear back-drive prevention: ratio ≥ 20:1",
+  "units": "T: N·m, m: kg, L: m",
+  "source": "Shigley's Mechanical Engineering Design, 10th ed.; Servo City Technical Notes; Parker Hannifin Linear Actuator Selection Guide",
+  "source_url": null,
+  "confidence_score": 0.91,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "folding-table",
+    "hinge",
+    "worm-gear",
+    "servo",
+    "actuator",
+    "self-locking",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}

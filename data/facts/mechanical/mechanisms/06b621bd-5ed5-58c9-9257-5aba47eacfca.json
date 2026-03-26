@@ -1,0 +1,27 @@
+{
+  "id": "06b621bd-5ed5-58c9-9257-5aba47eacfca",
+  "title": "3D Scanning — Structured Light and Laser Triangulation",
+  "domain": "mechanical",
+  "category": "mechanisms",
+  "subcategory": "measurement systems",
+  "detail_level": "intermediate",
+  "content": "3D scanning reconstructs object geometry by rotating the object on a turntable while measuring distance with a laser or structured-light sensor. Point cloud is built from r(θ) measurements; Cartesian conversion: x=r·cos(θ), y=r·sin(θ), z=height.",
+  "extended_content": "Methods: 1) Laser triangulation — laser line projected onto object, camera captures stripe displacement. Depth resolution ≈ 0.1 mm at 300 mm range. 2) Structured light (e.g. DLP projector + camera) — fringe patterns decode phase → depth map. 3) Time-of-flight (Arduino + VL53L0X TOF sensor + stepper turntable) — low cost, 1–3 mm accuracy. Turntable steps: 200 steps/rev (stepper) → 1.8° resolution → n_points = 200 per layer × n_heights. Scan time: 200 positions × 0.5 s = 100 s per object. Software: OpenSCAD, MeshLab, Point Cloud Library (PCL) for reconstruction. STL mesh from point cloud: Poisson surface reconstruction (>80 000 pts for 0.5 mm resolution). Arduino controls stepper + captures HC-SR04/TOF sensor data via serial to PC.",
+  "formula": "x = r·cos(θ) ;  y = r·sin(θ) ;  angular_resolution = 360°/n_steps",
+  "units": "r: mm, θ: deg, x,y,z: mm",
+  "source": "Levoy, The Digital Michelangelo Project, 2000; Hartley & Zisserman, Multiple View Geometry; VL53L0X Datasheet ST Microelectronics",
+  "source_url": null,
+  "confidence_score": 0.93,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "3D-scanning",
+    "laser-triangulation",
+    "turntable",
+    "point-cloud",
+    "structured-light",
+    "measurement",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}

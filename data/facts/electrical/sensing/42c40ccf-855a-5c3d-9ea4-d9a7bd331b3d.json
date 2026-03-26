@@ -1,0 +1,27 @@
+{
+  "id": "42c40ccf-855a-5c3d-9ea4-d9a7bd331b3d",
+  "title": "LIDAR Time-of-Flight — Point Cloud Distance Measurement",
+  "domain": "electrical",
+  "category": "sensing",
+  "subcategory": "LIDAR",
+  "detail_level": "intermediate",
+  "content": "LIDAR (Light Detection And Ranging) measures distance by time-of-flight: d = c·Δt/2, where c=3×10⁸ m/s and Δt is round-trip light travel time. Rotating LIDAR scans 360° building a 2D/3D point cloud.",
+  "extended_content": "Types: 1) Single-point TOF (TFmini, SICK): 1D range 0.3–12 m, 100 Hz. 2) Rotating 2D (RPLidar A1): 360°, 8000 samples/s, 0.15° resolution, 6 m range. 3) Solid-state (Intel RealSense L515): MEMS mirror, no rotating parts. Point cloud density: N_points/revolution = scan_freq / motor_RPM × 60. Proximity sensing: obstacle detected when point cloud point distance < threshold (e.g. 0.3 m). Drone altitude hold: downward LIDAR measures height, feeds PID altitude controller. SLAM mapping: iterative closest point (ICP) algorithm aligns successive scans. Beam divergence: 0.5–2°; minimum detectable object = beam_width at range.",
+  "formula": "d = c·Δt/2 ;  angular_resolution = 360°·scan_rate/(RPM·60)",
+  "units": "d: m, Δt: s, c: 3×10⁸ m/s",
+  "source": "Velodyne HDL-64E Technical Manual; Hecht, Optics, 5th ed.; Thrun et al., Probabilistic Robotics, MIT 2005",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "LIDAR",
+    "time-of-flight",
+    "point-cloud",
+    "proximity",
+    "drone",
+    "SLAM",
+    "electrical"
+  ],
+  "created_by": "seed"
+}
