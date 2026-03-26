@@ -1,0 +1,23 @@
+{
+  "title": "Snake Robot Multi-Servo Joint Chain",
+  "component_category": "mechanical",
+  "design_question": "How to build a bio-inspired snake robot with Android-controlled serpentine locomotion?",
+  "selected_approach": "8-segment snake: 7 MG996R servo joints (±60°), mounted alternately horizontal/vertical, linked by 3D-printed ABS link bodies (50 mm each). Arduino Mega receives HC-05 Bluetooth commands from Android app (amplitude A, period T, phase offset φ). Servo angles computed as θᵢ = A·sin(2πt/T + i·π/4) + trim.",
+  "rationale": "MG996R servos provide 9.4 kg·cm at 6 V — sufficient for 60 g link bodies. HC-05 BT eliminates RF licensing complexity. Arduino Mega has 12 dedicated PWM outputs for servos. 8-joint design enables lateral undulation, rectilinear, and sidewinding gaits.",
+  "alternatives": [
+    {
+      "approach": "Pneumatic soft robot",
+      "reason_rejected": "Complex air supply."
+    },
+    {
+      "approach": "Cable-driven continuum robot",
+      "reason_rejected": "Friction losses in long cable runs."
+    }
+  ],
+  "verification_notes": "FACT: 'Snake Robot — Serpentine Locomotion Kinematics' provides joint angle equation and gait parameters.",
+  "supporting_fact_titles": [
+    "Snake Robot — Serpentine Locomotion Kinematics",
+    "Android Bluetooth SPP to Arduino Serial Bridge",
+    "RC Servo Joint Actuator"
+  ]
+}

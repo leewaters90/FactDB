@@ -1,0 +1,23 @@
+{
+  "title": "Automatic Wire Cutter and Stripper Mechanism",
+  "component_category": "mechanical",
+  "design_question": "How to automatically cut and strip insulation from wire to programmable lengths?",
+  "selected_approach": "Motorised feed roller (NEMA17 stepper, 40 mm rubber roller) advances wire by programmable length. Two solenoid-actuated V-blade assemblies: outer blades cut wire, inner blades (adjustable depth cam stop) score and strip insulation. Arduino Uno controls: stepper steps = length/roller_circumference, solenoid dwell time 200 ms per operation. Blade depth adjusted by 3D-printed cam with 6 pre-set positions for AWG 20–28.",
+  "rationale": "Solenoid actuation gives reliable, fast (< 200 ms) blade movement. Stepper ensures ±1 mm strip length accuracy. Dual-blade design performs both cut and strip in one station. No servo backlash issues.",
+  "alternatives": [
+    {
+      "approach": "Servo-actuated blades",
+      "reason_rejected": "Slower response, more torque needed."
+    },
+    {
+      "approach": "Manual pneumatic stripper",
+      "reason_rejected": "Requires compressor."
+    }
+  ],
+  "verification_notes": "FACT: 'Wire Cutting and Insulation Stripping — Blade Mechanics' confirms blade gap = conductor diameter + 0.1 mm clearance.",
+  "supporting_fact_titles": [
+    "Wire Cutting and Insulation Stripping — Blade Mechanics",
+    "NEMA17 Stepper + DRV8825 Microstepping Drive",
+    "Pneumatic Cylinder + 5/2 Solenoid Valve Actuator"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "title": "Arduino 3D Scanner — Stepper Turntable + TOF Sensor",
+  "component_category": "measurement",
+  "design_question": "How to build a low-cost 3D scanner using Arduino, a rotating turntable and a distance sensor?",
+  "selected_approach": "NEMA17 stepper motor (1.8°/step) rotates object turntable (200 steps = 1 revolution, 1.8° resolution). VL53L1X TOF sensor (I2C, 4 m range, 1 mm accuracy) measures radial distance at each step. Arduino Uno controls stepper via DRV8825, reads TOF, transmits r,θ pairs via Serial to PC. Python processing script converts to Cartesian (x=r·cos(θ), y=r·sin(θ)), plots point cloud, exports to CSV/PLY. Multiple vertical scan heights via manual z-axis adjustment.",
+  "rationale": "VL53L1X provides 1 mm accuracy sufficient for objects > 50 mm. NEMA17 + DRV8825 gives smooth 1/16 microstepping for fine angular resolution. Arduino Uno handles sensor polling and stepper control simultaneously. Python processing is open-source and extensible.",
+  "alternatives": [
+    {
+      "approach": "Structured-light scanner",
+      "reason_rejected": "Requires DLP projector, expensive."
+    },
+    {
+      "approach": "Photogrammetry",
+      "reason_rejected": "Requires precise lighting and many photos."
+    },
+    {
+      "approach": "Laser triangulation",
+      "reason_rejected": "More complex optics setup."
+    }
+  ],
+  "verification_notes": "FACT: '3D Scanning — Structured Light and Laser Triangulation' confirms x=r·cos(θ), y=r·sin(θ) conversion and scan time estimation.",
+  "supporting_fact_titles": [
+    "3D Scanning — Structured Light and Laser Triangulation",
+    "NEMA17 Stepper + DRV8825 Microstepping Drive",
+    "Arduino Uno/Nano MCU Platform"
+  ]
+}

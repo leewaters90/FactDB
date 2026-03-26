@@ -1,0 +1,27 @@
+{
+  "title": "360-Degree Fire Protection — Pan-Tilt Nozzle with Flame Sensor Array",
+  "component_category": "actuation",
+  "design_question": "How to implement automatic 360-degree fire detection and directional suppression?",
+  "selected_approach": "4× YG1006 photodiode flame sensors at 90° intervals (360° coverage). Arduino Mega computes fire azimuth from relative sensor signals. Pan-tilt gimbal (2× MG996R servos, 0–360° pan, 0–90° tilt) aims suppression nozzle. 12 V solenoid valve opens water supply on confirmed flame detection (2+ sensors active or single sensor > 3× background). 2 s burst suppression, then recheck. Buzzer + LED alarm. Manual override button.",
+  "rationale": "4-sensor array provides 360° coverage with 90° resolution, sufficient to localise fire quadrant for nozzle aiming. MG996R servos achieve fast pan (0.17 s/60°) for rapid response. Confirmation logic prevents false activations from sunlight or hot surfaces.",
+  "alternatives": [
+    {
+      "approach": "Fixed sprinkler array",
+      "reason_rejected": "Wastes water, no targeting."
+    },
+    {
+      "approach": "Single pan-tilt sensor without fixed array",
+      "reason_rejected": "Slower detection."
+    },
+    {
+      "approach": "CO₂ total-flood",
+      "reason_rejected": "Hazardous in occupied spaces."
+    }
+  ],
+  "verification_notes": "FACT: '360-Degree Fire Detection and Suppression System' gives θ_fire = arctan2(S_y, S_x) localisation method.",
+  "supporting_fact_titles": [
+    "360-Degree Fire Detection and Suppression System",
+    "RC Servo Joint Actuator",
+    "Arduino Mega 2560 MCU Platform"
+  ]
+}

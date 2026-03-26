@@ -1,0 +1,23 @@
+{
+  "title": "RC Mini Forklift — Scissor Lift and Drive Mechanism",
+  "component_category": "mechanical",
+  "design_question": "How to build an RC-controlled mini forklift with motorised scissor lift and pallet forks?",
+  "selected_approach": "Chassis: 4-wheel differential drive (4× N20 gear motors, 12 V). Scissor lift: 2-stage aluminium scissor linkage driven by a 12 V worm-gear DC motor + lead screw (2 mm pitch). Fork width 150 mm, lift height 0–250 mm. NRF24L01 2.4 GHz RF link for RC control. Arduino Nano: receives joystick data (drive + lift direction), PWM-drives L298N for drive wheels and lift motor.",
+  "rationale": "Worm gear prevents scissor from back-driving under load (self-locking). Lead screw gives 5 mm/rev movement with adequate force. N20 motors in differential drive achieve low-profile chassis for pallet entry. NRF24L01 provides reliable 100 m range.",
+  "alternatives": [
+    {
+      "approach": "Hydraulic mini-forklift",
+      "reason_rejected": "Pump and cylinder adds complexity and weight."
+    },
+    {
+      "approach": "Rack and pinion mast",
+      "reason_rejected": "Higher profile than scissor design."
+    }
+  ],
+  "verification_notes": "FACT: 'Scissor Lift / Pantograph — Mechanical Advantage and Geometry' confirms F_lift = F_h/(2n·tan θ).",
+  "supporting_fact_titles": [
+    "Scissor Lift / Pantograph — Mechanical Advantage and Geometry",
+    "Worm Gear + Lead Screw Linear Actuator",
+    "nRF24L01 2.4 GHz RF Transceiver Link"
+  ]
+}

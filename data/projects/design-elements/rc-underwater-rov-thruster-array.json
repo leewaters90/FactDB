@@ -1,0 +1,27 @@
+{
+  "title": "RC Underwater ROV — Thruster Array and Waterproof Electronics",
+  "component_category": "propulsion",
+  "design_question": "How to build a remotely controlled underwater exploration drone with camera and manoeuvring capability?",
+  "selected_approach": "6-thruster ROV: 4 horizontal (vectored ±45° for surge/sway/yaw) + 2 vertical (heave). BlueRobotics T200 thrusters (2.9 kgf, 12–20 V). Electronics in IP68 aluminium tube (100 mm dia, O-ring end-caps). Raspberry Pi Zero W for H.264 video streaming via WiFi surface tether (Cat6 Ethernet + 100BASE-T). ArduSub firmware on Pixhawk controls thrusters via 6× BasicESC. Depth sensor (MS5837-30BA, 300 m rated). Tether: 30 m slim neutrally buoyant tether (4 power + 2 data).",
+  "rationale": "ArduSub provides stable depth hold, heading hold, and stabilisation. Ethernet tether gives low-latency 1080p video. T200 thrusters have known thrust curves for precise control allocation. IP68 tube is repressable and inspectable.",
+  "alternatives": [
+    {
+      "approach": "Wifi-only",
+      "reason_rejected": "RF attenuates >1 m underwater."
+    },
+    {
+      "approach": "RF tether",
+      "reason_rejected": "Bulky."
+    },
+    {
+      "approach": "Camera ROV kit",
+      "reason_rejected": "Not educational, closed hardware."
+    }
+  ],
+  "verification_notes": "FACT: 'Underwater Thruster — Hydrodynamic Thrust and Propulsion' gives T = ρ·A·(v_j² − v_i²)/2 and T200 spec 2.9 kgf.",
+  "supporting_fact_titles": [
+    "Underwater Thruster — Hydrodynamic Thrust and Propulsion",
+    "Waterproof IP67 Marine Enclosure Design",
+    "4S LiPo Marine RC Power System"
+  ]
+}

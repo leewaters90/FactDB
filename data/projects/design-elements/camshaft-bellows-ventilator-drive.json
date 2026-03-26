@@ -1,0 +1,27 @@
+{
+  "title": "Camshaft Bellows Ventilator — Cam-Follower Respiratory Drive",
+  "component_category": "mechanical",
+  "design_question": "How to mechanically drive a bellows for consistent tidal volume delivery in a DIY ventilator?",
+  "selected_approach": "Eccentric disc cam (50 mm eccentricity) on 12 V DC gear motor shaft (12–20 RPM = BPM). Cam follower rod compresses a self-reinflating silicone bellows (500 mL volume). Follower guided in linear bearing. Spring (15 N/mm) ensures bellows re-expansion on return stroke. Arduino controls motor RPM via PWM (I/E ratio 1:2 by asymmetric cam profile).",
+  "rationale": "Cam-driven bellows provides positive-pressure ventilation with fixed tidal volume set by cam eccentricity. Simple, reliable, few moving parts. 12 V DC operation portable. Silicone bellows self-seals. Tidal volume = π·d²/4 × stroke = 50 cm² × 10 mm = 500 mL.",
+  "alternatives": [
+    {
+      "approach": "Bag-valve mask (BVM) with linear actuator",
+      "reason_rejected": "BVM more complex to seal automatically."
+    },
+    {
+      "approach": "Piston-cylinder",
+      "reason_rejected": "Sealing friction introduces variability."
+    },
+    {
+      "approach": "Rotary vane pump",
+      "reason_rejected": "High back-pressure risk."
+    }
+  ],
+  "verification_notes": "FACT: 'Cam and Follower Mechanism — Displacement Profiles' confirms max acceleration formula and pressure angle limit.",
+  "supporting_fact_titles": [
+    "Cam and Follower Mechanism — Displacement Profiles",
+    "DC Gear Motor with PWM Speed Control",
+    "Pneumatic Cylinder + 5/2 Solenoid Valve Actuator"
+  ]
+}

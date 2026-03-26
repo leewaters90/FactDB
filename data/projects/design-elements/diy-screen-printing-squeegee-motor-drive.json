@@ -1,0 +1,27 @@
+{
+  "title": "DIY Automatic Screen Printing — Squeegee Motor Drive",
+  "component_category": "mechanical",
+  "design_question": "How to automate squeegee stroke and pressure for consistent screen printing?",
+  "selected_approach": "NEMA23 stepper motor on lead screw (5 mm pitch) drives squeegee carriage across screen frame (max width 400 mm). Vertical pneumatic cylinder (50 mm bore, 20 mm stroke) sets squeegee contact pressure (0–40 N adjustable via regulator). Arduino Mega with GRBL controls: X-axis = squeegee travel, Z-axis = squeegee lift/lower. Flood/print/lift cycle automated via G-code program.",
+  "rationale": "Stepper + lead screw provides precise speed (100–300 mm/s) and position. Pneumatic pressure cylinder gives consistent, adjustable force independent of position. GRBL is proven open-source CNC firmware adaptable to screen printing.",
+  "alternatives": [
+    {
+      "approach": "Servo-driven squeegee",
+      "reason_rejected": "Lower force output for 400 mm wide squeegee."
+    },
+    {
+      "approach": "Manual squeegee",
+      "reason_rejected": "Inconsistent pressure and speed."
+    },
+    {
+      "approach": "Rack-and-pinion drive",
+      "reason_rejected": "Backlash causes registration error."
+    }
+  ],
+  "verification_notes": "FACT: 'Screen Printing — Squeegee Pressure and Ink Rheology' specifies 2–5 N/cm pressure and 100–300 mm/s speed.",
+  "supporting_fact_titles": [
+    "Screen Printing — Squeegee Pressure and Ink Rheology",
+    "NEMA17 Stepper + DRV8825 Microstepping Drive",
+    "Pneumatic Cylinder + 5/2 Solenoid Valve Actuator"
+  ]
+}

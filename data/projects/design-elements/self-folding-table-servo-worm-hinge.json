@@ -1,0 +1,27 @@
+{
+  "title": "Self-Folding Dining Table — Servo + Worm Gear Hinge",
+  "component_category": "actuation",
+  "design_question": "How to motorise a dining table to automatically fold/unfold on command while preventing back-drive?",
+  "selected_approach": "Two table leaves, each with a worm-gear DC motor (24 V, 50 RPM, 20 N·m, 20:1 worm ratio) integrated at the hinge pivot. Arduino Mega receives PIR sensor trigger or button press. Motor drives leaf through 90° fold/unfold arc in 5 s. Limit switches at 0° (folded) and 90° (open). Stall detection via current sense resistor (0.1 Ω, INA219) triggers soft stop if obstruction.",
+  "rationale": "20:1 worm gear self-locks (prevents gravity back-drive on 5 kg leaf), delivers 20 N·m torque > required 8.8 N·m. INA219 current sensing provides safe obstruction detection without encoders. PIR-triggered automation is user-friendly.",
+  "alternatives": [
+    {
+      "approach": "Linear actuator",
+      "reason_rejected": "Limited by geometry for full fold."
+    },
+    {
+      "approach": "Hydraulic cylinder",
+      "reason_rejected": "Too heavy and complex."
+    },
+    {
+      "approach": "Ball-screw servo",
+      "reason_rejected": "No self-locking, requires brake."
+    }
+  ],
+  "verification_notes": "FACT: 'Folding Table Hinge — Self-Locking and Motorised Actuation' confirms T = m·g·L_cm and worm gear back-drive prevention at ratio ≥ 20:1.",
+  "supporting_fact_titles": [
+    "Folding Table Hinge — Self-Locking and Motorised Actuation",
+    "Worm Gear + Lead Screw Linear Actuator",
+    "DC Gear Motor with PWM Speed Control"
+  ]
+}

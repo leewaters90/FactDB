@@ -1,0 +1,27 @@
+{
+  "title": "Sugarcane Bud Cutter — Rotary Blade with Node Sensor",
+  "component_category": "mechanical",
+  "design_question": "How to automatically cut sugarcane stalks at inter-node positions preserving bud viability?",
+  "selected_approach": "Conveyor belt (0.15 m/s) feeds stalks through a V-groove guide. TCR5000 optical reflectance sensor detects node (20% reflectance change). Arduino triggers 300 mm TCT circular saw blade (3000 RPM, 750 W) at correct inter-node position. Pneumatic clamp holds stalk during cut. Cut sett length 250–300 mm (2 buds per sett).",
+  "rationale": "Optical node detection enables automatic positioning without manual measurement. TCT blade handles repeated cuts through fibrous 40 mm stalks without dulling. Conveyor-based system achieves 600 setts/hour vs 100/hour manual.",
+  "alternatives": [
+    {
+      "approach": "Band saw",
+      "reason_rejected": "Blade vibration causes bud bruising."
+    },
+    {
+      "approach": "Guillotine blade",
+      "reason_rejected": "Requires higher force, slower cycle."
+    },
+    {
+      "approach": "Hand-held circular saw",
+      "reason_rejected": "Not automated."
+    }
+  ],
+  "verification_notes": "FACT: 'Sugarcane Processing — Node Cutting and Bud Viability' gives cutting force and germination rate data.",
+  "supporting_fact_titles": [
+    "Sugarcane Processing — Node Cutting and Bud Viability",
+    "DC Gear Motor with PWM Speed Control",
+    "TCS3200 Colour Sensor for Product Sorting"
+  ]
+}
