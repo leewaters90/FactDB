@@ -21,7 +21,6 @@
   "verification_notes": "FACT: 'Rain Sensor — Resistive / Capacitive Detection Module' confirms R_wet < 10 kΩ trigger threshold and 50–200 ms response.",
   "supporting_fact_titles": [
     "Rain Sensor — Resistive / Capacitive Detection Module",
-    "RC Servo Joint Actuator",
-    "Arduino Uno/Nano MCU Platform"
+    "RC Servo Motor PWM Control"
   ]
 }

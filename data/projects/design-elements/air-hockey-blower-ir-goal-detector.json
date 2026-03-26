@@ -21,7 +21,6 @@
   "verification_notes": "FACT: 'Air Hockey Table — Puck Lift by Air Cushion and Rebound Dynamics' confirms required P_lift = 20 Pa and blower specifications.",
   "supporting_fact_titles": [
     "Air Hockey Table — Puck Lift by Air Cushion and Rebound Dynamics",
-    "DC Gear Motor with PWM Speed Control",
-    "Arduino Uno/Nano MCU Platform"
+    "DC Motor Speed Control via PWM"
   ]
 }

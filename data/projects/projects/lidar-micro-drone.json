@@ -3,7 +3,7 @@
   "description": "250 mm quadcopter with TFMini-S downward LIDAR for altitude hold and 4× VL53L1X TOF sensors for 360° proximity/obstacle avoidance, running Betaflight F4 with MSP LIDAR integration.",
   "objective": "Stable altitude hold ±5 cm via LIDAR; obstacle avoidance < 30 cm in 4 directions; 5 min hover flight time; < 250 g AUW.",
   "constraints": "4S LiPo 650 mAh; Betaflight F4 FC; BOM < ₹6000; < 250 g AUW.",
-  "domain": "robotics",
+  "domain": "mechanical",
   "status": "completed",
   "supporting_fact_titles": [
     "LIDAR Time-of-Flight — Point Cloud Distance Measurement"

@@ -21,7 +21,7 @@
   "verification_notes": "FACT: 'Deep-Fry Immersion Heating — Oil Temperature Control' confirms dual-fry cycle timing and 2 kW heater recovery time.",
   "supporting_fact_titles": [
     "Deep-Fry Immersion Heating — Oil Temperature Control",
-    "RC Servo Joint Actuator",
-    "Solid-State Relay Mains Actuator Switching"
+    "RC Servo Motor PWM Control",
+    "N-Channel MOSFET as a Low-Side Power Switch"
   ]
 }

@@ -21,7 +21,7 @@
   "verification_notes": "FACT: 'Ackermann Four-Wheel Steering Geometry' gives complete geometry analysis and δ_r = k·δ_f relationship.",
   "supporting_fact_titles": [
     "Ackermann Four-Wheel Steering Geometry",
-    "DC Gear Motor with PWM Speed Control",
-    "Worm Gear + Lead Screw Linear Actuator"
+    "DC Motor Speed Control via PWM",
+    "Worm Gear Ratio and Self-Locking Property"
   ]
 }

@@ -21,7 +21,7 @@
   "verification_notes": "FACT: 'Cam and Follower Mechanism — Displacement Profiles' confirms max acceleration formula and pressure angle limit.",
   "supporting_fact_titles": [
     "Cam and Follower Mechanism — Displacement Profiles",
-    "DC Gear Motor with PWM Speed Control",
-    "Pneumatic Cylinder + 5/2 Solenoid Valve Actuator"
+    "DC Motor Speed Control via PWM",
+    "Pneumatic Cylinder Force and Stroke"
   ]
 }

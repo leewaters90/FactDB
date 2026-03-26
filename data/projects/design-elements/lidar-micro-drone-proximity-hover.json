@@ -21,7 +21,7 @@
   "verification_notes": "FACT: 'LIDAR Time-of-Flight — Point Cloud Distance Measurement' confirms d = c·Δt/2 and proximity threshold.",
   "supporting_fact_titles": [
     "LIDAR Time-of-Flight — Point Cloud Distance Measurement",
-    "TFmini-S Single-Point LIDAR Distance Sensor",
-    "I²C TCA9548A Multi-Device Sensor Bus"
+    "TFMini-S Micro LiDAR — 0.1–12 m Time-of-Flight",
+    "I²C Serial Communication Protocol"
   ]
 }

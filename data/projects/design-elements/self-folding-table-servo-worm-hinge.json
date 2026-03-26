@@ -21,7 +21,7 @@
   "verification_notes": "FACT: 'Folding Table Hinge — Self-Locking and Motorised Actuation' confirms T = m·g·L_cm and worm gear back-drive prevention at ratio ≥ 20:1.",
   "supporting_fact_titles": [
     "Folding Table Hinge — Self-Locking and Motorised Actuation",
-    "Worm Gear + Lead Screw Linear Actuator",
-    "DC Gear Motor with PWM Speed Control"
+    "Worm Gear Ratio and Self-Locking Property",
+    "DC Motor Speed Control via PWM"
   ]
 }

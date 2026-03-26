@@ -3,7 +3,7 @@
   "description": "Hybrid marine energy harvester combining an oscillating water column wave energy converter with a solar PV panel and LiFePO₄ battery, providing power to a coastal monitoring buoy.",
   "objective": "Generate ≥ 10 W from waves + solar combined; charge 20 Ah LiFePO₄; supply 5 W sensor payload continuously; operational life > 1 year.",
   "constraints": "Coastal deployment; wave height 0.5–2 m; 20 W solar panel; BOM < ₹20 000.",
-  "domain": "marine",
+  "domain": "general",
   "status": "completed",
   "supporting_fact_titles": [
     "Wave Energy Conversion — Oscillating Water Column Principle"

@@ -21,7 +21,6 @@
   "verification_notes": "FACT: 'Slider-Crank to Reciprocating Hacksaw Drive' confirms stroke S = 2r and power formula.",
   "supporting_fact_titles": [
     "Slider-Crank to Reciprocating Hacksaw Drive",
-    "DC Gear Motor with PWM Speed Control",
-    "Power Transmission — Chain Drive and Sprocket"
+    "DC Motor Speed Control via PWM"
   ]
 }

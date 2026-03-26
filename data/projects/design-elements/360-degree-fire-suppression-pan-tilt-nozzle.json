@@ -21,7 +21,6 @@
   "verification_notes": "FACT: '360-Degree Fire Detection and Suppression System' gives θ_fire = arctan2(S_y, S_x) localisation method.",
   "supporting_fact_titles": [
     "360-Degree Fire Detection and Suppression System",
-    "RC Servo Joint Actuator",
-    "Arduino Mega 2560 MCU Platform"
+    "RC Servo Motor PWM Control"
   ]
 }

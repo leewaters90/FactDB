@@ -3,7 +3,7 @@
   "description": "6-wheel rocker-bogie rover with passive differential suspension traversing obstacles up to 2× wheel diameter (50 mm), each wheel independently driven by DC gear motor, Arduino Mega controller.",
   "objective": "Traverse 50 mm obstacles; 6-wheel independent drive; autonomous obstacle detection via ultrasonic; 2 h runtime on LiPo.",
   "constraints": "12 V LiPo; 6× DC gear motors; Arduino Mega; BOM < ₹5000; 25 cm wheel diameter.",
-  "domain": "robotics",
+  "domain": "mechanical",
   "status": "completed",
   "supporting_fact_titles": [
     "Differential Drive Robot Kinematics"

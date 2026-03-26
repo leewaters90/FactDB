@@ -21,7 +21,7 @@
   "verification_notes": "FACT: 'Screen Printing — Squeegee Pressure and Ink Rheology' specifies 2–5 N/cm pressure and 100–300 mm/s speed.",
   "supporting_fact_titles": [
     "Screen Printing — Squeegee Pressure and Ink Rheology",
-    "NEMA17 Stepper + DRV8825 Microstepping Drive",
-    "Pneumatic Cylinder + 5/2 Solenoid Valve Actuator"
+    "Stepper Motor Drive — Full Step and Microstepping",
+    "Pneumatic Cylinder Force and Stroke"
   ]
 }

@@ -17,7 +17,7 @@
   "verification_notes": "FACT: 'Scissor Lift / Pantograph — Mechanical Advantage and Geometry' confirms F_lift = F_h/(2n·tan θ).",
   "supporting_fact_titles": [
     "Scissor Lift / Pantograph — Mechanical Advantage and Geometry",
-    "Worm Gear + Lead Screw Linear Actuator",
-    "nRF24L01 2.4 GHz RF Transceiver Link"
+    "Worm Gear Ratio and Self-Locking Property",
+    "2.4 GHz RF Transceiver — nRF24L01 SPI Interface"
   ]
 }

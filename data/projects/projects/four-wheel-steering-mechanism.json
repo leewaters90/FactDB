@@ -3,7 +3,7 @@
   "description": "Speed-adaptive 4WS system on a 1:5 scale vehicle model: rear servo actuator steers rear wheels counter-phase at low speed (turning radius −30%) and in-phase at high speed (stability +20%), Arduino Mega controller.",
   "objective": "Counter-phase rear steer at v < 3 km/h (model scale); in-phase at v > 6 km/h; potentiometer front-steer angle feedback; hall-effect speed sensing.",
   "constraints": "12 V; Arduino Mega; 1:5 RC vehicle scale; BOM < ₹3000.",
-  "domain": "automotive",
+  "domain": "mechanical",
   "status": "completed",
   "supporting_fact_titles": [
     "Ackermann Four-Wheel Steering Geometry"

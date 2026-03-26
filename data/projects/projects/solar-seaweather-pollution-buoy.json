@@ -3,7 +3,7 @@
   "description": "Autonomous floating buoy powered by solar panel with LiFePO₄ battery, measuring sea-surface weather (temperature, humidity, pressure) and pollution (PM2.5, CO₂) with MQTT telemetry via 4G/LoRa.",
   "objective": "Continuous 24/7 operation; measure temp/humidity/pressure/PM2.5/CO₂; transmit data every 5 min; waterproof IP67 enclosure.",
   "constraints": "Solar + LiFePO₄ autonomous power; saltwater environment; 4G/LoRa uplink; IP67 enclosure; BOM < ₹15 000.",
-  "domain": "marine",
+  "domain": "general",
   "status": "completed",
   "supporting_fact_titles": [],
   "design_element_titles": [

@@ -20,8 +20,7 @@
   ],
   "verification_notes": "FACT: 'Regenerative Braking with BLDC Motor' confirms energy recovery 10–30% in urban stop-go conditions.",
   "supporting_fact_titles": [
-    "BLDC Regenerative Braking Energy Recovery System",
-    "SCT-013 Split-Core CT Clamp Current Sensing",
-    "Arduino Mega 2560 MCU Platform"
+    "Regenerative Braking — BLDC Back-EMF Energy Recovery",
+    "CT Clamp Current Sensing and RMS Calculation"
   ]
 }

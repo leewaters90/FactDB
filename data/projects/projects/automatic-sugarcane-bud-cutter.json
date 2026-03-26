@@ -3,7 +3,7 @@
   "description": "Conveyor-fed automatic sugarcane stalk sectioning machine using optical node detection and TCT circular blade to produce 2-bud setts at 600/hour for agricultural planting.",
   "objective": "Detect inter-node positions optically; cut setts 250–300 mm with 2 buds each; throughput ≥ 600 setts/hour; germination rate ≥ 85%.",
   "constraints": "3-phase 750 W power; Arduino Uno controller; blade disinfection between rows; BOM < ₹20 000.",
-  "domain": "agricultural",
+  "domain": "mechanical",
   "status": "completed",
   "supporting_fact_titles": [
     "Sugarcane Processing — Node Cutting and Bud Viability"

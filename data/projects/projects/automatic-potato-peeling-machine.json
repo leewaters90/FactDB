@@ -3,7 +3,7 @@
   "description": "Rotating abrasive drum peeler for batch potato peeling: motor-driven drum with carborundum lining, water spray, and timer-controlled 3-minute cycle for 2 kg batches.",
   "objective": "Peel 2 kg potatoes per 3 min cycle; abrasive drum removes skin with minimal waste; water spray flush; automatic timer stop.",
   "constraints": "230 V 500 W motor; stainless drum 300 mm dia; BOM < ₹4000; Arduino Uno timer.",
-  "domain": "food-processing",
+  "domain": "mechanical",
   "status": "completed",
   "supporting_fact_titles": [
     "Deep-Fry Immersion Heating — Oil Temperature Control"

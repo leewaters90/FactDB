@@ -20,8 +20,6 @@
   ],
   "verification_notes": "FACT: 'Vending Machine Mechanisms — Coin Validation and Dispensing' covers coin acceptor validation protocol.",
   "supporting_fact_titles": [
-    "12 V Peristaltic Pump Liquid Dispenser",
-    "Coin Acceptor + Solenoid Dispenser Vending Mechanism",
-    "Arduino Uno/Nano MCU Platform"
+    "Coin Acceptor — Pulse-Count Authentication and Relay Dispense"
   ]
 }

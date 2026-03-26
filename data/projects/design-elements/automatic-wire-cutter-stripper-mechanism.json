@@ -17,7 +17,7 @@
   "verification_notes": "FACT: 'Wire Cutting and Insulation Stripping — Blade Mechanics' confirms blade gap = conductor diameter + 0.1 mm clearance.",
   "supporting_fact_titles": [
     "Wire Cutting and Insulation Stripping — Blade Mechanics",
-    "NEMA17 Stepper + DRV8825 Microstepping Drive",
-    "Pneumatic Cylinder + 5/2 Solenoid Valve Actuator"
+    "Stepper Motor Drive — Full Step and Microstepping",
+    "Pneumatic Cylinder Force and Stroke"
   ]
 }

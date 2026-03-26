@@ -21,7 +21,7 @@
   "verification_notes": "FACT: 'Mattress Cleaning — Vibration Beater and HEPA Suction' confirms UV dose 40 mJ/cm² kills 99.9% D. pteronyssinus.",
   "supporting_fact_titles": [
     "Mattress Cleaning — Vibration Beater and HEPA Suction",
-    "UV-C LED Germicidal / Ozone Sterilisation Module",
-    "DC Gear Motor with PWM Speed Control"
+    "UV-C LED Germicidal Irradiation",
+    "DC Motor Speed Control via PWM"
   ]
 }

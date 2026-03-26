@@ -3,7 +3,7 @@
   "description": "Arduino-based emergency braking system for a four-wheeler with ABS logic, accelerometer-based crash detection, and hydraulic pressure modulation via solenoid valves.",
   "objective": "Achieve emergency stop from 60 km/h in < 20 m; prevent wheel lock-up via ABS; trigger automatic braking on crash detection.",
   "constraints": "12 V vehicle electrical system; retain manual brake pedal; BOM < ₹5000; Arduino Mega controller.",
-  "domain": "automotive",
+  "domain": "mechanical",
   "status": "completed",
   "supporting_fact_titles": [
     "Hydraulic Disc Brake — Four-Wheeler Emergency Stop",

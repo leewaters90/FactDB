@@ -21,7 +21,6 @@
   "verification_notes": "FACT: 'Sugarcane Processing — Node Cutting and Bud Viability' gives cutting force and germination rate data.",
   "supporting_fact_titles": [
     "Sugarcane Processing — Node Cutting and Bud Viability",
-    "DC Gear Motor with PWM Speed Control",
-    "TCS3200 Colour Sensor for Product Sorting"
+    "DC Motor Speed Control via PWM"
   ]
 }

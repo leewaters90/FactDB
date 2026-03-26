@@ -18,6 +18,6 @@
   "supporting_fact_titles": [
     "Snake Robot — Serpentine Locomotion Kinematics",
     "Android Bluetooth SPP to Arduino Serial Bridge",
-    "RC Servo Joint Actuator"
+    "RC Servo Motor PWM Control"
   ]
 }

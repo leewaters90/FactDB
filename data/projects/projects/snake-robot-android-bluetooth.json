@@ -3,7 +3,7 @@
   "description": "8-segment snake robot with MG996R servo joints driven by Arduino Mega, receiving gait parameters (amplitude, period, phase) wirelessly from an Android Bluetooth app.",
   "objective": "Achieve lateral undulation gait on flat floor; Android app controls speed and gait pattern; 8 servo joints, 1 m total length.",
   "constraints": "6 V servo supply; HC-05 BT range ≥ 10 m; total BOM < ₹3000; powered by 2S LiPo.",
-  "domain": "robotics",
+  "domain": "mechanical",
   "status": "completed",
   "supporting_fact_titles": [
     "Snake Robot — Serpentine Locomotion Kinematics",
