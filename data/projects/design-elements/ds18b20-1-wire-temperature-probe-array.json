@@ -1,0 +1,21 @@
+{
+  "title": "DS18B20 1-Wire Temperature Probe Array",
+  "component_category": "sensing",
+  "design_question": "How to accurately measure water temperature in an aquarium tank with a waterproof sensor?",
+  "selected_approach": "Waterproof DS18B20 stainless-steel probe (TO-92 encapsulated, IP67 shrink-wrapped cable) on 1-Wire bus. Single 4.7 kΩ pull-up on data line; Arduino Dallas Temperature library for 12-bit (0.0625 °C) readings. Parasite power disabled; dedicated 3.3 V supply.",
+  "rationale": "DS18B20 probe form factor is food-safe, fully submersible, and ±0.5 °C accurate from −10 °C to 85 °C. 1-Wire bus allows multiple sensors on one GPIO. Dallas Temperature library handles ROM enumeration and conversion timing transparently.",
+  "alternatives": [
+    {
+      "approach": "NTC thermistor",
+      "reason_rejected": "Requires ADC and calibration curve; non-linear; accuracy degrades over time without periodic recalibration."
+    },
+    {
+      "approach": "SHT41 (humidity + temperature)",
+      "reason_rejected": "Not waterproof; designed for air sensing, not liquid immersion."
+    }
+  ],
+  "verification_notes": "FACT: 'DS18B20 1-Wire Digital Temperature Sensing' confirms ±0.5 °C accuracy, 12-bit resolution (0.0625 °C), and waterproof probe availability.",
+  "supporting_fact_titles": [
+    "DS18B20 1-Wire Digital Temperature Sensing"
+  ]
+}

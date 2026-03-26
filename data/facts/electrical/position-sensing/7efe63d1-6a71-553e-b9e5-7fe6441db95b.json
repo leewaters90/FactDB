@@ -1,0 +1,27 @@
+{
+  "id": "7efe63d1-6a71-553e-b9e5-7fe6441db95b",
+  "title": "Magnetic Reed Switch for Contact/Position Detection",
+  "domain": "electrical",
+  "category": "position-sensing",
+  "subcategory": "proximity switches",
+  "detail_level": "fundamental",
+  "content": "A reed switch is a pair of ferromagnetic contacts hermetically sealed in a glass tube. A permanent magnet within ~10–20 mm closes (N/O) or opens (N/C) the contacts. No power consumption when static; rated for 10⁷–10⁸ operations; dry contact output connects directly to MCU GPIO with a pull-up resistor.",
+  "extended_content": "Reed switches are commonly used for door/window open-closed detection, limit switches, and liquid level detection. Operating distance (AT — Ampere Turns): typically 15–40 AT to actuate; matched magnets supplied with sensors. Bounce time: 0.5–2 ms — software debounce (20–50 ms window) or RC filter prevents false triggers. Wiring: one terminal to GPIO, other to GND; enable internal pull-up (or add 10 kΩ external). Normally-open (N/O) is most common — circuit closes when magnet approaches. Contact resistance < 0.1 Ω closed; 10⁸ Ω open. Maximum ratings: 1 A, 100 V DC (small through-hole types). For garage-door or window applications, use surface-mount form-factor pairs (sensor + magnet) with 5–15 mm operating gap.",
+  "formula": null,
+  "units": null,
+  "source": "Standex-Meder Electronics Reed Switch Fundamentals Application Note; Littelfuse Reed Switch Design Guide",
+  "source_url": null,
+  "confidence_score": 0.98,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "reed-switch",
+    "magnetic",
+    "position-sensing",
+    "contact-sensor",
+    "door-sensor",
+    "limit-switch",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

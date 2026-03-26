@@ -1,0 +1,28 @@
+{
+  "id": "083551ab-7a7b-5cf5-869c-1a640b8cb58c",
+  "title": "State-of-Charge Estimation via Coulomb Counting",
+  "domain": "electrical",
+  "category": "battery-management",
+  "subcategory": "state estimation",
+  "detail_level": "intermediate",
+  "content": "Coulomb counting integrates measured current over time to track accumulated charge removed from or added to a battery. SoC(t) = SoC(t₀) − (1/Q_nominal) × ∫I(t) dt, where positive I is discharge and Q_nominal is rated capacity in Ah.",
+  "extended_content": "Coulomb counting is inherently drift-prone because small current measurement errors accumulate. Calibration resets are performed at known endpoints: full charge (SoC = 100 %) or full discharge (SoC = 0 %). Current is measured with a shunt resistor or Hall-effect current sensor (e.g., ACS712, INA219). INA219 (I²C): 12-bit ADC, ±3.2 A (with 0.1 Ω shunt), 1 mA resolution; reads current and bus voltage. LiFePO₄ cells have a very flat discharge curve (3.2–3.3 V under load for 80 % SoC), making voltage-only SoC estimation inaccurate — Coulomb counting is preferred. Extended Kalman Filter (EKF) methods combine OCV and Coulomb counting for higher accuracy but require a cell model. Practical accuracy: ±3–5 % SoC with regular calibration resets.",
+  "formula": "SoC(t) = SoC₀ − (1 / Q_nom) × ∫₀ᵗ I(τ) dτ",
+  "units": "SoC: 0–1 (or 0–100 %),  Q_nom: Ah,  I: A",
+  "source": "Plett, Battery Management Systems Vol. 1, Artech House, 2015; Texas Instruments BQ34Z100 TRM",
+  "source_url": null,
+  "confidence_score": 0.96,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "coulomb-counting",
+    "state-of-charge",
+    "soc",
+    "battery",
+    "bms",
+    "ina219",
+    "lifepo4",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

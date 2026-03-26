@@ -1,0 +1,27 @@
+{
+  "id": "5fefa83e-8f87-5537-9e9b-18586855a786",
+  "title": "Hall-Effect Speed Sensor for Rotating Machinery",
+  "domain": "electrical",
+  "category": "speed-sensing",
+  "subcategory": "rotational speed",
+  "detail_level": "intermediate",
+  "content": "A Hall-effect sensor outputs a digital pulse each time a magnet (or ferrous gear tooth) passes. Rotational speed is calculated as: ω (rpm) = (pulse_count / pulses_per_rev) × (60 / Δt), where Δt is the measurement window in seconds.",
+  "extended_content": "Common Hall sensors: A3144 (unipolar, requires N-pole magnet), AH3503 (linear output), SS49E (ratiometric linear). For bicycle speedometers, a single spoke magnet gives 1 pulse/revolution. For higher resolution, multi-pole ring magnets or toothed steel discs with gap sensors (e.g., HS-M3G0) provide 12–60 pulses/revolution. Debouncing: digital Hall sensors have built-in Schmitt trigger, eliminating mechanical bounce. Interrupt-driven measurement minimises CPU load: capture μs timestamps on rising edge, compute period = t2 − t1, speed = 1 / (period × pulses_per_rev). Anemometer cups use the same Hall pulse-count principle (see Cup Anemometer fact). Speed range: 0–150 000 rpm typical for digital Hall sensors.",
+  "formula": "ω [rpm] = (60 × f_pulse) / pulses_per_rev,  where f_pulse = pulse_count / Δt",
+  "units": "rpm",
+  "source": "Allegro Microsystems A3144 Hall-Effect Switch Datasheet; Melexis Hall Sensor App Note",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "hall-effect",
+    "speed-sensor",
+    "rpm",
+    "bicycle",
+    "tachometer",
+    "rotational",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

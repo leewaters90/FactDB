@@ -1,0 +1,21 @@
+{
+  "title": "DS3231 RTC Alarm Scheduling Module",
+  "component_category": "control",
+  "design_question": "How to trigger timed events (feeding, watering, pill dispensing) accurately without a network connection?",
+  "selected_approach": "DS3231 RTC module (ZS-042 breakout with CR2032 cell). Two hardware alarms configured via I²C register writes; INT/SQW pin wired to MCU external-interrupt pin to wake from deep sleep on schedule. RTClib (Adafruit) for Arduino time read/write.",
+  "rationale": "DS3231 TCXO achieves ±2 ppm (±63 s/year) without calibration — far better than software timers or DS1307. Battery backup maintains schedule through power outages. Hardware alarm interrupt allows MCU deep sleep between events, minimising power consumption.",
+  "alternatives": [
+    {
+      "approach": "DS1307 RTC",
+      "reason_rejected": "No temperature compensation; drifts up to ±20 ppm (±630 s/year). Unacceptable for daily-scheduled dosing."
+    },
+    {
+      "approach": "NTP-synced software timer",
+      "reason_rejected": "Requires WiFi uptime. Suitable for cloud-connected devices but adds complexity and fails offline."
+    }
+  ],
+  "verification_notes": "FACT: 'I²C Real-Time Clock — DS3231 Timekeeping and Alarms' confirms ±2 ppm accuracy, two alarms with interrupt output, and battery-backed operation.",
+  "supporting_fact_titles": [
+    "I²C Real-Time Clock — DS3231 Timekeeping and Alarms"
+  ]
+}

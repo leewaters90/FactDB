@@ -1,0 +1,28 @@
+{
+  "id": "8598a225-1986-5b45-98ba-b3374f7ed2f2",
+  "title": "I²C Real-Time Clock — DS3231 Timekeeping and Alarms",
+  "domain": "electrical",
+  "category": "timing",
+  "subcategory": "real-time clock",
+  "detail_level": "intermediate",
+  "content": "The DS3231 is a temperature-compensated crystal oscillator (TCXO) RTC IC with I²C interface. Accuracy: ±2 ppm (±63 s/year). Provides seconds/minutes/hours/day/date/month/year registers, two programmable alarms, and a 32 kHz output. Battery-backed VBAT input (CR2032) maintains time without main power.",
+  "extended_content": "DS3231 uses an integrated 32.768 kHz crystal with automatic temperature compensation, giving much better long-term accuracy than cheaper DS1307 (no compensation). Alarms 1 and 2 assert INT/SQW pin LOW, waking a sleeping MCU via external interrupt. I²C address: 0x68 (fixed). Register map: seconds at 0x00, alarm 1 at 0x07, alarm 2 at 0x0B, control at 0x0E, status at 0x0F, temperature at 0x11 (0.25 °C resolution). Common modules include a 4 kbit AT24C32 EEPROM on the same I²C bus at 0x57. Arduino: RTClib by Adafruit simplifies date/time access. Applications: scheduled feeding, timed irrigation, data logging with UTC timestamps.",
+  "formula": "drift = ±2 ppm × 365.25 × 24 × 3600 ≈ ±63 s/year",
+  "units": "ppm, s/year",
+  "source": "Maxim DS3231 Extremely Accurate I²C-Integrated RTC/TCXO/Crystal Datasheet, Rev 10",
+  "source_url": null,
+  "confidence_score": 0.98,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "ds3231",
+    "rtc",
+    "real-time-clock",
+    "i2c",
+    "alarm",
+    "timekeeping",
+    "battery-backup",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

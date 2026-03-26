@@ -1,0 +1,48 @@
+{
+  "title": "Smart Battery Management System Monitor",
+  "description": "Arduino-based BMS monitor for a 3S Li-Ion or LiFePO₄ pack. Measures individual cell voltages via resistive dividers, total pack current via INA219, and estimates state-of-charge (SoC) by Coulomb counting. Displays live data on OLED and alerts on over/under-voltage or SoC < 10 %.",
+  "objective": "Monitor 3-cell pack (3S Li-Ion, 12.6 V max); SoC accuracy ±5 %; cell voltage resolution ≤ 10 mV; alert on cell > 4.2 V or < 3.0 V; USB serial logging at 1 Hz.",
+  "constraints": "5 V USB power from charger port; ≤ £15 BOM; single Arduino Nano; I²C for INA219 and OLED.",
+  "domain": "electrical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "State-of-Charge Estimation via Coulomb Counting",
+    "Li-Ion Battery Capacity and Energy Calculation",
+    "Kirchhoff's Voltage Law (KVL)",
+    "ADC Resolution and Measurement Precision",
+    "OLED SSD1306 Monochrome Display I²C Interface"
+  ],
+  "design_element_titles": [
+    "Resistive Cell Voltage Sensing Divider Array",
+    "INA219 I²C Current and Power Monitor",
+    "SSD1306 OLED Display UI Module",
+    "Arduino Uno/Nano MCU Platform"
+  ],
+  "element_usage_notes": {
+    "Resistive Cell Voltage Sensing Divider Array": "Three 2-resistor dividers (47 kΩ / 100 kΩ) on A0, A1, A2 for cells 1, 2, 3. 0.1 µF ceramic cap at each ADC pin. VREF = 3.3 V (Nano 3.3 V pin via AREF).",
+    "INA219 I²C Current and Power Monitor": "0.1 Ω shunt on pack negative rail; I²C addr 0x40; polled at 10 Hz; current integrated for Coulomb counting.",
+    "SSD1306 OLED Display UI Module": "4-line layout: SoC% + pack voltage / cell voltages 1–3 / current mA / status. 1 Hz refresh.",
+    "Arduino Uno/Nano MCU Platform": "Nano 3.0; AREF wired to 3.3 V pin for 10-bit ADC ref; I²C on A4/A5 (INA219 + OLED); buzzer on D7."
+  },
+  "element_interactions": [
+    {
+      "from": "Resistive Cell Voltage Sensing Divider Array",
+      "to": "Arduino Uno/Nano MCU Platform",
+      "data": "Analog voltages on A0, A1, A2 (0–2.86 V representing 0–4.2 V cell)",
+      "description": "Nano samples each ADC channel 8× and averages; converts via divider ratio (×1.468) to actual cell voltage. Flags over/under-voltage conditions for buzzer."
+    },
+    {
+      "from": "INA219 I²C Current and Power Monitor",
+      "to": "Arduino Uno/Nano MCU Platform",
+      "data": "current_mA (float), bus_v (float) via I²C at 10 Hz",
+      "description": "INA219 polled at 10 Hz. current_mA integrated with 100 ms time step to accumulate charge (mAh). SoC = Q_remaining / Q_nominal × 100 %."
+    },
+    {
+      "from": "Arduino Uno/Nano MCU Platform",
+      "to": "SSD1306 OLED Display UI Module",
+      "data": "I²C framebuffer update (soc_pct, cell_v[3], current_ma, status_str)",
+      "description": "OLED updated at 1 Hz with current SoC bar, per-cell voltages, and alarm status icon."
+    }
+  ],
+  "integration_code": "/*\n * bms_monitor.ino — Smart Battery Management System Monitor\n *\n * Elements:\n *   1. Resistive Cell Voltage Sensing — A0/A1/A2, 3.3 V AREF\n *   2. INA219 I²C Current Monitor     — pack current at 10 Hz\n *   3. SSD1306 OLED                   — live display at 1 Hz\n *   4. Arduino Nano                   — Coulomb counting + alerts\n *\n * Calibration: charge pack to 100 % (4.2 V/cell), reset Q_remaining\n * in EEPROM, then run normally. Re-calibrate after 20 cycles.\n */\n\n#include <Wire.h>\n#include <Adafruit_INA219.h>\n#include <Adafruit_SSD1306.h>\n#include <EEPROM.h>\n\n// --- Config ---\n#define CELL_COUNT       3\n#define Q_NOM_MAH     2000.0f   // rated capacity in mAh\n#define V_MAX_CELL       4.20f\n#define V_MIN_CELL       3.00f\n#define SOC_WARN_PCT    10.0f\n#define BUZZ_PIN           7\n#define DIVIDER_RATIO    (147.0f / 100.0f)   // (R1+R2)/R2 = 147/100\n#define AREF_MV       3300.0f\n#define ADC_BITS        1024.0f\n#define POLL_MS          100UL   // INA219 + ADC poll period\n#define DISPLAY_MS      1000UL\n\n// EEPROM address for SoC persistence\n#define EE_SOC_ADDR       0\n\n// --- Objects ---\nAdafruit_INA219  ina;\nAdafruit_SSD1306 oled(128, 64, &Wire, -1);\n\n// --- State ---\nconst uint8_t CELL_PINS[CELL_COUNT] = {A0, A1, A2};\nfloat cell_v[CELL_COUNT];\nfloat current_ma = 0.0f;\nfloat q_remain   = Q_NOM_MAH;   // loaded from EEPROM on boot\nfloat soc_pct    = 100.0f;\nbool  alarm      = false;\n\nfloat read_cell(uint8_t ch) {\n  long sum = 0;\n  for (int i = 0; i < 8; i++) { sum += analogRead(CELL_PINS[ch]); delay(1); }\n  float adc_v = (sum / 8.0f) * AREF_MV / ADC_BITS / 1000.0f;\n  return adc_v * DIVIDER_RATIO;\n}\n\nvoid draw_oled() {\n  oled.clearDisplay();\n  oled.setTextSize(1);\n  oled.setTextColor(SSD1306_WHITE);\n  oled.setCursor(0,  0); oled.printf(\"SoC: %.0f %%  %.2fV\", soc_pct,\n                                      cell_v[0]+cell_v[1]+cell_v[2]);\n  for (int i = 0; i < CELL_COUNT; i++) {\n    oled.setCursor(0, 12 + i*10);\n    oled.printf(\"C%d: %.3f V\", i+1, cell_v[i]);\n  }\n  oled.setCursor(0, 46);\n  oled.printf(\"I: %.0f mA %s\", current_ma, alarm ? \"ALARM\" : \"OK   \");\n  oled.display();\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  analogReference(EXTERNAL);  // use 3.3 V AREF\n  Wire.begin();\n\n  ina.begin();\n  oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);\n  oled.clearDisplay(); oled.display();\n\n  pinMode(BUZZ_PIN, OUTPUT); digitalWrite(BUZZ_PIN, LOW);\n\n  // Load SoC from EEPROM\n  EEPROM.get(EE_SOC_ADDR, q_remain);\n  if (isnan(q_remain) || q_remain < 0 || q_remain > Q_NOM_MAH) q_remain = Q_NOM_MAH;\n  soc_pct = q_remain / Q_NOM_MAH * 100.0f;\n\n  Serial.println(F(\"BMS monitor ready.\"));\n}\n\nvoid loop() {\n  static unsigned long last_poll    = 0;\n  static unsigned long last_display = 0;\n\n  unsigned long now = millis();\n\n  // --- 1. Coulomb counting + cell read ---\n  if (now - last_poll >= POLL_MS) {\n    float dt_h = POLL_MS / 3600000.0f;   // 100 ms in hours\n    last_poll  = now;\n\n    // INA219 current\n    current_ma = ina.getCurrent_mA();\n    q_remain  -= current_ma * dt_h;  // discharge positive\n    q_remain   = constrain(q_remain, 0.0f, Q_NOM_MAH);\n    soc_pct    = q_remain / Q_NOM_MAH * 100.0f;\n\n    // Cell voltages\n    alarm = false;\n    for (int i = 0; i < CELL_COUNT; i++) {\n      cell_v[i] = read_cell(i);\n      if (cell_v[i] > V_MAX_CELL || cell_v[i] < V_MIN_CELL) alarm = true;\n    }\n    if (soc_pct < SOC_WARN_PCT) alarm = true;\n    digitalWrite(BUZZ_PIN, alarm ? HIGH : LOW);\n\n    // Persist SoC every 10 s (100 polls)\n    static uint8_t persist_ctr = 0;\n    if (++persist_ctr >= 100) {\n      persist_ctr = 0;\n      EEPROM.put(EE_SOC_ADDR, q_remain);\n    }\n\n    // Serial log\n    Serial.printf(\"SoC=%.1f%% C1=%.3fV C2=%.3fV C3=%.3fV I=%.1fmA%s\\n\",\n                  soc_pct, cell_v[0], cell_v[1], cell_v[2],\n                  current_ma, alarm ? \" ALARM\" : \"\");\n  }\n\n  // --- 2. OLED refresh ---\n  if (now - last_display >= DISPLAY_MS) {\n    last_display = now;\n    draw_oled();\n  }\n}\n"
+}
