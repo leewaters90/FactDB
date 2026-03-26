@@ -35,23 +35,30 @@ factdb init-db
 # 3. Load curated engineering facts
 factdb seed
 
-# 4. Search
+# 4. Load project and design-element data
+factdb seed-projects
+
+# 5. Launch the web UI
+factdb web
+# → open http://127.0.0.1:5000/ in your browser
+
+# 6. Search (CLI)
 factdb search "entropy"
 factdb search --domain electrical --level fundamental
 factdb search --tag thermodynamics
 
-# 5. Browse
+# 7. Browse (CLI)
 factdb list --domain mechanical
 factdb show <fact-id>
 
-# 6. Explore relationships and prerequisites
+# 8. Explore relationships and prerequisites
 factdb related <fact-id>
 factdb prereqs <fact-id>
 
-# 7. Export for AI ingestion
+# 9. Export for AI ingestion
 factdb export --domain mechanical --output mechanical_facts.json
 
-# 8. Verification workflow
+# 10. Verification workflow
 factdb verify <fact-id> --action submit --by alice
 factdb verify <fact-id> --action approve --by bob --notes "Verified against reference"
 ```
@@ -240,6 +247,7 @@ related = search.suggest_related_by_tags(fact_id)
 |---------|-------------|
 | `factdb init-db` | Create database schema |
 | `factdb seed` | Load curated engineering facts |
+| `factdb seed-projects` | Load sample projects and design elements |
 | `factdb list` | List facts with optional filters |
 | `factdb search [QUERY]` | Full-text + structured search |
 | `factdb show FACT_ID` | Full detail view of one fact |
@@ -249,6 +257,46 @@ related = search.suggest_related_by_tags(fact_id)
 | `factdb related FACT_ID` | Show outgoing relationships |
 | `factdb prereqs FACT_ID` | Backward-chain prerequisite tree |
 | `factdb export` | Export verified facts as JSON |
+| `factdb web` | Launch the web UI (projects, elements, facts, review) |
+
+---
+
+## Web UI
+
+`factdb web` launches a browser-based interface for exploring the knowledge
+base and reviewing design decisions:
+
+| Page | URL | Description |
+|------|-----|-------------|
+| Projects | `/projects` | Browse all projects; filter by status and domain |
+| Project detail | `/projects/<id>` | Elements, interactions graph, supporting facts, integration code |
+| Design Elements | `/elements` | Browse reusable design elements; filter by category |
+| Element detail | `/elements/<id>` | Approach, alternatives, supporting facts, review form |
+| Facts | `/facts` | Search and filter engineering facts |
+| Fact detail | `/facts/<id>` | Full fact with formula, relationships, and verification history |
+
+### Starting the web server
+
+```bash
+# Default: http://127.0.0.1:5000/
+factdb web
+
+# Custom host / port
+factdb web --host 0.0.0.0 --port 8080
+
+# Debug mode (auto-reloads on code changes)
+factdb web --debug
+
+# Against a specific database
+factdb --db sqlite:////path/to/factdb.sqlite web
+```
+
+### Reviewing design elements
+
+Each **Design Element** detail page (`/elements/<id>`) includes a **Review
+Notes** form.  Submit free-text notes to record your assessment — these are
+saved as `verification_notes` on the element and surfaced in the project view
+with a ✓ indicator.
 
 ---
 
@@ -264,8 +312,25 @@ factdb/
 ├── search.py            Keyword + structured search
 ├── verification.py      Verification lifecycle workflow
 ├── reasoning.py         Backward/forward chaining, decision trees
-├── seeder.py            Seed-data loader
-└── seed_data.py         Curated engineering facts
+├── seeder.py            Seed-data loader (engineering facts)
+├── project_models.py    Project / DesignElement ORM models
+├── project_repository.py  Project + element CRUD
+├── project_seeder.py    Seed-data loader (projects & elements)
+├── software_models.py   SoftwareArtifact / BenchmarkTest models
+├── software_repository.py  Software artifact CRUD + benchmark runner
+├── software_seeder.py   Seed-data loader (software artifacts)
+└── web/                 Flask web UI
+    ├── app.py           Application factory + route handlers
+    ├── static/
+    │   └── style.css    UI stylesheet
+    └── templates/web/
+        ├── base.html          Shared layout (nav, flash messages)
+        ├── projects.html      Projects list with filters
+        ├── project_detail.html  Elements, interaction graph, facts
+        ├── elements.html      Design elements list
+        ├── element_detail.html  Element detail + review form
+        ├── facts.html         Facts list with search
+        └── fact_detail.html   Fact with relationships + verifications
 
 tests/
 ├── conftest.py          Shared pytest fixtures (in-memory SQLite)

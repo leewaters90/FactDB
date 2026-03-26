@@ -1,0 +1,64 @@
+{% extends "web/base.html" %}
+{% block title %}Design Elements — FactDB{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Design Elements</h1>
+  <p>Reusable, shareable design decisions used across projects.</p>
+</div>
+
+<form class="filters" method="get">
+  <div>
+    <label for="category">Category</label>
+    <select id="category" name="category" onchange="this.form.submit()">
+      <option value="">All categories</option>
+      {% for c in categories %}
+        <option value="{{ c }}" {% if c == category_filter %}selected{% endif %}>{{ c | title }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% if category_filter %}
+    <a href="{{ url_for('elements_list') }}" class="btn btn-outline">Clear</a>
+  {% endif %}
+</form>
+
+{% if elements %}
+<div style="overflow-x:auto;">
+  <table>
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Category</th>
+        <th>Approach (summary)</th>
+        <th>Projects</th>
+        <th>Reviewed</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for el in elements %}
+      <tr>
+        <td><a href="{{ url_for('element_detail', element_id=el.id) }}">{{ el.title }}</a></td>
+        <td><span class="badge badge-{{ el.component_category }}">{{ el.component_category }}</span></td>
+        <td style="font-size:13px;color:#6b7280;max-width:340px;">
+          {{ el.selected_approach[:120] }}{% if el.selected_approach | length > 120 %}…{% endif %}
+        </td>
+        <td style="text-align:center;">{{ el.project_links | length }}</td>
+        <td style="text-align:center;">
+          {% if el.verification_notes %}
+            <span style="color:#16a34a;font-weight:600;">✓</span>
+          {% else %}
+            <span style="color:#d1d5db;">—</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty">
+  <h3>No design elements found</h3>
+  <p>Run <code>factdb seed-projects</code> to load sample data.</p>
+</div>
+{% endif %}
+{% endblock %}
