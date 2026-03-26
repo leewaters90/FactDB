@@ -1284,5 +1284,33 @@ def software_requirements_cmd(ctx, project_id, output):
         session.close()
 
 
+# ---------------------------------------------------------------------------
+# web — launch the web UI
+# ---------------------------------------------------------------------------
+
+
+@cli.command("web")
+@click.option("--host", default="127.0.0.1", show_default=True, help="Host to bind to.")
+@click.option("--port", default=5000, show_default=True, type=int, help="Port to listen on.")
+@click.option("--debug", is_flag=True, default=False, help="Enable Flask debug mode (auto-reload).")
+@click.pass_context
+def web_cmd(ctx, host, port, debug):
+    """Launch the FactDB web UI (projects, elements, facts, review)."""
+    try:
+        from factdb.web.app import create_app
+    except ImportError:
+        click.echo(
+            "Flask is required for the web UI.  Install it with:\n"
+            "  pip install flask",
+            err=True,
+        )
+        sys.exit(1)
+
+    db_url = ctx.obj.get("db")
+    app = create_app(db_url=db_url)
+    click.echo(f"FactDB web UI → http://{host}:{port}/")
+    app.run(host=host, port=port, debug=debug)
+
+
 if __name__ == "__main__":
     cli()

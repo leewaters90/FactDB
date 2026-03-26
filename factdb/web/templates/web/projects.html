@@ -1,0 +1,61 @@
+{% extends "web/base.html" %}
+{% block title %}Projects — FactDB{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Projects</h1>
+  <p>Browse mechatronics design projects and their components.</p>
+</div>
+
+<form class="filters" method="get">
+  <div>
+    <label for="status">Status</label>
+    <select id="status" name="status" onchange="this.form.submit()">
+      <option value="">All statuses</option>
+      {% for s in statuses %}
+        <option value="{{ s }}" {% if s == status_filter %}selected{% endif %}>{{ s | replace('_', ' ') | title }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="domain">Domain</label>
+    <select id="domain" name="domain" onchange="this.form.submit()">
+      <option value="">All domains</option>
+      {% for d in domains %}
+        <option value="{{ d }}" {% if d == domain_filter %}selected{% endif %}>{{ d | title }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% if status_filter or domain_filter %}
+    <a href="{{ url_for('projects_list') }}" class="btn btn-outline">Clear</a>
+  {% endif %}
+</form>
+
+{% if projects %}
+<div class="grid">
+  {% for p in projects %}
+  <a href="{{ url_for('project_detail', project_id=p.id) }}" style="text-decoration:none;color:inherit;">
+    <div class="card" style="height:100%;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 4px 12px rgba(59,110,240,.18)'" onmouseout="this.style.boxShadow=''">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;">
+        <div class="card-title">{{ p.title }}</div>
+        <span class="badge badge-{{ p.status }}">{{ p.status | replace('_', ' ') }}</span>
+      </div>
+      <div class="card-meta">
+        <span class="badge badge-{{ p.domain }}" style="background:#f1f5f9;color:#475569;">{{ p.domain }}</span>
+        &nbsp;·&nbsp; {{ p.elements | length }} element{{ 's' if p.elements | length != 1 }}
+        {% if p.created_by %}&nbsp;·&nbsp; by {{ p.created_by }}{% endif %}
+      </div>
+      <div class="card-body" style="font-size:13px;color:#6b7280;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;">
+        {{ p.description }}
+      </div>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty">
+  <h3>No projects found</h3>
+  <p>Try adjusting the filters, or run <code>factdb seed-projects</code> to load sample data.</p>
+</div>
+{% endif %}
+{% endblock %}

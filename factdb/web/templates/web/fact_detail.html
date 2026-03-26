@@ -1,0 +1,125 @@
+{% extends "web/base.html" %}
+{% block title %}{{ fact.title }} — FactDB{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+  <a href="{{ url_for('facts_list') }}">Facts</a>
+  <span>›</span> {{ fact.title }}
+</div>
+
+<div class="page-header">
+  <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+    <h1 style="flex:1;min-width:200px;">{{ fact.title }}</h1>
+    <div style="display:flex;gap:8px;align-items:center;padding-top:4px;flex-wrap:wrap;">
+      <span class="badge badge-{{ fact.status }}">{{ fact.status }}</span>
+      <span class="badge" style="background:#f1f5f9;color:#475569;">{{ fact.domain }}</span>
+      <span class="badge" style="background:#f1f5f9;color:#475569;">{{ fact.detail_level }}</span>
+    </div>
+  </div>
+  <p style="color:#6b7280;font-size:13px;margin-top:4px;">
+    {% if fact.category %}{{ fact.category }}{% if fact.subcategory %} › {{ fact.subcategory }}{% endif %} · {% endif %}
+    Confidence {{ "%.0f" | format(fact.confidence_score * 100) }}% · Used {{ fact.use_count }} time{{ 's' if fact.use_count != 1 }}
+  </p>
+</div>
+
+<div class="card">
+  <div class="card-title">Content</div>
+  <p style="margin:8px 0 0;">{{ fact.content }}</p>
+</div>
+
+{% if fact.extended_content %}
+<div class="card">
+  <div class="card-title">Extended Explanation</div>
+  <p style="margin:8px 0 0;font-size:14px;">{{ fact.extended_content }}</p>
+</div>
+{% endif %}
+
+{% if fact.formula or fact.units %}
+<div class="card">
+  {% if fact.formula %}
+  <div class="card-title" style="margin-bottom:8px;">Formula</div>
+  <pre><code>{{ fact.formula }}</code></pre>
+  {% endif %}
+  {% if fact.units %}
+  <p style="margin:10px 0 0;font-size:13px;color:#6b7280;">Units: <strong>{{ fact.units }}</strong></p>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if fact.source or fact.source_url %}
+<div class="card">
+  <div class="card-title">Source</div>
+  <p style="margin:8px 0 0;font-size:14px;">
+    {% if fact.source_url %}
+    <a href="{{ fact.source_url }}" target="_blank" rel="noopener">{{ fact.source or fact.source_url }}</a>
+    {% else %}
+    {{ fact.source }}
+    {% endif %}
+  </p>
+</div>
+{% endif %}
+
+{% if fact.tags %}
+<div style="margin-bottom:20px;">
+  {% for tag in fact.tags %}
+  <span style="display:inline-block;background:#e8edfc;color:#3b6ef0;font-size:12px;padding:3px 10px;border-radius:99px;margin:2px 2px 2px 0;font-weight:500;">{{ tag.name }}</span>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Relationships -->
+{% if outgoing %}
+<div class="detail-section">
+  <h2>Outgoing Relationships ({{ outgoing | length }})</h2>
+  <table>
+    <thead><tr><th>Type</th><th>Target Fact</th><th>Description</th></tr></thead>
+    <tbody>
+      {% for rel in outgoing %}
+      <tr>
+        <td><span class="badge" style="background:#f1f5f9;color:#475569;">{{ rel.relationship_type | replace('_', ' ') }}</span></td>
+        <td><a href="{{ url_for('fact_detail', fact_id=rel.target_fact_id) }}">{{ rel.target_fact.title }}</a></td>
+        <td style="font-size:13px;color:#6b7280;">{{ rel.description or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% if incoming %}
+<div class="detail-section">
+  <h2>Incoming Relationships ({{ incoming | length }})</h2>
+  <table>
+    <thead><tr><th>Source Fact</th><th>Type</th><th>Description</th></tr></thead>
+    <tbody>
+      {% for rel in incoming %}
+      <tr>
+        <td><a href="{{ url_for('fact_detail', fact_id=rel.source_fact_id) }}">{{ rel.source_fact.title }}</a></td>
+        <td><span class="badge" style="background:#f1f5f9;color:#475569;">{{ rel.relationship_type | replace('_', ' ') }}</span></td>
+        <td style="font-size:13px;color:#6b7280;">{{ rel.description or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% if fact.verifications %}
+<div class="detail-section">
+  <h2>Verification History</h2>
+  <table>
+    <thead><tr><th>By</th><th>Status</th><th>Notes</th><th>Date</th></tr></thead>
+    <tbody>
+      {% for v in fact.verifications %}
+      <tr>
+        <td>{{ v.verified_by }}</td>
+        <td><span class="badge badge-{{ v.verification_status }}">{{ v.verification_status }}</span></td>
+        <td style="font-size:13px;color:#6b7280;">{{ v.notes or '—' }}</td>
+        <td style="font-size:13px;white-space:nowrap;">{{ v.verified_at.strftime('%d %b %Y') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

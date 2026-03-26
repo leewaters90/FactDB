@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}FactDB{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<nav>
+  <a class="brand" href="{{ url_for('index') }}">FactDB</a>
+  <a href="{{ url_for('projects_list') }}" {% if request.endpoint and request.endpoint.startswith('project') %}class="active"{% endif %}>Projects</a>
+  <a href="{{ url_for('elements_list') }}" {% if request.endpoint and request.endpoint.startswith('element') %}class="active"{% endif %}>Design Elements</a>
+  <a href="{{ url_for('facts_list') }}" {% if request.endpoint and request.endpoint.startswith('fact') %}class="active"{% endif %}>Facts</a>
+</nav>
+
+<div class="page">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</div>
+</body>
+</html>

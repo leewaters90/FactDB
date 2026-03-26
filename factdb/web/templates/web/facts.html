@@ -1,0 +1,64 @@
+{% extends "web/base.html" %}
+{% block title %}Facts — FactDB{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Engineering Facts</h1>
+  <p>The verified knowledge base underpinning design decisions.</p>
+</div>
+
+<form class="filters" method="get">
+  <div>
+    <label for="domain">Domain</label>
+    <select id="domain" name="domain" onchange="this.form.submit()">
+      <option value="">All domains</option>
+      {% for d in domains %}
+        <option value="{{ d }}" {% if d == domain_filter %}selected{% endif %}>{{ d | title }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="q">Search</label>
+    <input type="text" id="q" name="q" value="{{ q }}" placeholder="Search title…">
+  </div>
+  <button type="submit" class="btn">Search</button>
+  {% if domain_filter or q %}
+    <a href="{{ url_for('facts_list') }}" class="btn btn-outline">Clear</a>
+  {% endif %}
+</form>
+
+{% if facts %}
+<p style="color:#6b7280;font-size:13px;margin:0 0 12px;">Showing {{ facts | length }} fact{{ 's' if facts|length != 1 }}</p>
+<div style="overflow-x:auto;">
+  <table>
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Domain</th>
+        <th>Category</th>
+        <th>Level</th>
+        <th>Status</th>
+        <th style="text-align:right;">Used</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for f in facts %}
+      <tr>
+        <td><a href="{{ url_for('fact_detail', fact_id=f.id) }}">{{ f.title }}</a></td>
+        <td>{{ f.domain }}</td>
+        <td style="color:#6b7280;font-size:13px;">{{ f.category or '—' }}</td>
+        <td style="font-size:13px;">{{ f.detail_level }}</td>
+        <td><span class="badge badge-{{ f.status }}">{{ f.status }}</span></td>
+        <td style="text-align:right;font-size:13px;color:#6b7280;">{{ f.use_count }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty">
+  <h3>No facts found</h3>
+  <p>Try a different search term or run <code>factdb seed</code> to load the knowledge base.</p>
+</div>
+{% endif %}
+{% endblock %}

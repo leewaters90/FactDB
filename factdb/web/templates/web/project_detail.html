@@ -1,0 +1,236 @@
+{% extends "web/base.html" %}
+{% block title %}{{ project.title }} — FactDB{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+  <a href="{{ url_for('projects_list') }}">Projects</a>
+  <span>›</span> {{ project.title }}
+</div>
+
+<div class="page-header">
+  <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+    <h1 style="flex:1;min-width:200px;">{{ project.title }}</h1>
+    <div style="display:flex;gap:8px;align-items:center;padding-top:4px;">
+      <span class="badge badge-{{ project.status }}">{{ project.status | replace('_', ' ') }}</span>
+      <span class="badge" style="background:#f1f5f9;color:#475569;">{{ project.domain }}</span>
+    </div>
+  </div>
+  {% if project.created_by %}
+  <p>Created by {{ project.created_by }}
+     {% if project.created_at %} on {{ project.created_at.strftime('%d %b %Y') }}{% endif %}
+  </p>
+  {% endif %}
+</div>
+
+<!-- Description -->
+<div class="card">
+  <div class="card-title">Description</div>
+  <p style="margin:8px 0 0;">{{ project.description }}</p>
+</div>
+
+{% if project.objective or project.constraints %}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+  {% if project.objective %}
+  <div class="card">
+    <div class="card-title">Objective</div>
+    <p style="margin:8px 0 0;font-size:14px;">{{ project.objective }}</p>
+  </div>
+  {% endif %}
+  {% if project.constraints %}
+  <div class="card">
+    <div class="card-title">Constraints</div>
+    <p style="margin:8px 0 0;font-size:14px;">{{ project.constraints }}</p>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- Design Elements -->
+<div class="detail-section" style="margin-top:8px;">
+  <h2>Design Elements ({{ elements | length }})</h2>
+  {% if elements %}
+  <div class="grid">
+    {% for el in elements %}
+    <a href="{{ url_for('element_detail', element_id=el.id) }}" style="text-decoration:none;color:inherit;">
+      <div class="card" style="height:100%;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 4px 12px rgba(59,110,240,.18)'" onmouseout="this.style.boxShadow=''">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-bottom:6px;">
+          <div class="card-title" style="font-size:14px;">{{ el.title }}</div>
+          <span class="badge badge-{{ el.component_category }}">{{ el.component_category }}</span>
+        </div>
+        <div style="font-size:13px;color:#6b7280;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;">
+          {{ el.selected_approach }}
+        </div>
+        {% if el.verification_notes %}
+        <div style="margin-top:8px;font-size:12px;color:#16a34a;">✓ Reviewed</div>
+        {% endif %}
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p style="color:#6b7280;font-size:14px;">No design elements linked to this project.</p>
+  {% endif %}
+</div>
+
+<!-- Element Interactions / Dependency Graph -->
+{% if interactions %}
+<div class="detail-section">
+  <h2>Element Interactions</h2>
+  <ul class="interaction-list">
+    {% for i in interactions %}
+    <li>
+      <strong>{{ i.from }}</strong>
+      <span class="arrow">→</span>
+      <strong>{{ i.to }}</strong>
+      {% if i.data %}<span style="color:#6b7280;">· {{ i.data }}</span>{% endif %}
+      {% if i.description %}<span style="color:#9ca3af;font-style:italic;">{{ i.description }}</span>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+
+  <!-- SVG dependency graph -->
+  <div class="dep-graph" style="margin-top:16px;">
+    <svg id="dep-svg" height="300" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+</div>
+
+<script>
+(function() {
+  const interactions = {{ interactions | tojson }};
+  const svg = document.getElementById('dep-svg');
+  if (!svg || interactions.length === 0) return;
+
+  const W = svg.parentElement.clientWidth || 800;
+  const H = 300;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  // Collect unique nodes
+  const nodeSet = new Set();
+  interactions.forEach(i => { nodeSet.add(i.from); nodeSet.add(i.to); });
+  const nodes = [...nodeSet];
+  const n = nodes.length;
+
+  // Place nodes in an arc
+  const cx = W / 2, cy = H / 2, rx = W * 0.38, ry = H * 0.38;
+  const pos = {};
+  nodes.forEach((name, idx) => {
+    const angle = (2 * Math.PI * idx / n) - Math.PI / 2;
+    pos[name] = { x: cx + rx * Math.cos(angle), y: cy + ry * Math.sin(angle) };
+  });
+
+  const ns = 'http://www.w3.org/2000/svg';
+
+  // Defs: arrowhead marker
+  const defs = document.createElementNS(ns, 'defs');
+  const marker = document.createElementNS(ns, 'marker');
+  marker.setAttribute('id', 'arrow');
+  marker.setAttribute('markerWidth', '8');
+  marker.setAttribute('markerHeight', '8');
+  marker.setAttribute('refX', '6');
+  marker.setAttribute('refY', '3');
+  marker.setAttribute('orient', 'auto');
+  const poly = document.createElementNS(ns, 'polygon');
+  poly.setAttribute('points', '0 0, 8 3, 0 6');
+  poly.setAttribute('fill', '#3b6ef0');
+  marker.appendChild(poly);
+  defs.appendChild(marker);
+  svg.appendChild(defs);
+
+  // Draw edges
+  interactions.forEach(i => {
+    const s = pos[i.from], t = pos[i.to];
+    if (!s || !t) return;
+    const dx = t.x - s.x, dy = t.y - s.y;
+    const len = Math.sqrt(dx*dx + dy*dy);
+    const r = 36; // node radius
+    const ex = t.x - (dx/len)*r, ey = t.y - (dy/len)*r;
+    const sx = s.x + (dx/len)*r, sy = s.y + (dy/len)*r;
+    const line = document.createElementNS(ns, 'line');
+    line.setAttribute('x1', sx); line.setAttribute('y1', sy);
+    line.setAttribute('x2', ex); line.setAttribute('y2', ey);
+    line.setAttribute('stroke', '#3b6ef0');
+    line.setAttribute('stroke-width', '1.5');
+    line.setAttribute('marker-end', 'url(#arrow)');
+    line.setAttribute('opacity', '0.7');
+    svg.appendChild(line);
+
+    // Edge label (data)
+    if (i.data) {
+      const label = document.createElementNS(ns, 'text');
+      label.setAttribute('x', (s.x + t.x) / 2);
+      label.setAttribute('y', (s.y + t.y) / 2 - 4);
+      label.setAttribute('text-anchor', 'middle');
+      label.setAttribute('font-size', '10');
+      label.setAttribute('fill', '#6b7280');
+      label.textContent = i.data;
+      svg.appendChild(label);
+    }
+  });
+
+  // Draw nodes
+  nodes.forEach(name => {
+    const p = pos[name];
+    const circle = document.createElementNS(ns, 'circle');
+    circle.setAttribute('cx', p.x); circle.setAttribute('cy', p.y);
+    circle.setAttribute('r', '36');
+    circle.setAttribute('fill', '#e8edfc');
+    circle.setAttribute('stroke', '#3b6ef0');
+    circle.setAttribute('stroke-width', '1.5');
+    svg.appendChild(circle);
+
+    // Wrap text
+    const words = name.split(/[\s\/]+/);
+    const lineH = 14;
+    const lines = [];
+    let cur = '';
+    words.forEach(w => {
+      const test = cur ? cur + ' ' + w : w;
+      if (test.length > 12 && cur) { lines.push(cur); cur = w; }
+      else { cur = test; }
+    });
+    if (cur) lines.push(cur);
+    const startY = p.y - ((lines.length - 1) * lineH / 2);
+    lines.forEach((ln, li) => {
+      const t = document.createElementNS(ns, 'text');
+      t.setAttribute('x', p.x);
+      t.setAttribute('y', startY + li * lineH);
+      t.setAttribute('text-anchor', 'middle');
+      t.setAttribute('dominant-baseline', 'middle');
+      t.setAttribute('font-size', '10');
+      t.setAttribute('font-weight', '600');
+      t.setAttribute('fill', '#1a1f2e');
+      t.textContent = ln.length > 14 ? ln.slice(0, 13) + '…' : ln;
+      svg.appendChild(t);
+    });
+  });
+})();
+</script>
+{% endif %}
+
+<!-- Supporting Facts -->
+{% if project.supporting_facts %}
+<div class="detail-section">
+  <h2>Supporting Facts ({{ project.supporting_facts | length }})</h2>
+  <table>
+    <thead><tr><th>Title</th><th>Domain</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for f in project.supporting_facts %}
+      <tr>
+        <td><a href="{{ url_for('fact_detail', fact_id=f.id) }}">{{ f.title }}</a></td>
+        <td>{{ f.domain }}</td>
+        <td><span class="badge badge-{{ f.status }}">{{ f.status }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<!-- Integration Code -->
+{% if project.integration_code %}
+<div class="detail-section">
+  <h2>Integration Code</h2>
+  <pre><code>{{ project.integration_code }}</code></pre>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,130 @@
+{% extends "web/base.html" %}
+{% block title %}{{ element.title }} — FactDB{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+  <a href="{{ url_for('elements_list') }}">Design Elements</a>
+  <span>›</span> {{ element.title }}
+</div>
+
+<div class="page-header">
+  <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+    <h1 style="flex:1;min-width:200px;">{{ element.title }}</h1>
+    <span class="badge badge-{{ element.component_category }}" style="padding:4px 12px;font-size:13px;margin-top:4px;">
+      {{ element.component_category | title }}
+    </span>
+  </div>
+</div>
+
+{% if element.design_question %}
+<div class="card">
+  <div class="card-title">Design Question</div>
+  <p style="margin:8px 0 0;">{{ element.design_question }}</p>
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-title">Selected Approach</div>
+  <p style="margin:8px 0 0;">{{ element.selected_approach }}</p>
+</div>
+
+{% if element.rationale %}
+<div class="card">
+  <div class="card-title">Rationale</div>
+  <p style="margin:8px 0 0;">{{ element.rationale }}</p>
+</div>
+{% endif %}
+
+<!-- Alternatives -->
+{% set alternatives = element.get_alternatives() %}
+{% if alternatives %}
+<div class="detail-section">
+  <h2>Alternatives Considered</h2>
+  <table>
+    <thead><tr><th>Approach</th><th>Reason Rejected</th></tr></thead>
+    <tbody>
+      {% for alt in alternatives %}
+      <tr>
+        <td>{{ alt.approach }}</td>
+        <td style="color:#6b7280;font-size:13px;">{{ alt.reason_rejected }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<!-- Supporting Facts -->
+{% if element.supporting_facts %}
+<div class="detail-section">
+  <h2>Supporting Facts ({{ element.supporting_facts | length }})</h2>
+  <table>
+    <thead><tr><th>Title</th><th>Domain</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for f in element.supporting_facts %}
+      <tr>
+        <td><a href="{{ url_for('fact_detail', fact_id=f.id) }}">{{ f.title }}</a></td>
+        <td>{{ f.domain }}</td>
+        <td><span class="badge badge-{{ f.status }}">{{ f.status }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<!-- Implementation Code -->
+{% if element.implementation_code %}
+<div class="detail-section">
+  <h2>Implementation Code</h2>
+  <pre><code>{{ element.implementation_code }}</code></pre>
+</div>
+{% endif %}
+
+<!-- Used In Projects -->
+{% if projects %}
+<div class="detail-section">
+  <h2>Used In Projects ({{ projects | length }})</h2>
+  <div class="grid">
+    {% for p in projects %}
+    <a href="{{ url_for('project_detail', project_id=p.id) }}" style="text-decoration:none;color:inherit;">
+      <div class="card" style="transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 4px 12px rgba(59,110,240,.18)'" onmouseout="this.style.boxShadow=''">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;">
+          <div class="card-title" style="font-size:14px;">{{ p.title }}</div>
+          <span class="badge badge-{{ p.status }}">{{ p.status | replace('_', ' ') }}</span>
+        </div>
+        <div style="font-size:13px;color:#6b7280;margin-top:4px;">{{ p.domain }}</div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Review / Verification Notes -->
+<div class="detail-section">
+  <h2>Review Notes</h2>
+  <div class="card">
+    {% if element.verification_notes %}
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:12px 14px;margin-bottom:14px;font-size:14px;color:#166534;">
+      <strong>Current notes:</strong><br>{{ element.verification_notes }}
+    </div>
+    {% else %}
+    <p style="color:#6b7280;font-size:14px;margin:0 0 14px;">No review notes yet.</p>
+    {% endif %}
+
+    <form class="review-form" method="post" action="{{ url_for('element_review', element_id=element.id) }}">
+      <label for="verification_notes" style="font-size:13px;font-weight:600;display:block;margin-bottom:4px;">
+        {% if element.verification_notes %}Update review notes{% else %}Add review notes{% endif %}
+      </label>
+      <textarea id="verification_notes" name="verification_notes" placeholder="Enter your review notes…">{{ element.verification_notes or '' }}</textarea>
+      <div class="form-actions">
+        <button type="submit" class="btn">Save review</button>
+        {% if element.verification_notes %}
+        <button type="submit" name="verification_notes" value="" class="btn btn-outline" style="color:#dc2626;border-color:#dc2626;">Clear notes</button>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
