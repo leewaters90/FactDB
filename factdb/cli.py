@@ -25,6 +25,7 @@ import click
 from tabulate import tabulate
 
 from factdb.database import get_session_factory, init_db, reset_engine
+from factdb.json_store import DEFAULT_FACTS_DIR, JsonFactStore
 from factdb.models import DetailLevel, EngineeringDomain, FactStatus, RelationshipType
 from factdb.repository import FactRepository
 from factdb.reasoning import ReasoningEngine
@@ -35,6 +36,14 @@ from factdb.verification import VerificationWorkflow
 def _make_session(db_url: str | None = None):
     factory = get_session_factory(db_url)
     return factory()
+
+
+def _make_repo(session, facts_dir: str | None = None, *, with_json_store: bool = True) -> FactRepository:
+    """Return a FactRepository, optionally wired to a JsonFactStore."""
+    json_store = None
+    if with_json_store:
+        json_store = JsonFactStore(facts_dir or DEFAULT_FACTS_DIR)
+    return FactRepository(session, json_store=json_store)
 
 
 # ---------------------------------------------------------------------------
@@ -49,11 +58,18 @@ def _make_session(db_url: str | None = None):
     default=None,
     help="SQLAlchemy database URL (overrides FACTDB_DATABASE_URL env var).",
 )
+@click.option(
+    "--facts-dir",
+    envvar="FACTDB_FACTS_DIR",
+    default=None,
+    help="Root directory for JSON fact files (default: data/facts/ next to project).",
+)
 @click.pass_context
-def cli(ctx, db):
+def cli(ctx, db, facts_dir):
     """FactDB — Engineering fact database and reasoning engine."""
     ctx.ensure_object(dict)
     ctx.obj["db"] = db
+    ctx.obj["facts_dir"] = facts_dir
 
 
 # ---------------------------------------------------------------------------
@@ -331,7 +347,7 @@ def add(ctx, title, content, domain, category, subcategory, level, source, tags,
     init_db(ctx.obj.get("db"))
     session = _make_session(ctx.obj.get("db"))
     try:
-        repo = FactRepository(session)
+        repo = _make_repo(session, ctx.obj.get("facts_dir"))
         tag_list = [t.strip() for t in tags.split(",") if t.strip()] if tags else []
         fact = repo.create(
             title=title,
@@ -346,6 +362,9 @@ def add(ctx, title, content, domain, category, subcategory, level, source, tags,
         )
         session.commit()
         click.echo(f"Created fact {fact.id!r}: {fact.title!r}")
+        if repo.json_store is not None:
+            path = repo.json_store.fact_path(fact.to_dict())
+            click.echo(f"JSON file written: {path}")
     finally:
         session.close()
 
@@ -516,6 +535,115 @@ def export(ctx, domain, status, output):
             with open(output, "w") as fh:
                 fh.write(payload)
             click.echo(f"Exported {len(data)} facts to {output!r}")
+    finally:
+        session.close()
+
+
+# ---------------------------------------------------------------------------
+# export-json
+# ---------------------------------------------------------------------------
+
+
+@cli.command("export-json")
+@click.option(
+    "--output-dir",
+    default=None,
+    help="Root directory for JSON files (default: data/facts/ next to project).",
+)
+@click.option("--domain", default=None, help="Filter by domain.")
+@click.option("--status", default=None, help="Filter by lifecycle status.")
+@click.pass_context
+def export_json_cmd(ctx, output_dir, domain, status):
+    """Export all facts to a folder tree of JSON files.
+
+    Each fact is written to:
+
+        {output-dir}/{domain}/{category}/{fact-id}.json
+
+    The resulting tree is human-readable, diff-friendly, and can be edited
+    directly then re-imported with the ``import-json`` command.
+    """
+    reset_engine()
+    init_db(ctx.obj.get("db"))
+    session = _make_session(ctx.obj.get("db"))
+    try:
+        repo = FactRepository(session)
+        domain_enum = EngineeringDomain(domain) if domain else None
+        status_enum = FactStatus(status) if status else None
+        facts = repo.list_all(domain=domain_enum, status=status_enum, limit=10000)
+
+        store = JsonFactStore(output_dir or ctx.obj.get("facts_dir") or DEFAULT_FACTS_DIR)
+        written = 0
+        for fact in facts:
+            store.write_fact(fact.to_dict())
+            written += 1
+
+        click.echo(f"Exported {written} fact(s) to {store.base_dir}")
+    finally:
+        session.close()
+
+
+# ---------------------------------------------------------------------------
+# import-json
+# ---------------------------------------------------------------------------
+
+
+@cli.command("import-json")
+@click.option(
+    "--input-dir",
+    default=None,
+    help="Root directory of JSON fact files (default: data/facts/ next to project).",
+)
+@click.option("--by", default="import", show_default=True, help="Identity for the import operation.")
+@click.option("--dry-run", is_flag=True, help="Report what would be imported without writing.")
+@click.pass_context
+def import_json_cmd(ctx, input_dir, by, dry_run):
+    """Import facts from a JSON folder tree into the database.
+
+    Reads all ``*.json`` files found recursively under the input directory
+    and upserts each fact — creating it if the ID is new, updating it if the
+    fact already exists.
+
+    This is the reverse of ``export-json`` and is the recommended workflow
+    for making bulk edits: export → edit files → import.
+    """
+    reset_engine()
+    init_db(ctx.obj.get("db"))
+    session = _make_session(ctx.obj.get("db"))
+    try:
+        store = JsonFactStore(input_dir or ctx.obj.get("facts_dir") or DEFAULT_FACTS_DIR)
+        all_dicts = store.load_all()
+
+        if not all_dicts:
+            click.echo(f"No JSON fact files found under {store.base_dir}")
+            return
+
+        if dry_run:
+            click.echo(f"[dry-run] Would import {len(all_dicts)} fact file(s) from {store.base_dir}")
+            for d in all_dicts[:10]:
+                click.echo(f"  • {d.get('id', '?')[:8]}  {d.get('title', '?')}")
+            if len(all_dicts) > 10:
+                click.echo(f"  … and {len(all_dicts) - 10} more")
+            return
+
+        repo = FactRepository(session)
+        created = updated = errors = 0
+        for d in all_dicts:
+            try:
+                _, was_created = repo.upsert_from_dict(d, imported_by=by)
+                if was_created:
+                    created += 1
+                else:
+                    updated += 1
+            except Exception as exc:
+                click.echo(f"  Warning: skipped {d.get('id', '?')!r} — {exc}", err=True)
+                errors += 1
+
+        session.commit()
+        click.echo(
+            f"Import complete: {created} created, {updated} updated, {errors} skipped "
+            f"(from {store.base_dir})"
+        )
     finally:
         session.close()
 

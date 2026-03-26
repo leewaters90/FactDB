@@ -402,3 +402,89 @@ class TestUsageTracking:
         results = repo.list_most_used(domain=EngineeringDomain.MECHANICAL)
         assert len(results) == 1
         assert results[0].id == f_mech.id
+
+
+# ---------------------------------------------------------------------------
+# upsert_from_dict
+# ---------------------------------------------------------------------------
+
+
+class TestUpsertFromDict:
+    def _fact_dict(self, **overrides):
+        base = dict(
+            id="bbbbbbbb-0000-0000-0000-000000000001",
+            title="Upsert Test Fact",
+            content="Content here.",
+            domain="electrical",
+            category="circuit theory",
+            detail_level="fundamental",
+            status="draft",
+            confidence_score=0.9,
+            tags=["tag-a", "tag-b"],
+            created_by="importer",
+            version=1,
+        )
+        base.update(overrides)
+        return base
+
+    def test_creates_new_fact(self, db_session):
+        repo = FactRepository(db_session)
+        data = self._fact_dict()
+        fact, created = repo.upsert_from_dict(data)
+        db_session.commit()
+
+        assert created is True
+        assert fact.id == data["id"]
+        assert fact.title == data["title"]
+        assert fact.content == data["content"]
+
+    def test_preserves_id_from_dict(self, db_session):
+        repo = FactRepository(db_session)
+        data = self._fact_dict()
+        fact, _ = repo.upsert_from_dict(data)
+        db_session.commit()
+        assert fact.id == data["id"]
+
+    def test_imports_tags(self, db_session):
+        repo = FactRepository(db_session)
+        data = self._fact_dict()
+        fact, _ = repo.upsert_from_dict(data)
+        db_session.commit()
+        tag_names = {t.name for t in fact.tags}
+        assert tag_names == {"tag-a", "tag-b"}
+
+    def test_updates_existing_fact(self, db_session):
+        repo = FactRepository(db_session)
+        data = self._fact_dict()
+        fact, created = repo.upsert_from_dict(data)
+        db_session.commit()
+        assert created is True
+
+        updated_data = {**data, "title": "Updated Title", "content": "New content."}
+        fact2, created2 = repo.upsert_from_dict(updated_data)
+        db_session.commit()
+
+        assert created2 is False
+        assert fact2.id == data["id"]
+        assert fact2.title == "Updated Title"
+        assert fact2.content == "New content."
+
+    def test_import_is_idempotent(self, db_session):
+        from factdb.models import Fact
+        from sqlalchemy import select, func
+
+        repo = FactRepository(db_session)
+        data = self._fact_dict()
+        repo.upsert_from_dict(data)
+        repo.upsert_from_dict(data)
+        db_session.commit()
+
+        count = db_session.execute(
+            select(func.count()).select_from(Fact).where(Fact.id == data["id"])
+        ).scalar()
+        assert count == 1
+
+    def test_missing_id_raises_key_error(self, db_session):
+        repo = FactRepository(db_session)
+        with pytest.raises(KeyError):
+            repo.upsert_from_dict({"title": "no id", "content": "x"})
