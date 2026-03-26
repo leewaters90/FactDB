@@ -45,6 +45,7 @@ class ProjectRepository:
         alternatives: list[dict] | None = None,
         verification_notes: str | None = None,
         supporting_fact_titles: List[str] | None = None,
+        implementation_code: str | None = None,
     ) -> DesignElement:
         """
         Create a new standalone, reusable DesignElement.
@@ -58,6 +59,8 @@ class ProjectRepository:
             alternatives:           List of ``{approach, reason_rejected}`` dicts.
             verification_notes:     Notes from fact / reasoning verification.
             supporting_fact_titles: Titles of Fact records that back this decision.
+            implementation_code:    Python code showing how to call the supporting
+                                    software artifacts within this element.
 
         Returns:
             The new :class:`~factdb.project_models.DesignElement`.
@@ -69,6 +72,7 @@ class ProjectRepository:
             design_question=design_question,
             rationale=rationale,
             verification_notes=verification_notes,
+            implementation_code=implementation_code,
         )
         if alternatives:
             element.set_alternatives(alternatives)
@@ -147,6 +151,8 @@ class ProjectRepository:
         status: ProjectStatus = ProjectStatus.CONCEPT,
         created_by: str | None = None,
         supporting_fact_titles: List[str] | None = None,
+        integration_code: str | None = None,
+        element_interactions: list[dict] | None = None,
     ) -> Project:
         """
         Create a new Project record (without design elements).
@@ -162,6 +168,10 @@ class ProjectRepository:
             status:                  Initial lifecycle status.
             created_by:              Author identity.
             supporting_fact_titles:  Project-level fact references.
+            integration_code:        Python source that orchestrates all design
+                                     elements into a complete working program.
+            element_interactions:    List of ``{from, to, data}`` dicts
+                                     describing data flow between elements.
 
         Returns:
             The new :class:`~factdb.project_models.Project`.
@@ -174,7 +184,10 @@ class ProjectRepository:
             domain=EngineeringDomain(domain),
             status=status,
             created_by=created_by,
+            integration_code=integration_code,
         )
+        if element_interactions:
+            project.set_element_interactions(element_interactions)
         self.session.add(project)
         self.session.flush()
 
@@ -223,7 +236,7 @@ class ProjectRepository:
         if project is None:
             raise ValueError(f"Project not found: {project_id!r}")
 
-        for key in ("title", "description", "objective", "constraints"):
+        for key in ("title", "description", "objective", "constraints", "integration_code"):
             if key in fields:
                 setattr(project, key, fields[key])
 
@@ -234,6 +247,8 @@ class ProjectRepository:
         if "supporting_fact_titles" in fields:
             project.supporting_facts.clear()
             self._attach_facts_to_project(project, fields["supporting_fact_titles"])
+        if "element_interactions" in fields:
+            project.set_element_interactions(fields["element_interactions"])
 
         self.session.flush()
         return project

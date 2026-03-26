@@ -93,6 +93,7 @@ def seed_projects(session: Session, created_by: str = "system-seed") -> dict:
             alternatives=edata.get("alternatives"),
             verification_notes=edata.get("verification_notes"),
             supporting_fact_titles=edata.get("supporting_fact_titles", []),
+            implementation_code=edata.get("implementation_code"),
         )
         if created:
             elements_created += 1
@@ -127,6 +128,8 @@ def seed_projects(session: Session, created_by: str = "system-seed") -> dict:
                 status=ProjectStatus(pdata.get("status", "completed")),
                 created_by=created_by,
                 supporting_fact_titles=pdata.get("supporting_fact_titles", []),
+                integration_code=pdata.get("integration_code"),
+                element_interactions=pdata.get("element_interactions"),
             )
             session.flush()
             projects_created += 1
