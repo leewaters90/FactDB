@@ -5,9 +5,7 @@
   "constraints": "6 V battery; single DC motor; laser-cut acrylic links; 3 mm link thickness; Arduino Uno optional speed control.",
   "domain": "robotics",
   "status": "completed",
-  "supporting_fact_titles": [
-    "Slider-Crank to Reciprocating Hacksaw Drive"
-  ],
+  "supporting_fact_titles": [],
   "design_element_titles": [
     "Klann / Theo-Jansen Leg Linkage Mechanism",
     "DC Gear Motor with PWM Speed Control",

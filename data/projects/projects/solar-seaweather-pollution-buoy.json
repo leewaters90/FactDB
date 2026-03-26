@@ -5,9 +5,7 @@
   "constraints": "Solar + LiFePO₄ autonomous power; saltwater environment; 4G/LoRa uplink; IP67 enclosure; BOM < ₹15 000.",
   "domain": "marine",
   "status": "completed",
-  "supporting_fact_titles": [
-    "Underwater Thruster — Hydrodynamic Thrust and Propulsion"
-  ],
+  "supporting_fact_titles": [],
   "design_element_titles": [
     "Solar Panel + LiFePO₄ MPPT Power System",
     "SHT41 Digital Temperature and RH Sensing",
