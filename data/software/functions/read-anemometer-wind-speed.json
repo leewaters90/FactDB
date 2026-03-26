@@ -1,0 +1,37 @@
+{
+  "title": "Read Anemometer Wind Speed",
+  "content": "Converts anemometer pulse frequency to wind speed in m/s and km/h using a calibration factor.",
+  "artifact_type": "function",
+  "language": "python",
+  "language_version": "3.11",
+  "signature": "def read_anemometer(pulse_hz: float, calibration_factor: float = 2.4) -> dict",
+  "code": "def read_anemometer(pulse_hz: float, calibration_factor: float = 2.4) -> dict:\n    \"\"\"Convert anemometer pulse frequency to wind speed.\n\n    The Sparkfun / Davis anemometer produces 1 pulse per rotation.  One\n    rotation per second corresponds to 2.4 km/h (empirically calibrated).\n\n    Args:\n        pulse_hz:            Pulse frequency in Hz (rotations per second).\n        calibration_factor:  km/h per Hz (default 2.4 for Davis anemometer).\n\n    Returns:\n        dict with 'wind_speed_kmh' (float) and 'wind_speed_ms' (float).\n    \"\"\"\n    wind_kmh = round(pulse_hz * calibration_factor, 3)\n    wind_ms = round(wind_kmh / 3.6, 3)\n    return {'wind_speed_kmh': wind_kmh, 'wind_speed_ms': wind_ms}\n",
+  "input_schema": [
+    {"name": "pulse_hz", "type": "float", "description": "Anemometer pulse frequency in Hz"},
+    {"name": "calibration_factor", "type": "float", "description": "km/h per Hz (default 2.4)"}
+  ],
+  "output_schema": {
+    "type": "dict",
+    "description": "{'wind_speed_kmh': float, 'wind_speed_ms': float}"
+  },
+  "packages": [],
+  "domain": "software",
+  "category": "sensing",
+  "tags": ["sensor", "anemometer", "wind-speed", "weather-station"],
+  "benchmark_tests": [
+    {
+      "name": "calm_wind",
+      "description": "0 Hz should return 0 km/h and 0 m/s.",
+      "test_code": "r = read_anemometer(0.0)\nresult = (r['wind_speed_kmh'], r['wind_speed_ms'])",
+      "expected_output": [0.0, 0.0],
+      "tolerance": null
+    },
+    {
+      "name": "one_hz_default",
+      "description": "1 Hz = 2.4 km/h = 0.667 m/s (to 3 dp).",
+      "test_code": "r = read_anemometer(1.0)\nresult = r['wind_speed_kmh']",
+      "expected_output": 2.4,
+      "tolerance": 0.001
+    }
+  ]
+}

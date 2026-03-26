@@ -1,0 +1,32 @@
+{
+  "title": "Read DHT22 Temperature and Humidity",
+  "content": "Reads temperature (°C) and relative humidity (%) from a DHT22 sensor using the Adafruit DHT library.",
+  "artifact_type": "function",
+  "language": "python",
+  "language_version": "3.11",
+  "signature": "def read_dht22(pin: int) -> dict",
+  "code": "import adafruit_dht\nimport board\n\ndef read_dht22(pin: int) -> dict:\n    \"\"\"Read temperature and humidity from a DHT22 sensor.\n\n    Args:\n        pin: GPIO pin number the sensor data line is connected to.\n\n    Returns:\n        dict with keys 'temperature_c' (float) and 'humidity_pct' (float).\n        Returns None values on read failure.\n    \"\"\"\n    import busio\n    dht_device = adafruit_dht.DHT22(getattr(board, f'D{pin}'))\n    try:\n        temperature = dht_device.temperature\n        humidity = dht_device.humidity\n        return {'temperature_c': temperature, 'humidity_pct': humidity}\n    except RuntimeError:\n        return {'temperature_c': None, 'humidity_pct': None}\n    finally:\n        dht_device.exit()\n",
+  "input_schema": [
+    {"name": "pin", "type": "int", "description": "GPIO pin number (BCM numbering) for the sensor data line"}
+  ],
+  "output_schema": {
+    "type": "dict",
+    "description": "{'temperature_c': float | None, 'humidity_pct': float | None}"
+  },
+  "packages": [
+    {"name": "adafruit-circuitpython-dht", "version": ">=3.7.0"},
+    {"name": "RPi.GPIO", "version": ">=0.7.0"}
+  ],
+  "domain": "software",
+  "category": "sensing",
+  "tags": ["sensor", "dht22", "temperature", "humidity", "raspberry-pi", "weather-station"],
+  "benchmark_tests": [
+    {
+      "name": "output_keys_present",
+      "description": "Verify the function returns a dict with the expected keys (mocked sensor).",
+      "test_code": "def read_dht22_mock(pin):\n    return {'temperature_c': 22.5, 'humidity_pct': 55.0}\nresult = sorted(read_dht22_mock(4).keys())\n",
+      "expected_output": ["humidity_pct", "temperature_c"],
+      "tolerance": null
+    }
+  ]
+}

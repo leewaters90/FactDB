@@ -135,6 +135,32 @@ def seed_devices_cmd(ctx):
     finally:
         session.close()
 
+
+# ---------------------------------------------------------------------------
+# seed-software
+# ---------------------------------------------------------------------------
+
+
+@cli.command("seed-software")
+@click.pass_context
+def seed_software_cmd(ctx):
+    """Seed the database with software functions, transforms, and benchmark tests."""
+    from factdb.software_seeder import seed_software
+
+    reset_engine()
+    init_db(ctx.obj.get("db"))
+    session = _make_session(ctx.obj.get("db"))
+    try:
+        result = seed_software(session)
+        session.commit()
+        click.echo(
+            f"Software artifacts seeded: {result['artifacts_created']} created, "
+            f"{result['artifacts_skipped']} skipped, "
+            f"{result['benchmarks_created']} benchmark tests created."
+        )
+    finally:
+        session.close()
+
 # ---------------------------------------------------------------------------
 # search
 # ---------------------------------------------------------------------------
@@ -834,6 +860,426 @@ def list_elements_cmd(ctx, category, limit, as_json):
             ]
             click.echo(tabulate(rows, headers=["ID", "Category", "Projects", "Title"]))
             click.echo(f"\n{len(elements)} element(s) found.")
+    finally:
+        session.close()
+
+
+# ===========================================================================
+# software  — sub-group for software artifact commands
+# ===========================================================================
+
+
+@cli.group("software")
+@click.pass_context
+def software_group(ctx):
+    """Manage software functions, transforms, benchmarks, and project packages."""
+    ctx.ensure_object(dict)
+
+
+# ---------------------------------------------------------------------------
+# software list
+# ---------------------------------------------------------------------------
+
+
+@software_group.command("list")
+@click.option(
+    "--type", "artifact_type", default=None,
+    type=click.Choice(["function", "transform"]),
+    help="Filter by artifact type.",
+)
+@click.option(
+    "--language", default=None,
+    type=click.Choice(["python", "lua", "arduino"]),
+    help="Filter by programming language.",
+)
+@click.option("--limit", default=50, show_default=True)
+@click.option("--json", "as_json", is_flag=True, help="Output as JSON.")
+@click.pass_context
+def software_list_cmd(ctx, artifact_type, language, limit, as_json):
+    """List software functions and transforms."""
+    from factdb.software_models import ProgrammingLanguage, SoftwareArtifactType
+    from factdb.software_repository import SoftwareRepository
+
+    reset_engine()
+    init_db(ctx.obj.get("db"))
+    session = _make_session(ctx.obj.get("db"))
+    try:
+        repo = SoftwareRepository(session)
+        type_enum = SoftwareArtifactType(artifact_type) if artifact_type else None
+        lang_enum = ProgrammingLanguage(language) if language else None
+        artifacts = repo.list_artifacts(
+            artifact_type=type_enum, language=lang_enum, limit=limit
+        )
+        if not artifacts:
+            click.echo("No software artifacts found.")
+            return
+        if as_json:
+            click.echo(json.dumps([a.to_dict() for a in artifacts], indent=2))
+        else:
+            rows = [
+                [
+                    a.id[:8] + "…",
+                    _val(a.artifact_type),
+                    _val(a.language),
+                    len(a.benchmark_tests),
+                    (a.fact.title[:55] + "…") if len(a.fact.title) > 55 else a.fact.title,
+                ]
+                for a in artifacts
+            ]
+            click.echo(
+                tabulate(
+                    rows,
+                    headers=["ID", "Type", "Language", "Benchmarks", "Title"],
+                    tablefmt="simple",
+                )
+            )
+            click.echo(f"\n{len(artifacts)} artifact(s) found.")
+    finally:
+        session.close()
+
+
+# ---------------------------------------------------------------------------
+# software show
+# ---------------------------------------------------------------------------
+
+
+@software_group.command("show")
+@click.argument("fact_id")
+@click.pass_context
+def software_show_cmd(ctx, fact_id):
+    """Show full details of a software function or transform (by fact ID or artifact ID)."""
+    from factdb.software_repository import SoftwareRepository
+
+    reset_engine()
+    init_db(ctx.obj.get("db"))
+    session = _make_session(ctx.obj.get("db"))
+    try:
+        repo = SoftwareRepository(session)
+        # Accept either the artifact's own ID or the linked fact ID
+        artifact = repo.get_artifact(fact_id) or repo.get_artifact_by_fact_id(fact_id)
+        if artifact is None:
+            click.echo(f"Software artifact not found: {fact_id!r}", err=True)
+            sys.exit(1)
+
+        fact = artifact.fact
+        click.echo(f"\n{'='*70}")
+        click.echo(f"  {fact.title}")
+        click.echo(f"{'='*70}")
+        click.echo(f"  Artifact ID : {artifact.id}")
+        click.echo(f"  Fact ID     : {fact.id}")
+        click.echo(f"  Type        : {_val(artifact.artifact_type)}")
+        click.echo(f"  Language    : {_val(artifact.language)}"
+                   + (f" {artifact.language_version}" if artifact.language_version else ""))
+        click.echo(f"  Status      : {_val(fact.status)}")
+        click.echo(f"  Tags        : {', '.join(t.name for t in fact.tags) or '—'}")
+        if artifact.signature:
+            click.echo(f"\n  Signature: {artifact.signature}")
+        click.echo(f"\n  Description:\n    {fact.content}")
+        if fact.extended_content:
+            click.echo(f"\n  Extended:\n    {fact.extended_content}")
+        click.echo(f"\n  Code:\n")
+        for line in artifact.code.splitlines():
+            click.echo(f"    {line}")
+        pkgs = artifact.get_packages()
+        if pkgs:
+            click.echo(f"\n  Packages:")
+            for p in pkgs:
+                ver = p.get("version", "*")
+                click.echo(f"    {p['name']}{ver}")
+        benchmarks = artifact.benchmark_tests
+        if benchmarks:
+            click.echo(f"\n  Benchmark tests ({len(benchmarks)}):")
+            for bt in benchmarks:
+                click.echo(f"    [{bt.id[:8]}…] {bt.name}")
+        click.echo(f"{'='*70}\n")
+    finally:
+        session.close()
+
+
+# ---------------------------------------------------------------------------
+# software add-function
+# ---------------------------------------------------------------------------
+
+
+@software_group.command("add-function")
+@click.option("--title", prompt=True, help="Human-readable title.")
+@click.option("--content", prompt=True, help="Concise description of the function.")
+@click.option("--code", prompt=True, help="Full source code.")
+@click.option("--signature", default="", prompt=True, help="Function signature string.")
+@click.option(
+    "--language", default="python", prompt=True,
+    type=click.Choice(["python", "lua", "arduino"]),
+)
+@click.option("--language-version", "language_version", default="", prompt=True,
+              help="Language version, e.g. '3.11'.")
+@click.option("--category", default="", prompt=True)
+@click.option("--tags", default="", prompt=True, help="Comma-separated tags.")
+@click.option("--by", default=None, help="Author identity.")
+@click.pass_context
+def software_add_function_cmd(
+    ctx, title, content, code, signature, language, language_version,
+    category, tags, by
+):
+    """Add a new software function artifact."""
+    from factdb.software_models import ProgrammingLanguage, SoftwareArtifactType
+    from factdb.software_repository import SoftwareRepository
+
+    reset_engine()
+    init_db(ctx.obj.get("db"))
+    session = _make_session(ctx.obj.get("db"))
+    try:
+        repo = SoftwareRepository(session)
+        tag_list = [t.strip() for t in tags.split(",") if t.strip()]
+        artifact = repo.create_artifact(
+            title=title,
+            content=content,
+            artifact_type=SoftwareArtifactType.FUNCTION,
+            code=code,
+            language=ProgrammingLanguage(language),
+            language_version=language_version or None,
+            signature=signature or None,
+            category=category or None,
+            tags=tag_list,
+            created_by=by,
+        )
+        session.commit()
+        click.echo(f"Created function artifact {artifact.id!r} (fact: {artifact.fact_id!r}): {title!r}")
+    finally:
+        session.close()
+
+
+# ---------------------------------------------------------------------------
+# software add-transform
+# ---------------------------------------------------------------------------
+
+
+@software_group.command("add-transform")
+@click.option("--title", prompt=True, help="Human-readable title.")
+@click.option("--content", prompt=True, help="Concise description of the transform.")
+@click.option("--code", prompt=True, help="Full source code.")
+@click.option("--signature", default="", prompt=True, help="Function signature string.")
+@click.option(
+    "--language", default="python", prompt=True,
+    type=click.Choice(["python", "lua", "arduino"]),
+)
+@click.option("--language-version", "language_version", default="", prompt=True,
+              help="Language version, e.g. '3.11'.")
+@click.option("--category", default="", prompt=True)
+@click.option("--tags", default="", prompt=True, help="Comma-separated tags.")
+@click.option("--by", default=None, help="Author identity.")
+@click.pass_context
+def software_add_transform_cmd(
+    ctx, title, content, code, signature, language, language_version,
+    category, tags, by
+):
+    """Add a new software transform artifact."""
+    from factdb.software_models import ProgrammingLanguage, SoftwareArtifactType
+    from factdb.software_repository import SoftwareRepository
+
+    reset_engine()
+    init_db(ctx.obj.get("db"))
+    session = _make_session(ctx.obj.get("db"))
+    try:
+        repo = SoftwareRepository(session)
+        tag_list = [t.strip() for t in tags.split(",") if t.strip()]
+        artifact = repo.create_artifact(
+            title=title,
+            content=content,
+            artifact_type=SoftwareArtifactType.TRANSFORM,
+            code=code,
+            language=ProgrammingLanguage(language),
+            language_version=language_version or None,
+            signature=signature or None,
+            category=category or None,
+            tags=tag_list,
+            created_by=by,
+        )
+        session.commit()
+        click.echo(f"Created transform artifact {artifact.id!r} (fact: {artifact.fact_id!r}): {title!r}")
+    finally:
+        session.close()
+
+
+# ---------------------------------------------------------------------------
+# software add-benchmark
+# ---------------------------------------------------------------------------
+
+
+@software_group.command("add-benchmark")
+@click.argument("artifact_id")
+@click.option("--name", prompt=True, help="Short unique name for this test.")
+@click.option("--test-code", "test_code", prompt=True,
+              help="Runnable test code. Assign outcome to 'result'.")
+@click.option("--description", default="", prompt=True)
+@click.option("--expected", default="", help="Expected value of 'result' (JSON).")
+@click.option("--tolerance", default=None, type=float,
+              help="Absolute tolerance for float comparisons.")
+@click.pass_context
+def software_add_benchmark_cmd(ctx, artifact_id, name, test_code, description, expected, tolerance):
+    """Add a benchmark test to a software artifact."""
+    from factdb.software_repository import SoftwareRepository
+
+    reset_engine()
+    init_db(ctx.obj.get("db"))
+    session = _make_session(ctx.obj.get("db"))
+    try:
+        repo = SoftwareRepository(session)
+        expected_val = json.loads(expected) if expected else None
+        test = repo.add_benchmark_test(
+            artifact_id=artifact_id,
+            name=name,
+            test_code=test_code,
+            description=description or None,
+            expected_output=expected_val,
+            tolerance=tolerance,
+        )
+        session.commit()
+        click.echo(f"Added benchmark test {test.id!r}: {name!r}")
+    except ValueError as exc:
+        click.echo(f"Error: {exc}", err=True)
+        sys.exit(1)
+    finally:
+        session.close()
+
+
+# ---------------------------------------------------------------------------
+# software run-benchmark
+# ---------------------------------------------------------------------------
+
+
+@software_group.command("run-benchmark")
+@click.argument("artifact_id")
+@click.option("--test-id", "test_id", default=None, help="Run only a specific test by ID.")
+@click.option("--json", "as_json", is_flag=True, help="Output as JSON.")
+@click.pass_context
+def software_run_benchmark_cmd(ctx, artifact_id, test_id, as_json):
+    """Run benchmark tests for a software artifact.
+
+    Only Python artifacts are currently supported for execution.
+    The test code should assign the value under test to a variable
+    named 'result'.
+    """
+    from factdb.software_repository import SoftwareRepository
+
+    reset_engine()
+    init_db(ctx.obj.get("db"))
+    session = _make_session(ctx.obj.get("db"))
+    try:
+        repo = SoftwareRepository(session)
+        try:
+            results = repo.run_benchmark(artifact_id, test_id=test_id)
+        except ValueError as exc:
+            click.echo(f"Error: {exc}", err=True)
+            sys.exit(1)
+
+        if not results:
+            click.echo("No benchmark tests found.")
+            return
+
+        if as_json:
+            click.echo(json.dumps(results, indent=2, default=str))
+        else:
+            passed = sum(1 for r in results if r["passed"])
+            total = len(results)
+            click.echo(f"\nBenchmark results: {passed}/{total} passed\n")
+            rows = [
+                [
+                    "✓" if r["passed"] else "✗",
+                    r["name"],
+                    f"{r['elapsed_ms']:.2f} ms" if r["elapsed_ms"] is not None else "—",
+                    str(r["result"]) if r["result"] is not None else "—",
+                    r["error"] or "",
+                ]
+                for r in results
+            ]
+            click.echo(
+                tabulate(
+                    rows,
+                    headers=["", "Test", "Time", "Result", "Error"],
+                    tablefmt="simple",
+                )
+            )
+    finally:
+        session.close()
+
+
+# ---------------------------------------------------------------------------
+# software add-package
+# ---------------------------------------------------------------------------
+
+
+@software_group.command("add-package")
+@click.argument("project_id")
+@click.option("--name", "package_name", prompt=True, help="Package name, e.g. 'numpy'.")
+@click.option("--version", "package_version", default="", prompt=True,
+              help="Version specifier, e.g. '>=1.24.0'.")
+@click.option(
+    "--language", default="python",
+    type=click.Choice(["python", "lua", "arduino"]),
+    help="Target language.",
+)
+@click.option("--notes", default=None, help="Optional note.")
+@click.pass_context
+def software_add_package_cmd(ctx, project_id, package_name, package_version, language, notes):
+    """Declare a package dependency for a project."""
+    from factdb.software_models import ProgrammingLanguage
+    from factdb.software_repository import SoftwareRepository
+
+    reset_engine()
+    init_db(ctx.obj.get("db"))
+    session = _make_session(ctx.obj.get("db"))
+    try:
+        repo = SoftwareRepository(session)
+        pkg = repo.add_project_package(
+            project_id=project_id,
+            package_name=package_name,
+            package_version=package_version or None,
+            language=ProgrammingLanguage(language),
+            notes=notes,
+        )
+        session.commit()
+        click.echo(f"Added package {pkg.package_name!r} to project {project_id!r}")
+    except ValueError as exc:
+        click.echo(f"Error: {exc}", err=True)
+        sys.exit(1)
+    finally:
+        session.close()
+
+
+# ---------------------------------------------------------------------------
+# software requirements
+# ---------------------------------------------------------------------------
+
+
+@software_group.command("requirements")
+@click.argument("project_id")
+@click.option("--output", "-o", default="-", help="Output file path (- for stdout).")
+@click.pass_context
+def software_requirements_cmd(ctx, project_id, output):
+    """Generate a requirements.txt for a project's Python package dependencies."""
+    from factdb.software_repository import SoftwareRepository
+
+    reset_engine()
+    init_db(ctx.obj.get("db"))
+    session = _make_session(ctx.obj.get("db"))
+    try:
+        repo = SoftwareRepository(session)
+        try:
+            content = repo.generate_requirements_txt(project_id)
+        except ValueError as exc:
+            click.echo(f"Error: {exc}", err=True)
+            sys.exit(1)
+
+        if not content:
+            click.echo("No Python packages declared for this project.")
+            return
+
+        if output == "-":
+            click.echo(content)
+        else:
+            with open(output, "w") as fh:
+                fh.write(content)
+            click.echo(f"requirements.txt written to {output!r}")
     finally:
         session.close()
 

@@ -1,0 +1,43 @@
+{
+  "title": "Celsius to Fahrenheit Temperature Transform",
+  "content": "Converts a temperature value from degrees Celsius to degrees Fahrenheit for display or protocol compatibility.",
+  "artifact_type": "transform",
+  "language": "python",
+  "language_version": "3.11",
+  "signature": "def celsius_to_fahrenheit(celsius: float) -> float",
+  "code": "def celsius_to_fahrenheit(celsius: float) -> float:\n    \"\"\"Convert Celsius to Fahrenheit.\n\n    Args:\n        celsius: Temperature in degrees Celsius.\n\n    Returns:\n        Temperature in degrees Fahrenheit.\n    \"\"\"\n    return celsius * 9.0 / 5.0 + 32.0\n",
+  "input_schema": [
+    {"name": "celsius", "type": "float", "description": "Temperature in degrees Celsius"}
+  ],
+  "output_schema": {
+    "type": "float",
+    "description": "Temperature in degrees Fahrenheit"
+  },
+  "packages": [],
+  "domain": "software",
+  "category": "transform",
+  "tags": ["transform", "temperature", "unit-conversion", "weather-station"],
+  "benchmark_tests": [
+    {
+      "name": "freezing_point",
+      "description": "0°C = 32°F",
+      "test_code": "result = celsius_to_fahrenheit(0)",
+      "expected_output": 32.0,
+      "tolerance": 0.001
+    },
+    {
+      "name": "boiling_point",
+      "description": "100°C = 212°F",
+      "test_code": "result = celsius_to_fahrenheit(100)",
+      "expected_output": 212.0,
+      "tolerance": 0.001
+    },
+    {
+      "name": "body_temperature",
+      "description": "37°C ≈ 98.6°F",
+      "test_code": "result = celsius_to_fahrenheit(37)",
+      "expected_output": 98.6,
+      "tolerance": 0.1
+    }
+  ]
+}

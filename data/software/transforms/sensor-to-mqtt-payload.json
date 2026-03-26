@@ -1,0 +1,30 @@
+{
+  "title": "Sensor Reading to MQTT Payload Transform",
+  "content": "Serialises a sensor reading dictionary to a JSON string suitable for publishing to an MQTT broker.",
+  "artifact_type": "transform",
+  "language": "python",
+  "language_version": "3.11",
+  "signature": "def sensor_to_mqtt_payload(reading: dict, station_id: str) -> str",
+  "code": "import json\nfrom datetime import datetime, timezone\n\ndef sensor_to_mqtt_payload(reading: dict, station_id: str) -> str:\n    \"\"\"Serialise a sensor reading dict to a JSON MQTT payload.\n\n    Adds a UTC ISO-8601 timestamp and station identifier to the payload.\n\n    Args:\n        reading:    Dict of sensor values (e.g. {'temperature_c': 22.5}).\n        station_id: Unique string identifier for the weather station.\n\n    Returns:\n        JSON string ready for mqtt_client.publish().\n    \"\"\"\n    payload = {\n        'station_id': station_id,\n        'timestamp': datetime.now(timezone.utc).isoformat(),\n        **reading,\n    }\n    return json.dumps(payload, ensure_ascii=False)\n",
+  "input_schema": [
+    {"name": "reading", "type": "dict", "description": "Sensor reading dictionary"},
+    {"name": "station_id", "type": "str", "description": "Unique station identifier string"}
+  ],
+  "output_schema": {
+    "type": "str",
+    "description": "JSON string for MQTT publish"
+  },
+  "packages": [],
+  "domain": "software",
+  "category": "transform",
+  "tags": ["transform", "mqtt", "json", "serialisation", "weather-station"],
+  "benchmark_tests": [
+    {
+      "name": "keys_in_payload",
+      "description": "Output JSON should contain station_id, timestamp, and reading keys.",
+      "test_code": "import json\npayload = json.loads(sensor_to_mqtt_payload({'temperature_c': 22.5}, 'ws-001'))\nresult = {'station_id', 'timestamp', 'temperature_c'}.issubset(payload.keys())",
+      "expected_output": true,
+      "tolerance": null
+    }
+  ]
+}
