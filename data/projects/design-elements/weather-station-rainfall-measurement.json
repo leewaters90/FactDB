@@ -1,0 +1,21 @@
+{
+  "title": "Weather Station Rainfall Measurement",
+  "component_category": "software",
+  "design_question": "How to convert tipping-bucket interrupt counts into an accumulated rainfall reading in millimetres, with support for different sensor calibrations?",
+  "selected_approach": "Attach a GPIO interrupt handler to the reed-switch output of the tipping-bucket rain gauge. Increment a `tip_count` integer on each falling edge. On each logging cycle call `read_rain_gauge(tip_count, mm_per_tip)` to compute accumulated rainfall; reset `tip_count` to zero after recording. Store the calibration factor (`mm_per_tip`) in configuration so it can be adjusted for non-standard sensors without code changes.",
+  "rationale": "`read_rain_gauge` is a pure function with no I/O, making it trivially testable. Moving the interrupt handler and counter into the element layer isolates the hardware-specific code. The default 0.2794 mm/tip calibration matches the common Davis/Sparkfun tipping-bucket gauges; exposing it as a parameter supports other sensors.",
+  "alternatives": [
+    {
+      "approach": "Capacitive rain-presence sensor",
+      "reason_rejected": "Detects rain presence only, not accumulated volume; unsuitable for quantitative meteorological logging."
+    },
+    {
+      "approach": "Optical rain gauge",
+      "reason_rejected": "Higher cost and requires periodic cleaning; tipping-bucket is the field standard."
+    }
+  ],
+  "verification_notes": "Benchmark tests on 'Read Rain Gauge Tip Count' verify zero-tip, ten-tip default calibration, and custom calibration cases.",
+  "supporting_fact_titles": [
+    "Read Rain Gauge Tip Count"
+  ]
+}

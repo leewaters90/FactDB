@@ -1,0 +1,27 @@
+{
+  "title": "Weather Station Software",
+  "description": "Python software for the automatic weather station project. Reads temperature, humidity, rainfall, and wind speed from hardware sensors, applies unit-conversion transforms, and publishes aggregated JSON payloads to an MQTT broker at 1-minute intervals. Designed to run on a Raspberry Pi with the existing weather station hardware.",
+  "objective": "Collect and publish temperature (°C and °F), relative humidity (%), accumulated rainfall (mm), and wind speed (km/h and m/s) at 1-minute intervals with full MQTT telemetry and local error logging.",
+  "constraints": "Python 3.11; Raspberry Pi 4; paho-mqtt broker on local network; 1-minute logging interval; graceful retry on sensor read failure (up to 3 attempts); station_id configurable via environment variable.",
+  "domain": "software",
+  "status": "in_design",
+  "supporting_fact_titles": [
+    "Read DHT22 Temperature and Humidity",
+    "Read Rain Gauge Tip Count",
+    "Read Anemometer Wind Speed",
+    "Celsius to Fahrenheit Temperature Transform",
+    "Sensor Reading to MQTT Payload Transform"
+  ],
+  "design_element_titles": [
+    "Weather Station Temperature and Humidity Sensing",
+    "Weather Station Rainfall Measurement",
+    "Weather Station Wind Speed Measurement",
+    "Weather Station Telemetry Publishing"
+  ],
+  "element_usage_notes": {
+    "Weather Station Temperature and Humidity Sensing": "DHT22 on GPIO pin 4 (BCM); retry up to 3 times on read failure; dual-unit output (°C and °F) fed into telemetry payload.",
+    "Weather Station Rainfall Measurement": "Reed-switch interrupt on GPIO pin 17 (BCM); calibration_factor=0.2794 mm/tip (Davis sensor); tip_count reset after each 1-minute logging cycle.",
+    "Weather Station Wind Speed Measurement": "Reed-switch interrupt on GPIO pin 27 (BCM); three 1-second windows averaged per logging cycle; calibration_factor=2.4 km/h per Hz.",
+    "Weather Station Telemetry Publishing": "station_id read from STATION_ID environment variable; MQTT broker at mqtt://localhost:1883; topic weather/{station_id}/reading; QoS 1; retry up to 3 times on publish failure."
+  }
+}

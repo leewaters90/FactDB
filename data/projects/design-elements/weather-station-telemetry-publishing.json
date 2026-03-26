@@ -1,0 +1,25 @@
+{
+  "title": "Weather Station Telemetry Publishing",
+  "component_category": "software",
+  "design_question": "How to aggregate all sensor readings into a single structured payload and publish it reliably to an MQTT broker for downstream logging and display?",
+  "selected_approach": "After each logging cycle, merge the output dicts from the sensing elements into a single reading dict (e.g. `{'temperature_c', 'temperature_f', 'humidity_pct', 'rainfall_mm', 'wind_speed_kmh', 'wind_speed_ms'}`). Pass the merged dict and a configured `station_id` string to `sensor_to_mqtt_payload(reading, station_id)`, which appends a UTC ISO-8601 timestamp and serialises the payload to JSON. Publish the resulting string to the MQTT topic `weather/{station_id}/reading` using paho-mqtt at QoS 1. Retry up to 3 times on publish failure before logging the error and continuing.",
+  "rationale": "Centralising telemetry in a single element decouples the sensor elements from network concerns. `sensor_to_mqtt_payload` is stateless and testable without an MQTT broker. Using QoS 1 guarantees at-least-once delivery without the overhead of QoS 2. A station_id in both the topic and payload enables multi-station deployments with a single broker.",
+  "alternatives": [
+    {
+      "approach": "HTTP POST to a REST API",
+      "reason_rejected": "Higher per-message overhead than MQTT; less suitable for constrained embedded WiFi devices."
+    },
+    {
+      "approach": "One MQTT topic per sensor",
+      "reason_rejected": "Increases broker load and complicates consumer logic; a single aggregated payload is simpler to consume."
+    },
+    {
+      "approach": "QoS 0 (fire and forget)",
+      "reason_rejected": "Acceptable for high-rate streams; at 1-min intervals occasional loss is unacceptable for a complete dataset."
+    }
+  ],
+  "verification_notes": "Benchmark test on 'Sensor Reading to MQTT Payload Transform' confirms required keys (station_id, timestamp, reading values) are present in the serialised JSON.",
+  "supporting_fact_titles": [
+    "Sensor Reading to MQTT Payload Transform"
+  ]
+}

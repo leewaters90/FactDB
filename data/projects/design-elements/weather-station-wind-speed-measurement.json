@@ -1,0 +1,21 @@
+{
+  "title": "Weather Station Wind Speed Measurement",
+  "component_category": "software",
+  "design_question": "How to convert anemometer pulse counts into wind speed in both km/h and m/s, with configurable calibration for different anemometer hardware?",
+  "selected_approach": "Count anemometer reed-switch pulses over a fixed 1-second sampling window using a GPIO interrupt counter, then call `read_anemometer(pulse_hz, calibration_factor)` at the end of each window. The result dict `{'wind_speed_kmh', 'wind_speed_ms'}` is passed directly to the telemetry element. Store `calibration_factor` in configuration (default 2.4 km/h per Hz for the Davis/Sparkfun anemometer). Average over three 1-second windows for each logged data point to smooth short gusts.",
+  "rationale": "`read_anemometer` is a pure arithmetic function with no hardware dependency, enabling unit tests without a physical sensor. Dual-unit output avoids downstream conversion. Configurable calibration supports alternative anemometer models. Three-window averaging provides smoother minute-interval data without adding significant latency.",
+  "alternatives": [
+    {
+      "approach": "Ultrasonic anemometer",
+      "reason_rejected": "No moving parts and higher accuracy, but significantly higher cost; cup anemometer adequate for garden station."
+    },
+    {
+      "approach": "Fixed 2-second sampling window",
+      "reason_rejected": "Lower temporal resolution; 1 s windows with averaging gives better response to wind gusts."
+    }
+  ],
+  "verification_notes": "Benchmark tests on 'Read Anemometer Wind Speed' verify 0 Hz calm condition and 1 Hz → 2.4 km/h calibration.",
+  "supporting_fact_titles": [
+    "Read Anemometer Wind Speed"
+  ]
+}
