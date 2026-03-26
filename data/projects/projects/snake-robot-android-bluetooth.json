@@ -1,0 +1,21 @@
+{
+  "title": "Arduino Snake Robot Controlled via Android Application",
+  "description": "8-segment snake robot with MG996R servo joints driven by Arduino Mega, receiving gait parameters (amplitude, period, phase) wirelessly from an Android Bluetooth app.",
+  "objective": "Achieve lateral undulation gait on flat floor; Android app controls speed and gait pattern; 8 servo joints, 1 m total length.",
+  "constraints": "6 V servo supply; HC-05 BT range ≥ 10 m; total BOM < ₹3000; powered by 2S LiPo.",
+  "domain": "robotics",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Snake Robot — Serpentine Locomotion Kinematics",
+    "Android Bluetooth SPP to Arduino Serial Bridge"
+  ],
+  "design_element_titles": [
+    "Snake Robot Multi-Servo Joint Chain",
+    "HC-05 Bluetooth Serial Bridge",
+    "Arduino Mega 2560 MCU Platform"
+  ],
+  "element_usage_notes": {
+    "Snake Robot Multi-Servo Joint Chain": "7 MG996R servos; 8 ABS link bodies 50 mm each; alternating H/V joint plane.",
+    "HC-05 Bluetooth Serial Bridge": "Pairs with Android MIT App Inventor app; 9600 baud; sends (A, T, φ) ASCII packet."
+  }
+}

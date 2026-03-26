@@ -1,0 +1,21 @@
+{
+  "title": "DIY Automatic Screen Printing Machine",
+  "description": "GRBL-controlled automatic screen printing machine with NEMA23 stepper-driven squeegee carriage and pneumatic pressure cylinder for consistent ink transfer on flat substrates up to 400 mm wide.",
+  "objective": "Squeegee speed 100–300 mm/s; pressure 2–5 N/cm; registration ±0.25 mm; 400 mm print width; automated flood-print-lift cycle.",
+  "constraints": "24 V stepper supply; compressed air 4–6 bar; Arduino Mega + GRBL; BOM < ₹8000.",
+  "domain": "mechanical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Screen Printing — Squeegee Pressure and Ink Rheology"
+  ],
+  "design_element_titles": [
+    "DIY Automatic Screen Printing — Squeegee Motor Drive",
+    "NEMA17 Stepper + DRV8825 Microstepping Drive",
+    "Pneumatic Cylinder + 5/2 Solenoid Valve Actuator",
+    "Arduino Mega 2560 MCU Platform"
+  ],
+  "element_usage_notes": {
+    "DIY Automatic Screen Printing — Squeegee Motor Drive": "NEMA23 stepper + 5 mm lead screw; pneumatic Z-axis for squeegee pressure.",
+    "NEMA17 Stepper + DRV8825 Microstepping Drive": "1/16 microstepping for 0.016 mm/step position resolution on squeegee carriage."
+  }
+}

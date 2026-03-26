@@ -1,0 +1,20 @@
+{
+  "title": "Cam Shaft Mechanism DIY Ventilator",
+  "description": "Mechanically-driven emergency ventilator using an eccentric cam on a DC gear motor shaft to compress a self-reinflating silicone bellows, delivering 500 mL tidal volume at 12–20 breaths/min.",
+  "objective": "Tidal volume 500 mL; rate 12–20 BPM adjustable; I:E ratio 1:2; PEEP valve 5 cmH₂O; Arduino RPM control and alarm.",
+  "constraints": "12 V battery operation; DC gear motor 12–20 RPM; BOM < ₹5000; single-cam single-bellows design.",
+  "domain": "mechanical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Cam and Follower Mechanism — Displacement Profiles"
+  ],
+  "design_element_titles": [
+    "Camshaft Bellows Ventilator — Cam-Follower Respiratory Drive",
+    "DC Gear Motor with PWM Speed Control",
+    "Arduino Uno/Nano MCU Platform"
+  ],
+  "element_usage_notes": {
+    "Camshaft Bellows Ventilator — Cam-Follower Respiratory Drive": "50 mm eccentric cam; 500 mL silicone bellows; asymmetric cam for 1:2 I/E ratio.",
+    "DC Gear Motor with PWM Speed Control": "12–20 RPM = BPM; Arduino potentiometer sets target RPM via PWM."
+  }
+}

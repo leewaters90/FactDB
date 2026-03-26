@@ -1,0 +1,21 @@
+{
+  "title": "3D Scanner Machine using Arduino",
+  "description": "Low-cost 3D scanner using NEMA17 stepper turntable, VL53L1X TOF sensor, Arduino Uno data acquisition, and Python point-cloud processing to reconstruct object geometry as PLY/STL files.",
+  "objective": "1.8° angular resolution; 1 mm radial accuracy; scan 200 mm dia objects; PLY point cloud output; complete scan in < 3 min.",
+  "constraints": "Arduino Uno; NEMA17 stepper; VL53L1X TOF sensor; USB serial to PC; BOM < ₹2500.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "3D Scanning — Structured Light and Laser Triangulation",
+    "LIDAR Time-of-Flight — Point Cloud Distance Measurement"
+  ],
+  "design_element_titles": [
+    "Arduino 3D Scanner — Stepper Turntable + TOF Sensor",
+    "NEMA17 Stepper + DRV8825 Microstepping Drive",
+    "Arduino Uno/Nano MCU Platform"
+  ],
+  "element_usage_notes": {
+    "Arduino 3D Scanner — Stepper Turntable + TOF Sensor": "NEMA17 1.8°/step; VL53L1X TOF (I2C); Arduino serial → Python PLY export.",
+    "NEMA17 Stepper + DRV8825 Microstepping Drive": "1/16 microstepping for 0.1125° effective resolution."
+  }
+}

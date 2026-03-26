@@ -1,0 +1,22 @@
+{
+  "title": "Regenerative Braking With Power Monitor",
+  "description": "E-bicycle regenerative braking system with BLDC hub motor in generator mode during braking, INA226 power monitoring, and OLED display showing real-time regen power, energy recovered, and SoC.",
+  "objective": "Recover 10–30% braking energy; INA226 power accuracy ±0.1%; OLED display regen data; Arduino Mega orchestration; compatible with 48 V 500 W hub motor.",
+  "constraints": "48 V Li-Ion; 500 W BLDC hub motor; BOM < ₹4000; Arduino Mega; SSD1306 OLED.",
+  "domain": "electrical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Eddy Current Braking Principle",
+    "Anti-lock Braking System (ABS) — Wheel Slip Control"
+  ],
+  "design_element_titles": [
+    "Regenerative Braking System with Power Monitor Display",
+    "BLDC Regenerative Braking Energy Recovery System",
+    "SCT-013 Split-Core CT Clamp Current Sensing",
+    "Arduino Mega 2560 MCU Platform"
+  ],
+  "element_usage_notes": {
+    "Regenerative Braking System with Power Monitor Display": "INA226 measures regen power; SSD1306 OLED shows Wh recovered per trip.",
+    "BLDC Regenerative Braking Energy Recovery System": "Hub motor switches to generator mode on brake lever Hall sensor trigger."
+  }
+}

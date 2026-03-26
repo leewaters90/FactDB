@@ -1,0 +1,21 @@
+{
+  "title": "360 Degree Fire Protection System",
+  "description": "Autonomous fire detection and suppression system using 4 flame sensors in 90° quadrant arrangement, Arduino Mega computes fire azimuth, aims pan-tilt water nozzle, and opens solenoid valve for targeted suppression.",
+  "objective": "360° coverage; detect fire in < 500 ms; aim nozzle to ±5° accuracy; 2 s water burst suppression; buzzer + LED alarm; manual override.",
+  "constraints": "12 V solenoid valve; 2× MG996R servos; Arduino Mega; 4× YG1006 sensors; BOM < ₹3000.",
+  "domain": "electrical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "360-Degree Fire Detection and Suppression System"
+  ],
+  "design_element_titles": [
+    "360-Degree Fire Protection — Pan-Tilt Nozzle with Flame Sensor Array",
+    "RC Servo Joint Actuator",
+    "Arduino Mega 2560 MCU Platform",
+    "DC Gear Motor with PWM Speed Control"
+  ],
+  "element_usage_notes": {
+    "360-Degree Fire Protection — Pan-Tilt Nozzle with Flame Sensor Array": "4× YG1006 at 90° intervals; MG996R pan-tilt gimbal aims nozzle; solenoid valve opens on confirmed detection.",
+    "RC Servo Joint Actuator": "Two MG996R servos: pan 0–360°, tilt 0–90°."
+  }
+}

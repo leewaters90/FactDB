@@ -1,0 +1,22 @@
+{
+  "title": "Rough Terrain Vehicle Using Rocker-Bogie Mechanism",
+  "description": "6-wheel rocker-bogie rover with passive differential suspension traversing obstacles up to 2× wheel diameter (50 mm), each wheel independently driven by DC gear motor, Arduino Mega controller.",
+  "objective": "Traverse 50 mm obstacles; 6-wheel independent drive; autonomous obstacle detection via ultrasonic; 2 h runtime on LiPo.",
+  "constraints": "12 V LiPo; 6× DC gear motors; Arduino Mega; BOM < ₹5000; 25 cm wheel diameter.",
+  "domain": "robotics",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Differential Drive Robot Kinematics"
+  ],
+  "design_element_titles": [
+    "Rocker-Bogie Rough-Terrain Drive System",
+    "DC Gear Motor with PWM Speed Control",
+    "HC-SR04 Ultrasonic Obstacle-Distance Sensor",
+    "L298N Dual H-Bridge Motor Driver Module",
+    "Arduino Mega 2560 MCU Platform"
+  ],
+  "element_usage_notes": {
+    "Rocker-Bogie Rough-Terrain Drive System": "3 motors per side; differential bar equalises pitch on uneven terrain.",
+    "HC-SR04 Ultrasonic Obstacle-Distance Sensor": "Forward-facing; triggers avoidance manoeuvre when obstacle < 30 cm."
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "title": "Coin Operated Water ATM with Bottle Dispenser",
+  "description": "Coin-operated water vending unit accepting ₹1/₹2/₹5 coins, dispensing metered volumes (250 mL/500 mL/1 L) via peristaltic pump with YF-S201 flow sensor accuracy and LCD display.",
+  "objective": "Accept 3 coin denominations; dispense 250 mL, 500 mL, 1 L accurately (±2%); bottle presence sensor; LCD status display; coin change reject.",
+  "constraints": "12 V DC; peristaltic pump 1 L/min; BOM < ₹3500; food-safe silicone tubing.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [],
+  "design_element_titles": [
+    "Water ATM — Coin-Triggered Flow Pump Dispenser",
+    "12 V Peristaltic Pump Liquid Dispenser",
+    "Coin Acceptor + Solenoid Dispenser Vending Mechanism",
+    "Arduino Uno/Nano MCU Platform"
+  ],
+  "element_usage_notes": {
+    "Water ATM — Coin-Triggered Flow Pump Dispenser": "YF-S201 flow sensor (450 pulses/L) measures exact volume; solenoid NC valve safety cutoff.",
+    "12 V Peristaltic Pump Liquid Dispenser": "Food-safe silicone tube; self-priming; 1 L/min at 12 V."
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "title": "Dual Side Potato Fries Maker Machine",
+  "description": "Automated deep fryer with Arduino PID oil temperature control (175°C) and servo-actuated basket that auto-flips at 3 min to uniformly brown fries on both sides.",
+  "objective": "Maintain oil at 175°C ±2°C; auto-flip basket at 3 min; buzzer alert on cycle completion; SSR-controlled 2 kW heater; safety thermal cutout.",
+  "constraints": "230 V mains; 2 kW heater; 2 L oil capacity; BOM < ₹3000; kitchen countertop unit.",
+  "domain": "food-processing",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Deep-Fry Immersion Heating — Oil Temperature Control"
+  ],
+  "design_element_titles": [
+    "Dual-Side Potato Fries Maker — Heated Oil Basin with Auto-Flip Basket",
+    "Solid-State Relay Mains Actuator Switching",
+    "RC Servo Joint Actuator",
+    "Arduino Uno/Nano MCU Platform"
+  ],
+  "element_usage_notes": {
+    "Dual-Side Potato Fries Maker — Heated Oil Basin with Auto-Flip Basket": "SSR controls 2 kW heater; SG5010 servo flips basket 180° at t=3 min.",
+    "Solid-State Relay Mains Actuator Switching": "Zero-crossing SSR on 230 V 2 kW heater element."
+  }
+}

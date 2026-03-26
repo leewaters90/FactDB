@@ -1,0 +1,24 @@
+{
+  "title": "Solar SeaWeather and Pollution Transmitter Buoy",
+  "description": "Autonomous floating buoy powered by solar panel with LiFePO₄ battery, measuring sea-surface weather (temperature, humidity, pressure) and pollution (PM2.5, CO₂) with MQTT telemetry via 4G/LoRa.",
+  "objective": "Continuous 24/7 operation; measure temp/humidity/pressure/PM2.5/CO₂; transmit data every 5 min; waterproof IP67 enclosure.",
+  "constraints": "Solar + LiFePO₄ autonomous power; saltwater environment; 4G/LoRa uplink; IP67 enclosure; BOM < ₹15 000.",
+  "domain": "marine",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Underwater Thruster — Hydrodynamic Thrust and Propulsion"
+  ],
+  "design_element_titles": [
+    "Solar Panel + LiFePO₄ MPPT Power System",
+    "SHT41 Digital Temperature and RH Sensing",
+    "SPS30 PM2.5 Optical Particle Sensor",
+    "SCD41 NDIR CO₂ Sensing Module",
+    "Waterproof IP67 Marine Enclosure Design",
+    "ESP32 WiFi + MQTT IoT Telemetry",
+    "MicroSD 1 Hz Time-Series Data Logger"
+  ],
+  "element_usage_notes": {
+    "Solar Panel + LiFePO₄ MPPT Power System": "20 W panel, 20 Ah LiFePO₄, MPPT controller for 24/7 operation.",
+    "Waterproof IP67 Marine Enclosure Design": "Fibreglass hull buoy; all sensors mounted on top deck; electronics in IP67 aluminium box."
+  }
+}

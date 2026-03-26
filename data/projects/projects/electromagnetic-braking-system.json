@@ -1,0 +1,21 @@
+{
+  "title": "Electromagnetic Braking System",
+  "description": "Contactless electromagnetic braking system using eddy-current disc brakes on a test rig, with MOSFET-controlled coil current for variable braking torque modulation.",
+  "objective": "Demonstrate contactless braking torque proportional to disc speed and coil current; measure torque vs speed curves; zero mechanical wear.",
+  "constraints": "12 V coil supply; 200 mm aluminium disc; Arduino Uno controller; bench-top test rig.",
+  "domain": "electrical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Eddy Current Braking Principle",
+    "Anti-lock Braking System (ABS) — Wheel Slip Control"
+  ],
+  "design_element_titles": [
+    "Eddy-Current Electromagnetic Brake",
+    "Arduino Uno/Nano MCU Platform",
+    "DC Gear Motor with PWM Speed Control"
+  ],
+  "element_usage_notes": {
+    "Eddy-Current Electromagnetic Brake": "200 mm aluminium disc; 12 V coil driven via N-MOSFET; MOSFET gate PWM from Arduino.",
+    "DC Gear Motor with PWM Speed Control": "Drives disc at constant test speeds 100–500 RPM."
+  }
+}

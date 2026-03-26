@@ -1,0 +1,18 @@
+{
+  "title": "Mini Mechanical Wire and Rod Cutter Machine",
+  "description": "Compact bench-top wire and rod cutter using a lever-actuated hardened shear blade for cutting copper, steel wire up to 4 mm and brass rod up to 3 mm, with adjustable length stop.",
+  "objective": "Cut 4 mm copper wire and 3 mm brass rod cleanly; adjustable length stop 5–200 mm; manual lever operation with 5:1 MA; no electrical power required.",
+  "constraints": "Manual lever operation; hardened tool steel blades HRC 58; BOM < ₹1500; bench-mount or handheld.",
+  "domain": "mechanical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Wire Cutting and Insulation Stripping — Blade Mechanics"
+  ],
+  "design_element_titles": [
+    "Automatic Wire Cutter and Stripper Mechanism",
+    "Worm Gear Lead-Screw Linear Actuator"
+  ],
+  "element_usage_notes": {
+    "Automatic Wire Cutter and Stripper Mechanism": "Shear blade variant (no insulation stripping); 5:1 lever reduces required hand force to 10 N for 4 mm copper."
+  }
+}

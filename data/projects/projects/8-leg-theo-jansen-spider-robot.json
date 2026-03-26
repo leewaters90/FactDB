@@ -1,0 +1,21 @@
+{
+  "title": "8 Leg Spider Robot by Theo Jansen Linkage",
+  "description": "8-legged walking robot driven by a single DC motor via Theo Jansen linkage mechanism, laser-cut acrylic frame, controlled by L298N + Arduino Uno for forward/turn manoeuvres.",
+  "objective": "Walk on flat surface; 8-leg Theo Jansen gait with 45° phase offsets; single DC motor; steering via differential speed; BOM < ₹1500.",
+  "constraints": "6 V battery; single DC motor; laser-cut acrylic links; 3 mm link thickness; Arduino Uno optional speed control.",
+  "domain": "robotics",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Slider-Crank to Reciprocating Hacksaw Drive"
+  ],
+  "design_element_titles": [
+    "Klann / Theo-Jansen Leg Linkage Mechanism",
+    "DC Gear Motor with PWM Speed Control",
+    "L298N Dual H-Bridge Motor Driver Module",
+    "Arduino Uno/Nano MCU Platform"
+  ],
+  "element_usage_notes": {
+    "Klann / Theo-Jansen Leg Linkage Mechanism": "8 legs, 4 per side, 45° phase offset per leg pair; single shared crank shaft; 3 mm acrylic links.",
+    "L298N Dual H-Bridge Motor Driver Module": "Two L298N channels drive left/right motor sets for differential steering."
+  }
+}

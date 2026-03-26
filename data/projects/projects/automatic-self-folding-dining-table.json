@@ -1,0 +1,21 @@
+{
+  "title": "Automatic Self-Folding Dining Table",
+  "description": "Arduino Mega-controlled dining table with two motorised folding leaves driven by worm-gear DC motors at hinge pivots, triggered by PIR sensor or button, with stall-detection safety.",
+  "objective": "Fold/unfold each leaf in < 8 s; 5 kg leaf supported; PIR proximity trigger; stall detection via current sensing; EEPROM position memory.",
+  "constraints": "24 V DC; 2× worm-gear motors 20 N·m; BOM < ₹7000; Arduino Mega; silent operation.",
+  "domain": "mechanical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Folding Table Hinge — Self-Locking and Motorised Actuation"
+  ],
+  "design_element_titles": [
+    "Self-Folding Dining Table — Servo + Worm Gear Hinge",
+    "Worm Gear Lead-Screw Linear Actuator",
+    "DC Gear Motor with PWM Speed Control",
+    "Arduino Mega 2560 MCU Platform"
+  ],
+  "element_usage_notes": {
+    "Self-Folding Dining Table — Servo + Worm Gear Hinge": "2× worm-gear motors (20:1) at hinge; limit switches at 0° and 90°; INA219 stall detection.",
+    "Worm Gear Lead-Screw Linear Actuator": "Self-locking 20:1 worm prevents gravity back-drive on 5 kg table leaf."
+  }
+}
