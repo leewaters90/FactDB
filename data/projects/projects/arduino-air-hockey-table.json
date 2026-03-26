@@ -1,0 +1,20 @@
+{
+  "title": "Arduino Multi Player Air Hockey Table",
+  "description": "1200×600 mm air hockey table with 100 W centrifugal blower, IR photogate goal detection, Arduino Nano score counter, 7-segment display scoreboard, and buzzer feedback.",
+  "objective": "Uniform air cushion over full table surface; automatic goal detection via IR; 2-player score display; game start/reset buttons; buzzer on goal.",
+  "constraints": "12 V 100 W blower; Arduino Nano; BOM < ₹5000; MDF table construction.",
+  "domain": "mechanical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Air Hockey Table — Puck Lift by Air Cushion and Rebound Dynamics"
+  ],
+  "design_element_titles": [
+    "Air Hockey Table — Centrifugal Blower + IR Goal Detector",
+    "DC Gear Motor with PWM Speed Control",
+    "Arduino Uno/Nano MCU Platform"
+  ],
+  "element_usage_notes": {
+    "Air Hockey Table — Centrifugal Blower + IR Goal Detector": "12 V 100 W centrifugal blower; 2 mm holes at 25 mm spacing; TCRT5000 IR goal detection.",
+    "Arduino Uno/Nano MCU Platform": "Nano handles score logic, 7-segment display, buzzer, and game start/reset buttons."
+  }
+}

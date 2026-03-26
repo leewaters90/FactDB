@@ -1,0 +1,27 @@
+{
+  "id": "b218be2f-4978-54fd-99d9-d67f895623fd",
+  "title": "Deep-Fry Immersion Heating — Oil Temperature Control",
+  "domain": "mechanical",
+  "category": "food-processing",
+  "subcategory": "thermal processing",
+  "detail_level": "fundamental",
+  "content": "Deep frying requires oil temperature 160–190°C. Immersion heating element power P = V²/R maintains temperature via PID controller with thermocouple feedback. Maillard reaction and starch gelatinisation occur at 140–165°C.",
+  "extended_content": "Potato fries: blanch at 150°C for 3–4 min (first fry, sets structure), finish at 175–185°C for 2–3 min (crisping). Oil volume/food ratio > 6:1 prevents temperature crash. Heat loss to food: Q = m_food × c_p × ΔT (c_p water ≈ 4200 J/kg·K). Temperature recovery time < 2 min with 2 kW heater for 2 L oil. Dual-sided fry basket: mesh basket that inverts halfway through cycle via servo/motor, ensuring uniform browning. Safety: thermal cutout at 230°C, earthed heating element, IP splash-proof enclosure. Oil degradation: smoke point sunflower oil 227°C, palm oil 235°C.",
+  "formula": "P = V²/R ;  Q = m·c_p·ΔT ;  t_recovery ≈ m_oil·c_oil·ΔT/P",
+  "units": "P: W, T: °C, Q: J, m: kg, c_p: J/kg·K",
+  "source": "Fellows, Food Processing Technology, 4th ed.; Blumenthal, The Science of Frying, Food Technology 1991; ASHRAE HVAC Applications",
+  "source_url": null,
+  "confidence_score": 0.94,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "deep-frying",
+    "food-processing",
+    "temperature-control",
+    "PID",
+    "heating",
+    "immersion",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}

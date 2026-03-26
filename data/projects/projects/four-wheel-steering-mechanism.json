@@ -1,0 +1,20 @@
+{
+  "title": "Four Wheel Steering Mechanism Project",
+  "description": "Speed-adaptive 4WS system on a 1:5 scale vehicle model: rear servo actuator steers rear wheels counter-phase at low speed (turning radius −30%) and in-phase at high speed (stability +20%), Arduino Mega controller.",
+  "objective": "Counter-phase rear steer at v < 3 km/h (model scale); in-phase at v > 6 km/h; potentiometer front-steer angle feedback; hall-effect speed sensing.",
+  "constraints": "12 V; Arduino Mega; 1:5 RC vehicle scale; BOM < ₹3000.",
+  "domain": "mechanical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Ackermann Four-Wheel Steering Geometry"
+  ],
+  "design_element_titles": [
+    "Four-Wheel Steering — Rear Servo Actuator",
+    "DC Gear Motor with PWM Speed Control",
+    "Arduino Mega 2560 MCU Platform"
+  ],
+  "element_usage_notes": {
+    "Four-Wheel Steering — Rear Servo Actuator": "Rear servo actuator; δ_r = k(v)·δ_f; k = −0.3 counter-phase, +0.1 in-phase.",
+    "DC Gear Motor with PWM Speed Control": "Drive motors provide speed signal via wheel encoder to determine steering mode."
+  }
+}

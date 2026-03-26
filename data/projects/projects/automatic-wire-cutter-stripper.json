@@ -1,0 +1,20 @@
+{
+  "title": "Automatic Wire Cutter and Stripper Machine",
+  "description": "Benchtop automatic machine using stepper-driven feed rollers and solenoid-actuated V-blades to cut and strip insulation from wires to programmable lengths at 300–600 wires/hour.",
+  "objective": "Cut and strip AWG 20–28 wire; programmable strip length 5–50 mm; throughput ≥ 300 wires/hour; blade depth adjustable per wire gauge.",
+  "constraints": "12 V DC powered; Arduino Uno controller; BOM < ₹4000; manual gauge-selection cam.",
+  "domain": "mechanical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Wire Cutting and Insulation Stripping — Blade Mechanics"
+  ],
+  "design_element_titles": [
+    "Automatic Wire Cutter and Stripper Mechanism",
+    "NEMA17 Stepper + DRV8825 Microstepping Drive",
+    "Arduino Uno/Nano MCU Platform"
+  ],
+  "element_usage_notes": {
+    "Automatic Wire Cutter and Stripper Mechanism": "Stepper feed roller + solenoid V-blades; 6-position depth cam for AWG 20–28.",
+    "NEMA17 Stepper + DRV8825 Microstepping Drive": "1/8 microstepping for ±1 mm strip length accuracy."
+  }
+}

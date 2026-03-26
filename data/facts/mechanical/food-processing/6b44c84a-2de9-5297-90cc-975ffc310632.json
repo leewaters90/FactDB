@@ -1,0 +1,27 @@
+{
+  "id": "6b44c84a-2de9-5297-90cc-975ffc310632",
+  "title": "Sugarcane Processing — Node Cutting and Bud Viability",
+  "domain": "mechanical",
+  "category": "food-processing",
+  "subcategory": "agricultural processing",
+  "detail_level": "intermediate",
+  "content": "Sugarcane bud cutter sections mature stalks at inter-node positions, preserving 1–2 buds per sett for planting. Blade must cut perpendicular to stalk axis within ±2 mm of node to maximise germination rate (> 85%).",
+  "extended_content": "Stalk diameter: 25–45 mm; cutting force F = σ_shear × π × d²/4 ≈ 25 MPa × 850 mm² = 21 kN (requires hydraulic or heavy-duty motor). Practical: circular blade (300 mm diameter, 3 mm kerf, tungsten carbide tipped) driven at 3000 RPM. Motorised guide: conveyor feeds stalks at 0.1–0.2 m/s. Sensor detects node (optical reflectance difference husk vs node 20% Δ reflectance) to trigger blade position. Sett length: 250–300 mm (2 buds). Germination rate vs cut position: centre of inter-node → 92%, near node → 78% (heat/bruising risk). Disinfection: blade dip in 5% sodium hypochlorite between rows prevents ratoon stunting disease spread.",
+  "formula": "F_cut = σ_shear · π·d²/4 ;  sett_length = n_buds · inter-node_length",
+  "units": "F: N, d: mm, σ: MPa",
+  "source": "Obaido et al., Sugarcane Sett Cutting, Biosystems Engineering 2019; ISSCT Mechanisation Proceedings; FAO Sugarcane Production Manual",
+  "source_url": null,
+  "confidence_score": 0.91,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "sugarcane",
+    "bud-cutter",
+    "agricultural",
+    "cutting",
+    "blade",
+    "germination",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}

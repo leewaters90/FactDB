@@ -1,0 +1,26 @@
+{
+  "title": "Air Hockey Table — Centrifugal Blower + IR Goal Detector",
+  "component_category": "mechanical",
+  "design_question": "How to build an Arduino-controlled air hockey table with automatic score detection?",
+  "selected_approach": "1200×600 mm MDF table, 2 mm holes at 25 mm spacing. 12 V centrifugal blower (100 W, 300 Pa static pressure, 1.0 m³/min) feeds plenum below table. Rail cushions: foam-backed ABS strips. Goal sensors: 2× IR photogate pairs (TCRT5000 emitter/receiver) at each goal slot (puck interrupts beam). Arduino Nano: counts goals, drives 7-segment scoreboard, plays buzzer on score. Two-player LED button interface for game start/reset.",
+  "rationale": "Centrifugal blower provides uniform pressure to plenum box feeding all holes. IR photogate is reliable for 65 mm puck detection. TCRT5000 response < 1 ms ensures no missed goals. Arduino Nano is compact and sufficient for score logic.",
+  "alternatives": [
+    {
+      "approach": "Axial fan",
+      "reason_rejected": "Insufficient static pressure for plenum distribution."
+    },
+    {
+      "approach": "Ultrasonic puck detection",
+      "reason_rejected": "Interference between sensors."
+    },
+    {
+      "approach": "Mechanical counter",
+      "reason_rejected": "Not electronic, no auto-reset."
+    }
+  ],
+  "verification_notes": "FACT: 'Air Hockey Table — Puck Lift by Air Cushion and Rebound Dynamics' confirms required P_lift = 20 Pa and blower specifications.",
+  "supporting_fact_titles": [
+    "Air Hockey Table — Puck Lift by Air Cushion and Rebound Dynamics",
+    "DC Motor Speed Control via PWM"
+  ]
+}

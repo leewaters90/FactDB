@@ -1,0 +1,21 @@
+{
+  "title": "SeaWave Power Generator With Solar",
+  "description": "Hybrid marine energy harvester combining an oscillating water column wave energy converter with a solar PV panel and LiFePO₄ battery, providing power to a coastal monitoring buoy.",
+  "objective": "Generate ≥ 10 W from waves + solar combined; charge 20 Ah LiFePO₄; supply 5 W sensor payload continuously; operational life > 1 year.",
+  "constraints": "Coastal deployment; wave height 0.5–2 m; 20 W solar panel; BOM < ₹20 000.",
+  "domain": "general",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Wave Energy Conversion — Oscillating Water Column Principle"
+  ],
+  "design_element_titles": [
+    "Oscillating Water Column Wave Energy Converter",
+    "Solar Panel + LiFePO₄ MPPT Power System",
+    "Permanent Magnet Wind Turbine Generator",
+    "Waterproof IP67 Marine Enclosure Design"
+  ],
+  "element_usage_notes": {
+    "Oscillating Water Column Wave Energy Converter": "OWC chamber drives Wells turbine-generator; 5–15 W at wave height 0.5–1.5 m.",
+    "Solar Panel + LiFePO₄ MPPT Power System": "20 W panel + 20 Ah LiFePO₄ + MPPT for daytime harvesting and storage."
+  }
+}

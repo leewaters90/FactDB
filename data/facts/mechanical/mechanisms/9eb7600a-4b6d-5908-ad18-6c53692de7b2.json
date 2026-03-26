@@ -1,0 +1,27 @@
+{
+  "id": "9eb7600a-4b6d-5908-ad18-6c53692de7b2",
+  "title": "Screen Printing — Squeegee Pressure and Ink Rheology",
+  "domain": "mechanical",
+  "category": "mechanisms",
+  "subcategory": "printing mechanisms",
+  "detail_level": "intermediate",
+  "content": "Screen printing forces ink through a mesh screen (80–230 threads/cm) via a squeegee. Ink transfer depends on: squeegee hardness (55–70 Shore A), angle (60–75°), speed (100–300 mm/s), and ink viscosity (1000–5000 cP thixotropic).",
+  "extended_content": "Automated screen printing: 1) Register — substrate clamped on platen, screen lowered (snap-off gap 2–3 mm). 2) Flood — squeegee fills mesh open areas. 3) Print — squeegee stroke deposits ink. 4) Screen lift — substrate separates. Mesh count selection: coarse mesh (80 mesh) for thick inks/plastisol; fine mesh (200 mesh) for fine detail/water-based inks. Squeegee pressure: 2–5 N/cm (too high → premature mesh wear and ink bleeding; too low → pinholes). Motor drive: DC gear motor with encoder for speed control; pneumatic cylinder for squeegee pressure; stepper for registration. Mesh tensioning: 20–25 N/cm Newton via tensioning roller. Registration accuracy: ±0.25 mm with stepper-driven platen.",
+  "formula": "ink_volume = mesh_open_area × mesh_thickness × transfer_efficiency(≈70%)",
+  "units": "pressure: N/cm, viscosity: cP, speed: mm/s",
+  "source": "Leach & Pierce, The Printing Ink Manual, 5th ed.; SGIA/FESPA Screen Printing Handbook; Kipphan, Handbook of Print Media",
+  "source_url": null,
+  "confidence_score": 0.92,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "screen-printing",
+    "squeegee",
+    "mesh",
+    "ink",
+    "automation",
+    "printing",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}

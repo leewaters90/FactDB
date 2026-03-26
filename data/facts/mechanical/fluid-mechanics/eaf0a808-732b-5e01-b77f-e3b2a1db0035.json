@@ -1,0 +1,27 @@
+{
+  "id": "eaf0a808-732b-5e01-b77f-e3b2a1db0035",
+  "title": "Underwater Thruster — Hydrodynamic Thrust and Propulsion",
+  "domain": "mechanical",
+  "category": "fluid-mechanics",
+  "subcategory": "marine propulsion",
+  "detail_level": "intermediate",
+  "content": "Underwater ROV thrusters use brushless DC motors driving propellers submerged in water. Thrust T = ρ·A·(v_jet² − v_in²)/2 (actuator disk theory). T200 thruster: 2.9 kgf forward at 16 V, 2.5 kgf reverse.",
+  "extended_content": "Brushless motor selection: waterproof (epoxy-potted stator), 12–24 V, KV rating 300–500 for large props or 800–1200 for small props. Propeller design: 3-blade, pitch/diameter ratio 0.6–0.8. Cavitation onset at σ_c < 0.3 (rare at ROV speeds < 2 m/s). ESC: waterproof bidirectional (BlueRobotics BasicESC), controlled by 1000–2000 µs PWM. Depth rating: shaft seal (lip seal or O-ring face seal) for 100 m depth requires sealing pressure 10 bar. Hydrodynamic efficiency η = 2/(1 + v_jet/v_in) (Froude): optimal at low v_jet/v_in → large diameter low pitch prop. ROV power budget: 4 thrusters × 50 W = 200 W; Li-Ion battery 14.8 V 10 Ah = 148 Wh → 44 min runtime.",
+  "formula": "T = ρ·A·(v_j² − v_i²)/2 ;  η_Froude = 2/(1 + v_j/v_i)",
+  "units": "T: N, ρ: kg/m³, A: m², v: m/s",
+  "source": "BlueRobotics T200 Thruster Datasheet; Carlton, Marine Propellers and Propulsion, 3rd ed.; Fossen, Guidance and Control of Ocean Vehicles, Wiley 1994",
+  "source_url": null,
+  "confidence_score": 0.95,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "underwater",
+    "thruster",
+    "ROV",
+    "propeller",
+    "BLDC",
+    "marine",
+    "fluid-mechanics"
+  ],
+  "created_by": "seed"
+}

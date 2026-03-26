@@ -1,0 +1,26 @@
+{
+  "title": "Chain-Drive Motorised Hacksaw Reciprocating Mechanism",
+  "component_category": "mechanical",
+  "design_question": "How to convert rotary motor output to a guided linear reciprocating hacksaw stroke via chain drive?",
+  "selected_approach": "750 W induction motor drives a #40 roller chain sprocket (12T:48T, ratio 4:1). Large sprocket (48T, 150 mm PCD) carries an offset crank pin (r=40 mm, stroke 80 mm). Connecting rod links crank pin to hacksaw frame guided in linear slideways. Cut/return ratio: standard slider-crank 1:1 (simple circle), or quick-return offset geometry for 1.4:1 ratio.",
+  "rationale": "Chain drive handles the shock loads of cutting better than belt drive (no slip). Slider-crank provides smooth sinusoidal velocity profile. 80 mm stroke suited for 300 mm hacksaw blade. Motor 750 W adequate for 50 mm mild steel at 80 strokes/min.",
+  "alternatives": [
+    {
+      "approach": "Belt-driven crank",
+      "reason_rejected": "Belt slip during heavy cut."
+    },
+    {
+      "approach": "Scotch-yoke mechanism",
+      "reason_rejected": "Higher side forces on guides."
+    },
+    {
+      "approach": "Direct DC motor with ball screw",
+      "reason_rejected": "DC motor inefficient for reciprocating duty."
+    }
+  ],
+  "verification_notes": "FACT: 'Slider-Crank to Reciprocating Hacksaw Drive' confirms stroke S = 2r and power formula.",
+  "supporting_fact_titles": [
+    "Slider-Crank to Reciprocating Hacksaw Drive",
+    "DC Motor Speed Control via PWM"
+  ]
+}

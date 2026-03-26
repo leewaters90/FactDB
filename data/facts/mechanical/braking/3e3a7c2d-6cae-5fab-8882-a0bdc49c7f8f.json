@@ -1,0 +1,27 @@
+{
+  "id": "3e3a7c2d-6cae-5fab-8882-a0bdc49c7f8f",
+  "title": "Hydraulic Disc Brake — Four-Wheeler Emergency Stop",
+  "domain": "mechanical",
+  "category": "braking",
+  "subcategory": "friction braking",
+  "detail_level": "intermediate",
+  "content": "Hydraulic disc brake converts kinetic energy to heat via friction between caliper pads and rotating disc. Master cylinder multiplies pedal force via Pascal's law. Braking torque T = µ·F_clamp·r_eff·n_pads.",
+  "extended_content": "ABS (Anti-lock Braking System) modulates hydraulic pressure 10–15 Hz to keep slip ratio 10–20% (maximum friction coefficient). Modern four-wheelers use diagonal split circuits for failsafe. Brake fade at disc temperatures > 400°C. Ventilated discs increase heat dissipation 40%. Caliper piston seal rollback reduces residual drag. Deceleration: a = µg (µ≈0.7 dry asphalt), stopping distance d = v²/(2µg).",
+  "formula": "T = µ · F_clamp · r_eff · n_pads ;  d_stop = v²/(2·µ·g)",
+  "units": "T: N·m, F_clamp: N, r_eff: m, d: m, v: m/s",
+  "source": "Bosch Automotive Handbook, 10th ed.; SAE J2522 Brake Performance Test; Gillespie, Fundamentals of Vehicle Dynamics, SAE 1992",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "braking",
+    "hydraulic",
+    "disc-brake",
+    "ABS",
+    "four-wheeler",
+    "friction",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}

@@ -1,0 +1,21 @@
+{
+  "title": "RC Underwater Exploration Drone",
+  "description": "6-thruster ROV with ArduSub/Pixhawk, BlueRobotics T200 thrusters, 1080p video via Ethernet tether, depth sensor, and IP68 pressure housing for inspection to 30 m depth.",
+  "objective": "30 m depth rating; 1080p live video; depth hold and heading hold; 4-direction thrust; 30 min mission time.",
+  "constraints": "14.8 V 10 Ah Li-Ion; 30 m Cat6 tether; IP68 100 mm aluminium housing; BOM < ₹25 000.",
+  "domain": "general",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Underwater Thruster — Hydrodynamic Thrust and Propulsion"
+  ],
+  "design_element_titles": [
+    "RC Underwater ROV — Thruster Array and Waterproof Electronics",
+    "Waterproof IP67 Marine Enclosure Design",
+    "4S LiPo Marine RC Power System",
+    "Pan-Tilt Servo Camera Gimbal"
+  ],
+  "element_usage_notes": {
+    "RC Underwater ROV — Thruster Array and Waterproof Electronics": "6× T200 thrusters; ArduSub on Pixhawk; MS5837-30BA depth sensor; 30 m tether.",
+    "Waterproof IP67 Marine Enclosure Design": "IP68 100 mm aluminium tube; dual O-ring end caps; rated to 30 m (3 bar)."
+  }
+}

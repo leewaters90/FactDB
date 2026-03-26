@@ -1,0 +1,20 @@
+{
+  "title": "Semi-Automatic Back Massager Machine",
+  "description": "Motorised back massager with eccentric cam mechanism producing 30–50 Hz vibration, adjustable speed via PWM, multiple massage nodes, powered by 12 V DC gear motor.",
+  "objective": "Vibration frequency 30–50 Hz adjustable; multiple massage contact nodes; variable intensity; 30 min auto-shutoff; portable 12 V battery powered.",
+  "constraints": "12 V Li-Ion battery; BOM < ₹2000; Arduino Uno speed control; < 2 kg weight.",
+  "domain": "mechanical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Cam and Follower Mechanism — Displacement Profiles"
+  ],
+  "design_element_titles": [
+    "Eccentric Cam Vibration Massager Drive",
+    "DC Gear Motor with PWM Speed Control",
+    "Arduino Uno/Nano MCU Platform"
+  ],
+  "element_usage_notes": {
+    "Eccentric Cam Vibration Massager Drive": "3 eccentric cams on common shaft; 12 V gear motor 500–3000 RPM via PWM.",
+    "DC Gear Motor with PWM Speed Control": "PWM from Arduino potentiometer input sets massage intensity."
+  }
+}

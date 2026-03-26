@@ -1,0 +1,19 @@
+{
+  "title": "4 Slot Coin Operated Cola Vending Machine",
+  "description": "4-lane coin-operated cola can vending machine accepting ₹5/₹10 coins, with solenoid-actuated spiral dispensers per lane, LCD display, Arduino Mega controller, and MQTT sales logging.",
+  "objective": "4 product lanes; accept ₹5/₹10 coins; ≤ 3 s dispense; LCD item display; MQTT sales log; OTA firmware update.",
+  "constraints": "12 V DC; Arduino Mega + ESP32 co-processor; BOM < ₹8000; RS232 coin validator.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [],
+  "design_element_titles": [
+    "Coin Acceptor + Solenoid Dispenser Vending Mechanism",
+    "Arduino Mega 2560 MCU Platform",
+    "ESP32 WiFi + MQTT IoT Telemetry",
+    "MicroSD 1 Hz Time-Series Data Logger"
+  ],
+  "element_usage_notes": {
+    "Coin Acceptor + Solenoid Dispenser Vending Mechanism": "CH-926 coin acceptor; 4× solenoid spiral dispensers; UART coin validation.",
+    "Arduino Mega 2560 MCU Platform": "Controls 4 dispense solenoids and LCD; ESP32 co-processor handles WiFi/MQTT."
+  }
+}

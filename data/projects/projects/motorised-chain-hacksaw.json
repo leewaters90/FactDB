@@ -1,0 +1,18 @@
+{
+  "title": "Motorised Chain Mechanism Hacksaw",
+  "description": "Motor-driven hacksaw using roller chain + sprocket to transmit power to a crank-slider mechanism producing an 80 mm reciprocating hacksaw stroke at 80 strokes/min for cutting mild steel.",
+  "objective": "Cut mild steel bar ≤ 30 mm diameter; 80 mm stroke; 80 strokes/min; automatic return spring; quick-return mechanism.",
+  "constraints": "750 W single-phase motor; #40 roller chain; HSS blade 300 mm; bench-mounted frame.",
+  "domain": "mechanical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Slider-Crank to Reciprocating Hacksaw Drive"
+  ],
+  "design_element_titles": [
+    "Chain-Drive Motorised Hacksaw Reciprocating Mechanism",
+    "DC Gear Motor with PWM Speed Control"
+  ],
+  "element_usage_notes": {
+    "Chain-Drive Motorised Hacksaw Reciprocating Mechanism": "#40 chain, 12T:48T sprocket (4:1 reduction), 40 mm crank pin radius → 80 mm stroke."
+  }
+}

@@ -9,7 +9,7 @@
   {
     "source_title": "Carnot Efficiency",
     "target_title": "Second Law of Thermodynamics — Entropy",
-    "relationship_type": "derived_from",
+    "relationship_type": "depends_on",
     "weight": 1.0,
     "description": "Carnot efficiency is a direct consequence of the Second Law."
   },
@@ -30,7 +30,7 @@
   {
     "source_title": "Hooke's Law — Linear Elasticity",
     "target_title": "Beam Bending — Flexure Formula",
-    "relationship_type": "prerequisite",
+    "relationship_type": "depends_on",
     "weight": 1.0,
     "description": "Flexure formula assumes linear elastic material behaviour."
   },
@@ -205,14 +205,14 @@
   {
     "source_title": "Robot Runtime Estimation from Battery Capacity",
     "target_title": "Li-Ion Battery Capacity and Energy Calculation",
-    "relationship_type": "derived_from",
+    "relationship_type": "depends_on",
     "weight": 1.0,
     "description": "Runtime estimation formula is derived from battery capacity equations."
   },
   {
     "source_title": "Automatic Charging Dock — IR Beacon Homing",
     "target_title": "Infrared Cliff Detection for Robot Vacuums",
-    "relationship_type": "example_of",
+    "relationship_type": "supports",
     "weight": 0.5,
     "description": "Both systems use modulated IR sensing; docking homing is a related application."
   },
@@ -261,7 +261,7 @@
   {
     "source_title": "G-code and CNC Motion Control",
     "target_title": "DC Motor Speed Control via PWM",
-    "relationship_type": "example_of",
+    "relationship_type": "supports",
     "weight": 0.5,
     "description": "G-code motion planning is a specific application of programmatic actuator control."
   },
@@ -282,7 +282,7 @@
   {
     "source_title": "N-Channel MOSFET as a Low-Side Power Switch",
     "target_title": "H-Bridge Motor Driver Circuit",
-    "relationship_type": "prerequisite",
+    "relationship_type": "depends_on",
     "weight": 0.9,
     "description": "H-bridge circuits are built from four MOSFETs acting as switches."
   },
@@ -348,5 +348,117 @@
     "relationship_type": "supports",
     "weight": 0.6,
     "description": "PM2.5 and CO₂ sensors complement each other in complete air quality monitors."
+  },
+  {
+    "source_title": "Anti-lock Braking System (ABS) — Wheel Slip Control",
+    "target_title": "Hydraulic Disc Brake — Four-Wheeler Emergency Stop",
+    "relationship_type": "depends_on",
+    "weight": 1.0,
+    "description": "ABS modulates the hydraulic pressure of disc brakes to prevent wheel lock-up."
+  },
+  {
+    "source_title": "Hydraulic Disc Brake — Four-Wheeler Emergency Stop",
+    "target_title": "Eddy Current Braking Principle",
+    "relationship_type": "supports",
+    "weight": 0.7,
+    "description": "Hydraulic disc brakes operate at zero speed; eddy-current brakes cannot."
+  },
+  {
+    "source_title": "Snake Robot — Serpentine Locomotion Kinematics",
+    "target_title": "Differential Drive Robot Kinematics",
+    "relationship_type": "supports",
+    "weight": 0.6,
+    "description": "Snake locomotion uses multi-link undulation vs differential-drive wheel-based movement."
+  },
+  {
+    "source_title": "Android Bluetooth SPP to Arduino Serial Bridge",
+    "target_title": "Snake Robot — Serpentine Locomotion Kinematics",
+    "relationship_type": "supports",
+    "weight": 0.8,
+    "description": "Android BT app sends gait parameters (A, T, φ) to drive snake robot locomotion."
+  },
+  {
+    "source_title": "Slider-Crank to Reciprocating Hacksaw Drive",
+    "target_title": "Cam and Follower Mechanism — Displacement Profiles",
+    "relationship_type": "supports",
+    "weight": 0.6,
+    "description": "Both convert rotary motor output to controlled linear/oscillating motion."
+  },
+  {
+    "source_title": "Cam and Follower Mechanism — Displacement Profiles",
+    "target_title": "Scissor Lift / Pantograph — Mechanical Advantage and Geometry",
+    "relationship_type": "supports",
+    "weight": 0.5,
+    "description": "Both are mechanisms providing force/motion transformation in mechanical systems."
+  },
+  {
+    "source_title": "Ackermann Four-Wheel Steering Geometry",
+    "target_title": "Differential Drive Robot Kinematics",
+    "relationship_type": "supports",
+    "weight": 0.7,
+    "description": "Both describe vehicle turning geometry and wheel angle relationships."
+  },
+  {
+    "source_title": "LIDAR Time-of-Flight — Point Cloud Distance Measurement",
+    "target_title": "3D Scanning — Structured Light and Laser Triangulation",
+    "relationship_type": "supports",
+    "weight": 0.85,
+    "description": "TOF LIDAR is one implementation method for 3D scanning point cloud acquisition."
+  },
+  {
+    "source_title": "3D Scanning — Structured Light and Laser Triangulation",
+    "target_title": "LIDAR Time-of-Flight — Point Cloud Distance Measurement",
+    "relationship_type": "depends_on",
+    "weight": 0.7,
+    "description": "Laser triangulation scanners rely on the same time-of-flight or phase-shift ranging principles."
+  },
+  {
+    "source_title": "360-Degree Fire Detection and Suppression System",
+    "target_title": "Rain Sensor — Resistive / Capacitive Detection Module",
+    "relationship_type": "supports",
+    "weight": 0.4,
+    "description": "Both are environmental detection systems triggering automated actuator responses."
+  },
+  {
+    "source_title": "Deep-Fry Immersion Heating — Oil Temperature Control",
+    "target_title": "Cam and Follower Mechanism — Displacement Profiles",
+    "relationship_type": "supports",
+    "weight": 0.3,
+    "description": "Both involve timed mechanical cycles — fry cycle timing vs cam rotation period."
+  },
+  {
+    "source_title": "Wire Cutting and Insulation Stripping — Blade Mechanics",
+    "target_title": "Sugarcane Processing — Node Cutting and Bud Viability",
+    "relationship_type": "supports",
+    "weight": 0.5,
+    "description": "Both involve controlled blade cutting to precise depths without damaging the core material."
+  },
+  {
+    "source_title": "Screen Printing — Squeegee Pressure and Ink Rheology",
+    "target_title": "Slider-Crank to Reciprocating Hacksaw Drive",
+    "relationship_type": "supports",
+    "weight": 0.4,
+    "description": "Both use linear reciprocating motion (squeegee stroke / hacksaw stroke) driven by a motor."
+  },
+  {
+    "source_title": "Underwater Thruster — Hydrodynamic Thrust and Propulsion",
+    "target_title": "Air Hockey Table — Puck Lift by Air Cushion and Rebound Dynamics",
+    "relationship_type": "supports",
+    "weight": 0.4,
+    "description": "Both apply fluid dynamics — propeller thrust vs air-film levitation."
+  },
+  {
+    "source_title": "Folding Table Hinge — Self-Locking and Motorised Actuation",
+    "target_title": "Scissor Lift / Pantograph — Mechanical Advantage and Geometry",
+    "relationship_type": "supports",
+    "weight": 0.5,
+    "description": "Both involve motorised mechanical linkages with self-locking under load requirements."
+  },
+  {
+    "source_title": "Mattress Cleaning — Vibration Beater and HEPA Suction",
+    "target_title": "Cam and Follower Mechanism — Displacement Profiles",
+    "relationship_type": "depends_on",
+    "weight": 0.6,
+    "description": "Vibration beater mechanism uses eccentric cam to generate 30–50 Hz oscillation."
   }
 ]

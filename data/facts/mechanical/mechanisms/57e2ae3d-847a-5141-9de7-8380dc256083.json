@@ -1,0 +1,27 @@
+{
+  "id": "57e2ae3d-847a-5141-9de7-8380dc256083",
+  "title": "Slider-Crank to Reciprocating Hacksaw Drive",
+  "domain": "mechanical",
+  "category": "mechanisms",
+  "subcategory": "reciprocating mechanisms",
+  "detail_level": "intermediate",
+  "content": "A motor-driven crank-slider converts rotary motion to linear reciprocating stroke for hacksaw cutting. Stroke length S = 2r (r = crank radius). Cutting speed v_cut = 2·r·N/60 (m/s) where N = RPM.",
+  "extended_content": "Hacksaw blade pitch selection: fine (32 TPI) for thin sheet < 3 mm, medium (18–24 TPI) for general metal up to 25 mm, coarse (14 TPI) for soft metals. Cutting force per tooth ≈ 5–20 N. Feed/return ratio: quick-return mechanism reduces return stroke time by 20–30% increasing productivity. Chain drive transmits motor torque to crank shaft: T_crank = P/(2πN/60). Blade tension 20–30 N prevents buckling. Blade life: 10 000–50 000 strokes on mild steel. RPM range: 50–120 for hand hacksaw simulation; power 50–150 W.",
+  "formula": "S = 2r ;  v_cut = 2·r·N/60 ;  T_crank = P/(2πN/60)",
+  "units": "S: m, r: m, N: RPM, v: m/s, P: W, T: N·m",
+  "source": "Norton, Machine Design, 5th ed., Ch. 2; Kalpakjian, Manufacturing Engineering & Technology; Boothroyd, Fundamentals of Metal Cutting",
+  "source_url": null,
+  "confidence_score": 0.96,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "hacksaw",
+    "slider-crank",
+    "reciprocating",
+    "chain-drive",
+    "cutting",
+    "mechanisms",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}

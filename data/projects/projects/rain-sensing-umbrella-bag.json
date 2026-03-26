@@ -1,0 +1,20 @@
+{
+  "title": "Rain Sensing Hands-Free Umbrella Bag",
+  "description": "Automatic umbrella storage bag that deploys/retracts via servo mechanism triggered by a resistive rain sensor module and Arduino Uno, providing hands-free rain protection.",
+  "objective": "Deploy umbrella in < 2 s of rain detection; retract automatically 10 s after rain stops; false-trigger immunity via 200 ms debounce.",
+  "constraints": "5 V USB power; YL-83 rain sensor; SG90 servo; BOM < ₹500; wearable backpack integration.",
+  "domain": "mechanical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Rain Sensor — Resistive / Capacitive Detection Module"
+  ],
+  "design_element_titles": [
+    "Rain Sensor + Servo Umbrella Deployment Module",
+    "RC Servo Joint Actuator",
+    "Arduino Uno/Nano MCU Platform"
+  ],
+  "element_usage_notes": {
+    "Rain Sensor + Servo Umbrella Deployment Module": "YL-83 + LM393 digital output; Arduino 200 ms debounce; SG90 180° deployment.",
+    "RC Servo Joint Actuator": "SG90 pulls deployment cord 180° to extend umbrella; reverse to retract."
+  }
+}

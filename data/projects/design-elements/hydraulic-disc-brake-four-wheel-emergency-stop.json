@@ -1,0 +1,23 @@
+{
+  "title": "Hydraulic Disc Brake — Four-Wheel Emergency Stop",
+  "component_category": "actuation",
+  "design_question": "How to provide high-force friction braking at all wheel speeds including standstill in a four-wheeler?",
+  "selected_approach": "Four-pot caliper hydraulic disc brake on each wheel. Master cylinder (bore 19 mm) driven by brake pedal via 6:1 lever ratio. ABS modulator (Bosch 8.0) cycles solenoid valves at 12 Hz when wheel lock detected by Hall-effect wheel-speed sensors. Emergency brake controller (Arduino Mega) monitors accelerometer for crash detection and triggers solenoid boost valve.",
+  "rationale": "Hydraulic disc brakes deliver maximum braking force at zero speed (unlike eddy-current brakes). ABS integration prevents lock-up. DIY-compatible: donor vehicle calipers, master cylinder, and hydraulic lines. Stopping distance < 20 m from 60 km/h.",
+  "alternatives": [
+    {
+      "approach": "Eddy-current electromagnetic brake",
+      "reason_rejected": "Zero braking force at standstill."
+    },
+    {
+      "approach": "Drum brake",
+      "reason_rejected": "Prone to fade, heavier, less heat dissipation."
+    }
+  ],
+  "verification_notes": "FACT: 'Hydraulic Disc Brake — Four-Wheeler Emergency Stop' gives stopping distance d = v²/(2µg). FACT: 'Anti-lock Braking System (ABS)' confirms slip ratio 0.1–0.2.",
+  "supporting_fact_titles": [
+    "Hydraulic Disc Brake — Four-Wheeler Emergency Stop",
+    "Anti-lock Braking System (ABS) — Wheel Slip Control",
+    "Eddy Current Braking Principle"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "id": "5fefa83e-8f87-5537-9e9b-18586855a786",
+  "title": "Ackermann Four-Wheel Steering Geometry",
+  "domain": "mechanical",
+  "category": "mechanisms",
+  "subcategory": "steering geometry",
+  "detail_level": "advanced",
+  "content": "Ackermann steering geometry ensures all four wheels follow concentric arcs during a turn, eliminating tyre scrub. For front-only steering: cot(θ_outer) − cot(θ_inner) = W/L. For four-wheel steering (4WS), rear wheels steer opposite (low speed) or same direction (high speed) as front.",
+  "extended_content": "4WS modes: 1) Counter-phase rear steering (low speed, < 35 km/h) — reduces turning radius by up to 30%, minimum turning radius R_min ≈ L/(sin θ_max). 2) In-phase rear steering (high speed, > 60 km/h) — improves lane-change stability, rear steer angle 1–3°. Neutral steer point (NSP) control: in-phase rear steer moves NSP rearward, reducing yaw overshoot. Rear steering angle δ_r = k·δ_f (k negative counter-phase, positive in-phase). Rack and pinion + rear servo actuator common implementation. Electro-hydraulic rear actuator response < 100 ms.",
+  "formula": "cot(δ_o) − cot(δ_i) = W/L ;  R_min = L/tan(δ_max)",
+  "units": "δ: rad, W: m (track), L: m (wheelbase), R: m",
+  "source": "Milliken & Milliken, Race Car Vehicle Dynamics, SAE 1995; Abe, Vehicle Handling Dynamics, 2015; Honda 4WS Patent JP60-61373",
+  "source_url": null,
+  "confidence_score": 0.96,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "4WS",
+    "ackermann",
+    "steering",
+    "four-wheel",
+    "vehicle-dynamics",
+    "geometry",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}

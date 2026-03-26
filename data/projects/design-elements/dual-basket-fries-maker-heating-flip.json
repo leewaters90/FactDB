@@ -1,0 +1,27 @@
+{
+  "title": "Dual-Side Potato Fries Maker — Heated Oil Basin with Auto-Flip Basket",
+  "component_category": "actuation",
+  "design_question": "How to automatically cook potato fries on both sides with consistent golden browning?",
+  "selected_approach": "2 L cooking oil basin with 2 kW immersion heating element. K-type thermocouple + MAX6675 ADC feeds temperature to Arduino PID controller (setpoint 175°C). Stainless mesh basket held in servo-actuated pivoting arm (SG5010, 4.1 kg·cm). At t=3 min, servo inverts basket 180° (flip). Drain timer t=1 min post-cook. Buzzer alarm on cycle completion. SSR controls 230 V heater element. Safety: thermal fuse 230°C NC in series with heater.",
+  "rationale": "PID temperature control prevents over/undercooking. Auto-flip eliminates manual intervention for even browning. SSR provides silent zero-crossing AC switching. Thermal fuse provides hardware-level overheat protection independent of microcontroller.",
+  "alternatives": [
+    {
+      "approach": "Dual-element heating from both sides",
+      "reason_rejected": "Complex immersion geometry."
+    },
+    {
+      "approach": "Air fryer circulation",
+      "reason_rejected": "Longer cooking time for thick fries."
+    },
+    {
+      "approach": "Manual flip",
+      "reason_rejected": "Defeats automation purpose."
+    }
+  ],
+  "verification_notes": "FACT: 'Deep-Fry Immersion Heating — Oil Temperature Control' confirms dual-fry cycle timing and 2 kW heater recovery time.",
+  "supporting_fact_titles": [
+    "Deep-Fry Immersion Heating — Oil Temperature Control",
+    "RC Servo Motor PWM Control",
+    "N-Channel MOSFET as a Low-Side Power Switch"
+  ]
+}

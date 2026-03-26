@@ -1,0 +1,27 @@
+{
+  "id": "0791d1aa-d86e-5d1c-b8db-3dbf19398d68",
+  "title": "Anti-lock Braking System (ABS) — Wheel Slip Control",
+  "domain": "mechanical",
+  "category": "braking",
+  "subcategory": "ABS control",
+  "detail_level": "advanced",
+  "content": "ABS prevents wheel lock-up during emergency braking by modulating hydraulic pressure via solenoid valves, keeping wheel slip ratio λ = (v_vehicle − v_wheel)/v_vehicle between 0.1 and 0.2 where tyre–road friction µ is maximised.",
+  "extended_content": "ABS cycle: 1) Pressure Hold — solenoid closes inlet, 2) Pressure Release — outlet solenoid opens, 3) Pressure Re-apply — inlet re-opened. Cycle frequency 10–15 Hz. Wheel speed sensors (Hall-effect toothed ring) provide v_wheel at 1 ms resolution. ECU differentiates wheel deceleration: if dω/dt > threshold (typically 20–30 rad/s²) ABS engages. Four-channel ABS controls each wheel independently. Wet road: 30% shorter stopping distance vs locked wheels. ABS does NOT shorten stopping distance on loose gravel (locked may be shorter).",
+  "formula": "λ = (v_v − v_w)/v_v ;  µ_peak at λ=0.1–0.2",
+  "units": "λ: dimensionless, v: m/s, ω: rad/s",
+  "source": "Bosch ABS 8 Technical Manual; ISO 11285:2006 Road vehicles ABS; NHTSA Technical Report DOT HS 811 182",
+  "source_url": null,
+  "confidence_score": 0.95,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "ABS",
+    "braking",
+    "wheel-slip",
+    "solenoid",
+    "hydraulic",
+    "safety",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}

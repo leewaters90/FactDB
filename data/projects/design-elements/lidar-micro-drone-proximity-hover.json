@@ -1,0 +1,27 @@
+{
+  "title": "LIDAR Micro Drone — Proximity Sensing and Altitude Hold",
+  "component_category": "sensing",
+  "design_question": "How to implement proximity sensing and stable altitude hold on a micro drone using LIDAR?",
+  "selected_approach": "250 mm quad frame, F4 flight controller (Betaflight), downward TFmini-S LIDAR (0.1–12 m, UART) for altitude hold PID loop. Forward-facing VL53L1X TOF sensors (4 directions, I2C via TCA9548A multiplexer) for proximity/obstacle avoidance. LIDAR altitude fed to Betaflight via MSP serial. Custom Arduino co-processor reads VL53L1X sensors and triggers emergency land if obstacle < 0.3 m.",
+  "rationale": "TFmini-S is lightweight (5 g), accurate (±1 cm), and interfaces directly to FC serial port. VL53L1X provides 4-direction coverage with only 4 sensors via multiplexer. Betaflight's altitude hold mode (ALTHOLD) handles LIDAR input natively. Combined LIDAR + TOF coverage enables corridor navigation.",
+  "alternatives": [
+    {
+      "approach": "Optical flow sensor",
+      "reason_rejected": "Limited range, needs texture."
+    },
+    {
+      "approach": "Sonar",
+      "reason_rejected": "40 ms latency degrades control loop."
+    },
+    {
+      "approach": "Barometer only",
+      "reason_rejected": "±0.5 m accuracy insufficient indoors."
+    }
+  ],
+  "verification_notes": "FACT: 'LIDAR Time-of-Flight — Point Cloud Distance Measurement' confirms d = c·Δt/2 and proximity threshold.",
+  "supporting_fact_titles": [
+    "LIDAR Time-of-Flight — Point Cloud Distance Measurement",
+    "TFMini-S Micro LiDAR — 0.1–12 m Time-of-Flight",
+    "I²C Serial Communication Protocol"
+  ]
+}

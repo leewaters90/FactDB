@@ -1,0 +1,27 @@
+{
+  "id": "77b0ee41-4931-593b-a3f1-cf945a31ff0e",
+  "title": "Mattress Cleaning — Vibration Beater and HEPA Suction",
+  "domain": "mechanical",
+  "category": "cleaning",
+  "subcategory": "textile cleaning",
+  "detail_level": "fundamental",
+  "content": "Mattress cleaning combines high-frequency beater vibration (30–50 Hz) to dislodge dust mites and debris with HEPA-filtered suction (efficiency > 99.97% at 0.3 µm). UV-C irradiation (254 nm, 15–30 mW/cm²) kills dust mites and bacteria.",
+  "extended_content": "Dust mite facts: 100–500 mites/g mattress dust; allergen Der p 1 protein > 10 µg/g triggers asthma. Beater mechanism: eccentric motor (3000 RPM) strikes cleaning head at 50 Hz; amplitude 2–5 mm. Suction motor: 600–1200 W brushless vacuum motor, 20–25 kPa gauge suction. HEPA filter: H13 class, captures 99.95% at 0.3 µm MPPS. UV-C dosage: 40 mJ/cm² kills 99.9% D. pteronyssinus (exposure time = dose/irradiance = 40/20 = 2 s/cm²). Forward speed: 0.05–0.1 m/s over mattress. Battery: 24 V 5 Ah Li-Ion, 30 min runtime. Weight: < 3 kg for portability.",
+  "formula": "UV dose = irradiance × time ;  HEPA efficiency ≥ 99.97% at 0.3 µm",
+  "units": "irradiance: mW/cm², dose: mJ/cm², suction: kPa",
+  "source": "ISO 11135 Healthcare Product Sterilization; Platts-Mills, New Engl. J. Med. 1997; Dyson/Mite Controllers Cleaning Efficiency Studies",
+  "source_url": null,
+  "confidence_score": 0.9,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "mattress",
+    "cleaning",
+    "HEPA",
+    "UV-C",
+    "dust-mite",
+    "vibration",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}

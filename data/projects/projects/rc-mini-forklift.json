@@ -1,0 +1,22 @@
+{
+  "title": "Remote Controlled Mini Forklift",
+  "description": "Arduino Nano + NRF24L01 RC mini forklift with 4-wheel differential drive and 2-stage scissor lift driven by worm-gear motor + lead screw, capable of lifting 1 kg loads to 250 mm.",
+  "objective": "Lift 1 kg load to 250 mm; differential drive manoeuvrability; NRF24L01 RC range ≥ 20 m; fork width 150 mm.",
+  "constraints": "12 V LiPo; BOM < ₹3500; Arduino Nano; total weight < 500 g.",
+  "domain": "mechanical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Scissor Lift / Pantograph — Mechanical Advantage and Geometry"
+  ],
+  "design_element_titles": [
+    "RC Mini Forklift — Scissor Lift and Drive Mechanism",
+    "Worm Gear Lead-Screw Linear Actuator",
+    "nRF24L01 2.4 GHz RF Transceiver Link",
+    "L298N Dual H-Bridge Motor Driver Module",
+    "Arduino Uno/Nano MCU Platform"
+  ],
+  "element_usage_notes": {
+    "RC Mini Forklift — Scissor Lift and Drive Mechanism": "4× N20 gear motors for drive; worm-gear motor + 2 mm pitch lead screw for lift.",
+    "Worm Gear Lead-Screw Linear Actuator": "Self-locking 20:1 worm prevents scissor back-drive under 1 kg load."
+  }
+}

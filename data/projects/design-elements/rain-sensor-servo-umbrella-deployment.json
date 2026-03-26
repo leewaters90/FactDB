@@ -1,0 +1,26 @@
+{
+  "title": "Rain Sensor + Servo Umbrella Deployment Module",
+  "component_category": "sensing",
+  "design_question": "How to automatically deploy/retract an umbrella bag in response to detected rainfall?",
+  "selected_approach": "YL-83 resistive rain sensor module (LM393 comparator, digital out) detects rain. Arduino Uno debounces signal (200 ms), triggers SG90 servo (180° rotation) to pull deployment cord. Umbrella bag stored in housing; cord pull extends umbrella over load. Rain stop: sensor dry for 10 s delay, servo retracts. Optional: DHT11 humidity threshold cross-check to avoid false triggers from condensation.",
+  "rationale": "Rain sensor + servo is <£3 total BOM, extremely simple, power-efficient (servo only active during transition). Software debounce prevents flutter triggering. Time-delay retract avoids repeated cycling in intermittent rain.",
+  "alternatives": [
+    {
+      "approach": "Capacitive rain sensor",
+      "reason_rejected": "Higher cost, same function."
+    },
+    {
+      "approach": "Optical refraction sensor",
+      "reason_rejected": "Requires clear glass surface."
+    },
+    {
+      "approach": "Manual operation",
+      "reason_rejected": "Defeats automation purpose."
+    }
+  ],
+  "verification_notes": "FACT: 'Rain Sensor — Resistive / Capacitive Detection Module' confirms R_wet < 10 kΩ trigger threshold and 50–200 ms response.",
+  "supporting_fact_titles": [
+    "Rain Sensor — Resistive / Capacitive Detection Module",
+    "RC Servo Motor PWM Control"
+  ]
+}

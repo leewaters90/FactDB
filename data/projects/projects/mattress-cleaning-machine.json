@@ -1,0 +1,21 @@
+{
+  "title": "Mattress Cleaning Machine",
+  "description": "Portable handheld mattress cleaner combining 3000 RPM eccentric vibration for mite dislodgement, 800 W HEPA suction (H13 filter), and UV-C LED (254 nm) sterilisation, Arduino-monitored.",
+  "objective": "Remove ≥ 99% dust mites; HEPA H13 filtration; UV-C 40 mJ/cm² dose; 30 min battery runtime; < 3 kg weight.",
+  "constraints": "24 V 5 Ah Li-Ion; 800 W suction motor; BOM < ₹6000; Arduino filter blockage monitor.",
+  "domain": "mechanical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Mattress Cleaning — Vibration Beater and HEPA Suction"
+  ],
+  "design_element_titles": [
+    "Mattress Cleaning Machine — Beater + HEPA Suction + UV-C Head",
+    "UV-C LED Germicidal + Ozone Sterilisation Module",
+    "DC Gear Motor with PWM Speed Control",
+    "Arduino Uno/Nano MCU Platform"
+  ],
+  "element_usage_notes": {
+    "Mattress Cleaning Machine — Beater + HEPA Suction + UV-C Head": "Eccentric motor 3000 RPM + 800 W suction + UV-C 20 mW/cm² LED.",
+    "UV-C LED Germicidal + Ozone Sterilisation Module": "254 nm LEDs, 40 mJ/cm² at 0.05 m/s pass speed."
+  }
+}

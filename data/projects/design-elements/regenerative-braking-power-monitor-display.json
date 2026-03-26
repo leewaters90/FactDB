@@ -1,0 +1,26 @@
+{
+  "title": "Regenerative Braking System with Power Monitor Display",
+  "component_category": "power",
+  "design_question": "How to implement regenerative braking energy recovery with real-time power monitoring?",
+  "selected_approach": "BLDC hub motor (48 V, 500 W) operated in generator mode during braking: motor controller switches to regeneration mode via brake signal (Hall sensor on brake lever). Regenerated current charges Li-Ion battery pack via MPPT-style buck converter. INA226 power monitor (I2C, 0–36 V, 0–3.2 A) measures instantaneous and cumulative regenerated energy. SSD1306 OLED displays: regen power (W), energy recovered (Wh), state of charge. Arduino Mega orchestrates controller + display.",
+  "rationale": "BLDC hub motors are designed for regeneration — no mechanical modifications needed. INA226 provides ±0.1% accuracy power measurement. OLED display gives immediate user feedback on energy savings. System recovers 10–30% of braking energy in urban cycling.",
+  "alternatives": [
+    {
+      "approach": "Flywheel energy storage",
+      "reason_rejected": "Heavy, complex, low efficiency."
+    },
+    {
+      "approach": "Supercapacitor buffer",
+      "reason_rejected": "Limited energy density."
+    },
+    {
+      "approach": "Friction brake only",
+      "reason_rejected": "All energy wasted."
+    }
+  ],
+  "verification_notes": "FACT: 'Regenerative Braking with BLDC Motor' confirms energy recovery 10–30% in urban stop-go conditions.",
+  "supporting_fact_titles": [
+    "Regenerative Braking — BLDC Back-EMF Energy Recovery",
+    "CT Clamp Current Sensing and RMS Calculation"
+  ]
+}

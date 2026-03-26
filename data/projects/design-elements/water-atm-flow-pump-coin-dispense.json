@@ -1,0 +1,25 @@
+{
+  "title": "Water ATM — Coin-Triggered Flow Pump Dispenser",
+  "component_category": "actuation",
+  "design_question": "How to dispense a metered volume of purified water upon coin insertion and fill a bottle automatically?",
+  "selected_approach": "Coin acceptor (CH-926, accepts ₹1/₹2/₹5) triggers Arduino Uno. Solenoid valve (NC, 12 V) opens 12 V peristaltic pump for calibrated time (e.g. 1 litre = 60 s at 1 L/min). YF-S201 flow sensor (1–30 L/min, 450 pulses/L) measures actual volume. LCD 16×2 displays selected volume and status. Bottle sensor (IR photogate) confirms bottle present before dispensing. Overflow: timer fallback cuts off after 120 s.",
+  "rationale": "Peristaltic pump is food-safe, self-priming, easy to clean (only silicone tube contacts water). Coin acceptor handles multiple denominations. Flow sensor provides volumetric accuracy ±2%. Arduino logic is straightforward.",
+  "alternatives": [
+    {
+      "approach": "Gear pump",
+      "reason_rejected": "Not food-safe unless specially coated."
+    },
+    {
+      "approach": "Gravity feed + timer",
+      "reason_rejected": "Pressure variation causes volume error."
+    },
+    {
+      "approach": "Diaphragm pump",
+      "reason_rejected": "Higher cost for same flow rate."
+    }
+  ],
+  "verification_notes": "FACT: 'Vending Machine Mechanisms — Coin Validation and Dispensing' covers coin acceptor validation protocol.",
+  "supporting_fact_titles": [
+    "Coin Acceptor — Pulse-Count Authentication and Relay Dispense"
+  ]
+}

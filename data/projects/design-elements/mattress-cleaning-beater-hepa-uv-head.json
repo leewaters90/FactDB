@@ -1,0 +1,27 @@
+{
+  "title": "Mattress Cleaning Machine — Beater + HEPA Suction + UV-C Head",
+  "component_category": "mechanical",
+  "design_question": "How to build a portable mattress cleaner that removes dust mites and allergens?",
+  "selected_approach": "Handheld unit: eccentric-weight vibration motor (3000 RPM, 5 N amplitude) in cleaning head for mite dislodgement. 800 W brushless suction motor (25 kPa) with H13 HEPA filter (99.95% at 0.3 µm). UV-C LED (254 nm, 20 mW/cm²) treats 1 cm² per pass at 0.05 m/s. Li-Ion 24 V 5 Ah battery. Arduino monitors filter blockage (pressure differential sensor MPXV7002DP), battery level, UV-C operational time.",
+  "rationale": "Vibration + suction + UV-C triple action provides comprehensive mite removal. HEPA H13 captures liberated allergens. UV-C kills remaining mites without chemicals. 800 W suction matches commercial Dyson V-series performance. 24 V Li-Ion gives 30 min runtime.",
+  "alternatives": [
+    {
+      "approach": "Steam cleaning",
+      "reason_rejected": "Moisture damages mattress inner foam."
+    },
+    {
+      "approach": "Chemical spray",
+      "reason_rejected": "Chemical residue and allergy risk."
+    },
+    {
+      "approach": "Dry vacuum only",
+      "reason_rejected": "Leaves mites alive."
+    }
+  ],
+  "verification_notes": "FACT: 'Mattress Cleaning — Vibration Beater and HEPA Suction' confirms UV dose 40 mJ/cm² kills 99.9% D. pteronyssinus.",
+  "supporting_fact_titles": [
+    "Mattress Cleaning — Vibration Beater and HEPA Suction",
+    "UV-C LED Germicidal Irradiation",
+    "DC Motor Speed Control via PWM"
+  ]
+}

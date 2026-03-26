@@ -1,0 +1,27 @@
+{
+  "id": "8598a225-1986-5b45-98ba-b3374f7ed2f2",
+  "title": "Snake Robot — Serpentine Locomotion Kinematics",
+  "domain": "mechanical",
+  "category": "robotics",
+  "subcategory": "bio-inspired locomotion",
+  "detail_level": "intermediate",
+  "content": "A snake robot uses serpenoid curve gait: joint angle θ_i(t) = A·sin(2πt/T + i·φ) + offset. Forward thrust arises from anisotropic friction (lateral > axial) between links and ground. Minimum 6 servo joints achieve locomotion.",
+  "extended_content": "Gaits: lateral undulation (most common, 5–9 joints), rectilinear (concertina), sidewinding (sand/slope). Curvature κ(s) = A·k·cos(ks + φ) follows Hirose's serpenoid curve. Lateral/axial friction ratio μ_lat/μ_ax ≥ 2 required. Joint spacing L (link length) controls propulsion: v_snake ≈ 0.3–0.5 × (A·ω·L) for 8-link robot. Servo torque per joint: T = m_distal × g × L/2 (static hold). Android Bluetooth HC-05 / BLE app sends (A, T, φ) parameters to Arduino. Each servo driven by 9–12 V supply; PWM 50 Hz, 1–2 ms pulse width.",
+  "formula": "θ_i = A·sin(2πt/T + i·φ) ;  κ(s) = A·k·cos(ks+φ)",
+  "units": "θ: rad, A: rad (amplitude), T: s (period), φ: rad (phase shift)",
+  "source": "Hirose, Biologically Inspired Robots, 1993; Transeth et al., IEEE Trans. Robotics 2008; Liljeback, Snake Robot Locomotion, Springer 2012",
+  "source_url": null,
+  "confidence_score": 0.94,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "snake-robot",
+    "serpentine",
+    "locomotion",
+    "bio-inspired",
+    "servo",
+    "robotics",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}
