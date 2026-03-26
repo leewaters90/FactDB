@@ -1,0 +1,25 @@
+{
+  "id": "d87a8ec5-7ed8-55ce-9a22-336b9182a78d",
+  "title": "Radiation Shield for Meteorological Temperature Sensors",
+  "domain": "mechanical",
+  "category": "meteorological instruments",
+  "subcategory": "sensor housing",
+  "detail_level": "intermediate",
+  "content": "A radiation shield (Stevenson screen or solar radiation shield) encloses a temperature or humidity sensor to prevent solar radiation heating errors while allowing free airflow for accurate ambient measurements.",
+  "extended_content": "Solar heating can cause temperature errors of +5 to +30 °C without shielding.  A WMO-standard naturally-ventilated radiation shield (e.g., Gill multi-plate shield) reduces daytime radiation error to <0.5 °C at wind speeds > 1 m/s.  Forced-ventilation shields achieve <0.1 °C error but consume power (≈ 0.5–2 W fan).  Shield material should have high solar reflectivity (white UV-resistant ABS or polycarbonate, albedo > 0.85) and low thermal mass.  WMO height specification: sensor at 1.25–2 m above short grass.",
+  "formula": null,
+  "units": null,
+  "source": "WMO-No.8 Guide to Instruments, Ch.2; Richardson et al., 2009",
+  "source_url": null,
+  "confidence_score": 0.98,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "radiation-shield",
+    "temperature",
+    "Stevenson-screen",
+    "meteorology",
+    "weather-station"
+  ],
+  "created_by": "seed"
+}

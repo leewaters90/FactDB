@@ -1,0 +1,22 @@
+{
+  "title": "Oscillating Water Column Wave Energy Converter",
+  "component_category": "power",
+  "design_question": "How to harvest wave energy to power an autonomous maritime IoT buoy?",
+  "selected_approach": "Miniature OWC chamber (open-bottom column, sealed top, Wells turbine). Wave action oscillates air column driving turbine → PMA generator → bridge rectifier → LiFePO₄ battery. Combined with 10 W solar panel for hybrid power.",
+  "rationale": "OWC operates bidirectionally—Wells turbine produces power on both intake and exhaust strokes. Hybrid solar+wave increases availability to > 95 % uptime for offshore IoT buoys.",
+  "alternatives": [
+    {
+      "approach": "Heaving point absorber",
+      "reason_rejected": "Higher capture efficiency but requires precision mooring—more complex."
+    },
+    {
+      "approach": "Solar only",
+      "reason_rejected": "Zero power during nighttime and storms."
+    }
+  ],
+  "verification_notes": "FACT: 'Wave Energy Conversion — Oscillating Water Column Principle' confirms P/w = ρg²H²T/(32π) flux calculation.",
+  "supporting_fact_titles": [
+    "Wave Energy Conversion — Oscillating Water Column Principle",
+    "Solar Panel Sizing for Remote IoT Stations"
+  ]
+}

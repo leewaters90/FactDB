@@ -1,0 +1,27 @@
+{
+  "id": "9d50a6a1-205f-52ee-ae15-63a16b176c6a",
+  "title": "Voice Recognition — Keyword Spotting UART Module (LD3320)",
+  "domain": "electrical",
+  "category": "human-machine interface",
+  "subcategory": "voice control",
+  "detail_level": "intermediate",
+  "content": "The LD3320 (and compatible DFRobot V3/SEN0089 modules) is an embedded ASR IC using speaker-independent keyword-spotting to match up to 50 user-defined commands, reporting the matched keyword ID over UART or SPI.",
+  "extended_content": "Keyword vocabulary: user defines phoneme strings; each command stored as an index (0–49). Recognition distance: 1–3 m in quiet environments; degrades above 60 dB(A). False-trigger rate: < 1 per 8 h in typical environments. Interface: UART at 9600 baud; returns matched command ID as a byte. Alternative: Android phone with cloud ASR (Google STT) for unlimited vocabulary—requires network—unsuitable for offline embedded systems.",
+  "formula": null,
+  "units": null,
+  "source": "ICRoute LD3320 Datasheet; DFRobot Voice Recognition Module v3 Wiki",
+  "source_url": null,
+  "confidence_score": 0.91,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "voice recognition",
+    "ASR",
+    "keyword spotting",
+    "LD3320",
+    "HMI",
+    "mechatronics",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

@@ -1,0 +1,22 @@
+{
+  "title": "Coin Acceptor + Solenoid Dispenser Vending Mechanism",
+  "component_category": "mechanical",
+  "design_question": "How to reliably accept coins, accumulate credit, and dispense product in a vending machine?",
+  "selected_approach": "CH-926 coin acceptor wired to MCU interrupt pin (pulse count). MCU accumulates credit; when credit ≥ item price, energises a 12 V solenoid (or DC motor auger) for 500 ms to release one product unit. Relay-driven by N-channel MOSFET.",
+  "rationale": "Pulse-count coin acceptor is vendor-programmable for local currency denominations. Solenoid dispense is faster (< 200 ms) than auger motors; suitable for cups, cans, or water spouts.",
+  "alternatives": [
+    {
+      "approach": "NFC tap-to-pay",
+      "reason_rejected": "No coin handling but requires payment gateway hardware."
+    },
+    {
+      "approach": "Gravity-feed ramp without actuator",
+      "reason_rejected": "No electricity needed but uncontrolled dispensing."
+    }
+  ],
+  "verification_notes": "FACT: 'Coin Acceptor — Pulse-Count Authentication and Relay Dispense' confirms pulse protocol and solenoid control method.",
+  "supporting_fact_titles": [
+    "Coin Acceptor — Pulse-Count Authentication and Relay Dispense",
+    "Solenoid Valve for Pneumatic and Fluid Control"
+  ]
+}

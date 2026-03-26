@@ -1,0 +1,26 @@
+{
+  "id": "79869df1-028a-5d13-9001-4a08c92394ee",
+  "title": "Brushless DC (BLDC) Motor for Suction Fan",
+  "domain": "electrical",
+  "category": "motors",
+  "subcategory": "BLDC motor",
+  "detail_level": "intermediate",
+  "content": "A brushless DC motor eliminates carbon brushes by using electronic commutation via Hall sensors or back-EMF detection, providing higher efficiency, longer life, and higher speed than brushed motors.",
+  "extended_content": "Robot-vacuum suction fans use BLDC motors running 15,000–120,000 RPM to generate airflow.  Back-EMF constant K_e relates speed to back-EMF: V_bemf = K_e · ω.  Three-phase electronic commutation (6-step or sinusoidal) is driven by a dedicated BLDC controller (e.g., DRV10987).  Efficiency: 80–95% vs 60–75% for brushed equivalent. Acoustic noise is controlled by minimising cogging torque (fractional slot winding) and running above 20 kHz PWM switching frequency. For a 20 W suction motor at 120,000 RPM: tip speed of the impeller ≈ 120 m/s requiring precision-balanced aluminium or PEEK impellers.",
+  "formula": "V_bemf = K_e · ω",
+  "units": "V: Volts, K_e: V·s/rad, ω: rad/s",
+  "source": "Gieras & Wing, Permanent Magnet Motor Technology, 3rd ed., CRC Press",
+  "source_url": null,
+  "confidence_score": 0.96,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "BLDC",
+    "motor",
+    "suction",
+    "fan",
+    "robot-vacuum",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

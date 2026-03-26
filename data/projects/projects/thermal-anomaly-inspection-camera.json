@@ -1,0 +1,24 @@
+{
+  "title": "Thermal Anomaly Inspection Camera",
+  "description": "Pan-tilt thermal camera using MLX90640 and servo gimbal for detecting hot spots in electrical panels, PCBs, or building envelopes. ESP32 streams false-colour MJPEG over WiFi and publishes alerts via MQTT.",
+  "objective": "Detect anomalies ≥ 5 °C above ambient in 32×24 pixel array; ≤ 1 s stream latency; ±1.5 °C absolute accuracy; ≥ 8 h battery.",
+  "constraints": "≤ 150×80×50 mm; USB-C charged; WiFi MJPEG stream; ≤ £80.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "RC Servo Motor PWM Control",
+    "I²C Serial Communication Protocol",
+    "MQTT Protocol for IoT Sensor Data"
+  ],
+  "design_element_titles": [
+    "MLX90640 Thermal Infrared Imaging Array",
+    "Pan-Tilt Servo Camera Gimbal",
+    "ESP32 WiFi + MQTT IoT Telemetry",
+    "BLE GATT Smartphone App Interface",
+    "Li-Po 3.7 V USB-C Rechargeable Battery Pack"
+  ],
+  "element_usage_notes": {
+    "MLX90640 Thermal Infrared Imaging Array": "32×24 @ 4 Hz; false-colour mapped to 320×240 JPEG for MJPEG stream.",
+    "Pan-Tilt Servo Camera Gimbal": "±45° pan, ±30° tilt via SG90 servos; remote-controlled from BLE app."
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "title": "TFMini-S Single-Point LiDAR Distance Sensor",
+  "component_category": "sensing",
+  "design_question": "How to measure altitude or obstacle distance on a drone with < 5 g sensor?",
+  "selected_approach": "Benewake TFMini-S (5 V, UART 115 200 baud, 0.1–12 m, 100 Hz). Downward-facing for altitude hold < 10 m; forward-facing for close-range obstacle avoidance.",
+  "rationale": "5 g mass, ±6 mm accuracy, 2.3° FOV makes TFMini-S ideal for drones. UART output parsed in flight controller interrupt service routine. 12 m range covers indoor-to-outdoor low-altitude flight scenarios.",
+  "alternatives": [
+    {
+      "approach": "HC-SR04 ultrasonic",
+      "reason_rejected": "Cheaper but 40 ms sample rate and affected by airframe vibration."
+    },
+    {
+      "approach": "VL53L1X (4 m)",
+      "reason_rejected": "Compact but insufficient range for outdoor altitude hold."
+    }
+  ],
+  "verification_notes": "FACT: 'TFMini-S Micro LiDAR — 0.1–12 m Time-of-Flight' confirms 5 g mass, 115 200 baud UART, and 100 Hz rate.",
+  "supporting_fact_titles": [
+    "TFMini-S Micro LiDAR — 0.1–12 m Time-of-Flight",
+    "2D LiDAR Distance Measurement Principle"
+  ]
+}

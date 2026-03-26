@@ -1,0 +1,22 @@
+{
+  "title": "Abrasive Drum Food-Peeling Mechanism",
+  "component_category": "mechanical",
+  "design_question": "How to peel potato or root vegetable skins automatically in batch?",
+  "selected_approach": "Abrasive carborundum-coated drum (stainless inner bowl with grooved or coated walls) rotated by DC gear motor (12 V, 60 RPM). Wet process: continuous water spray washes away peel. Batch size 1–3 kg; peel time 2–4 min.",
+  "rationale": "Abrasive peeling removes 2–3 mm of skin without a blade—safe and usable with irregular shapes. Water flow carries peel through a bottom drain. Motor torque requirement ≈ 2 N·m at 60 RPM.",
+  "alternatives": [
+    {
+      "approach": "Rotary blade peeler",
+      "reason_rejected": "Higher peel removal rate but uneven depth on irregular produce."
+    },
+    {
+      "approach": "Steam peeling",
+      "reason_rejected": "Rapid industrial process but requires pressure vessel—impractical for lab scale."
+    }
+  ],
+  "verification_notes": "FACT: 'DC Motor Speed Control via PWM' covers speed control for the drum motor. FACT: 'Hooke's Law — Linear Elasticity' covers abrasion surface normal force calculation.",
+  "supporting_fact_titles": [
+    "DC Motor Speed Control via PWM",
+    "Hooke's Law — Linear Elasticity"
+  ]
+}

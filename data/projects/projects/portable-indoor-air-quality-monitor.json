@@ -1,0 +1,23 @@
+{
+  "title": "Portable Indoor Air Quality Monitor",
+  "description": "Handheld IoT device measuring CO₂, PM2.5, temperature, and RH. OLED display, MQTT logging, BLE smartphone display, USB-C charged.",
+  "objective": "CO₂ 400–5000 ppm (±50 ppm); PM2.5 ±10 %; RH ±2 %; T ±0.3 °C; ≥ 8 h battery.",
+  "constraints": "120×60×25 mm; < £50; USB-C; no user calibration required.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "NDIR CO₂ Sensor — Non-Dispersive Infrared",
+    "PM2.5 Optical Particle Counter",
+    "Capacitive Relative Humidity Sensing"
+  ],
+  "design_element_titles": [
+    "SCD41 NDIR CO₂ Sensing Module",
+    "SPS30 PM2.5 Optical Particle Sensor",
+    "SHT41 Digital Temperature and RH Sensing",
+    "Li-Po 3.7 V USB-C Rechargeable Battery Pack",
+    "ESP32 WiFi + MQTT IoT Telemetry",
+    "BLE GATT Smartphone App Interface",
+    "NTP UTC Timestamped Data Logging"
+  ],
+  "element_usage_notes": {}
+}

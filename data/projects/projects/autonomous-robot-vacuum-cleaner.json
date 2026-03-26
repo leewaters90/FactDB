@@ -1,0 +1,33 @@
+{
+  "title": "Autonomous Robot Vacuum Cleaner",
+  "description": "Differential-drive vacuum robot with 360° LiDAR and sonar obstacle avoidance, boustrophedon coverage path planning, SLAM localisation, HEPA filter, and BLE smartphone app. Returns autonomously to charging dock when battery is low.",
+  "objective": "Clean ≥ 90 % of reachable floor area in ≤ 30 min; ≥ 90 min runtime; cliff-safe; return to dock ≤ 5 % battery.",
+  "constraints": "≤ 350 mm diameter; ≤ 100 mm height; ≤ 2 kg; 24 V 3 Ah LiPo; IP31.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "SLAM — Simultaneous Localisation and Mapping",
+    "Coverage Path Planning — Boustrophedon (Lawnmower) Algorithm",
+    "Differential Drive Robot Kinematics",
+    "H-Bridge Motor Driver Circuit",
+    "Brushless DC (BLDC) Motor for Suction Fan",
+    "HEPA Filter Efficiency and Filtration Grade",
+    "Robot Runtime Estimation from Battery Capacity",
+    "Automatic Charging Dock — IR Beacon Homing",
+    "Infrared Cliff Detection for Robot Vacuums",
+    "Bluetooth Low Energy (BLE) for App Control"
+  ],
+  "design_element_titles": [
+    "TFMini-S Single-Point LiDAR Distance Sensor",
+    "HC-SR04 Ultrasonic Obstacle-Distance Sensor",
+    "L298N Dual H-Bridge Motor Driver Module",
+    "DC Gear Motor with PWM Speed Control",
+    "Magnetic Quadrature Wheel Encoders",
+    "BLE GATT Smartphone App Interface",
+    "MCU Deep-Sleep Duty Cycle Power Management"
+  ],
+  "element_usage_notes": {
+    "TFMini-S Single-Point LiDAR Distance Sensor": "Mounted on 360° spinning platform at 10 Hz; 8 m range for room mapping.",
+    "L298N Dual H-Bridge Motor Driver Module": "Two 12 V 200 RPM gearmotors; 180 mm wheelbase; 20 kHz PWM."
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "title": "Solar Panel + LiFePO₄ MPPT Power System",
+  "component_category": "power",
+  "design_question": "How to achieve ≥1-week battery autonomy from solar for a remote IoT node?",
+  "selected_approach": "60×90 mm 1 W solar panel + 3.2 V 2 Ah LiFePO₄ via CN3791 MPPT charge controller. ESP32 deep sleep between 15-min cycles. Avg I ≈ 24 µA @ 96 µW.",
+  "rationale": "LiFePO₄: safer chemistry, 2000+ cycle life, tolerates outdoor temp. 1 W panel at 2 PSH gives 2 Wh/day—83× the 24 µW needed.",
+  "alternatives": [
+    {
+      "approach": "AAA alkaline pack",
+      "reason_rejected": "Non-rechargeable; ≈83 h at 14.6 µA average—monthly replacement—rejected."
+    }
+  ],
+  "verification_notes": "FACT: 'Solar Panel Sizing' formula P = E_daily/(η·PSH) confirms 0.038 W minimum—well under 1 W panel. FACT: 'Low-Power Microcontroller Sleep Modes' confirms I_avg formula.",
+  "supporting_fact_titles": [
+    "Solar Panel Sizing for Remote IoT Stations",
+    "Li-Ion Battery Capacity and Energy Calculation",
+    "Low-Power Microcontroller Sleep Modes"
+  ]
+}

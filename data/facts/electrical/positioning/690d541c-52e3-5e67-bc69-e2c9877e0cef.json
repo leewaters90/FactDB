@@ -1,0 +1,28 @@
+{
+  "id": "690d541c-52e3-5e67-bc69-e2c9877e0cef",
+  "title": "GPS Module — NMEA Sentence Parsing and Fix Accuracy",
+  "domain": "electrical",
+  "category": "positioning",
+  "subcategory": "satellite navigation",
+  "detail_level": "intermediate",
+  "content": "A GPS receiver decodes pseudorange signals from ≥ 4 satellites to compute a 3D position fix (latitude, longitude, altitude) reported as NMEA-0183 ASCII sentences at 1–10 Hz.",
+  "extended_content": "Key NMEA sentences: $GPRMC (position, speed, heading), $GPGGA (position, altitude, fix quality), $GPGSV (satellites).  Horizontal accuracy: 3–5 m CEP (standard GPS), < 2 m with WAAS/EGNOS SBAS correction, < 0.1 m with RTK (Real-Time Kinematic).  Cold start TTFF (time to first fix): 30–90 s; hot start < 2 s.  Typical modules: u-blox NEO-M8N (3.3 V, UART, 10 Hz, −167 dBm sensitivity), NEO-M9N (concurrent GNSS).  Serial interface: 9600 baud default; configure with UBX protocol for update rate and satellite system selection.  Power: 10–25 mA acquisition, 10–15 mA tracking.  External active antenna (3.3 V bias-T) increases sensitivity in vehicles and buildings.",
+  "formula": null,
+  "units": "Position: degrees decimal, speed: m/s, altitude: m",
+  "source": "u-blox NEO-M8N Integration Manual; NMEA-0183 Standard 4.11",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "GPS",
+    "GNSS",
+    "positioning",
+    "NMEA",
+    "navigation",
+    "IoT",
+    "mechatronics",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

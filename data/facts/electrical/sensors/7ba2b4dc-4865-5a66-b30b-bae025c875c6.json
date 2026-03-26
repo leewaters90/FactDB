@@ -1,0 +1,27 @@
+{
+  "id": "7ba2b4dc-4865-5a66-b30b-bae025c875c6",
+  "title": "Capacitive Soil Moisture Sensing",
+  "domain": "electrical",
+  "category": "sensors",
+  "subcategory": "soil sensing",
+  "detail_level": "fundamental",
+  "content": "Capacitive soil moisture sensors measure the dielectric permittivity of soil, which increases with water content, producing a voltage output proportional to volumetric water content (VWC).",
+  "extended_content": "Probe is inserted into soil; oscillator frequency or output voltage shifts with soil capacitance.  Typical output: 1.2–3.0 V spanning dry to saturated soil; calibration required per soil type.  Advantage over resistive probes: no electrolytic corrosion of electrodes, longer service life.  Calibration equation: VWC = a·V_out + b (linear approximation, a and b soil-specific). Operating depth: sensor prongs typically 3–8 cm; multiple sensors at different depths characterise the moisture profile.  Temperature compensation needed above 30 °C (permittivity of water falls slightly with temperature).",
+  "formula": null,
+  "units": "V (output voltage) or % VWC (volumetric water content)",
+  "source": "Decagon Devices, 5TE Soil Moisture Sensor Application Note; METER Group",
+  "source_url": null,
+  "confidence_score": 0.96,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "soil-moisture",
+    "capacitive",
+    "sensor",
+    "agriculture",
+    "IoT",
+    "mechatronics",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

@@ -1,0 +1,27 @@
+{
+  "id": "2b12c390-cca2-5dd4-b964-6871949747d6",
+  "title": "Induction Heating — IGBT Resonant Series Circuit",
+  "domain": "electrical",
+  "category": "power electronics",
+  "subcategory": "induction heating",
+  "detail_level": "advanced",
+  "content": "Induction heating uses a high-frequency (20–100 kHz) alternating magnetic field from a resonant LC work coil to induce eddy currents and hysteresis losses inside a ferromagnetic or conductive workpiece, heating it without contact.",
+  "extended_content": "Circuit topology: half-bridge or full-bridge IGBTs switching a series LC tank at resonant frequency f₀ = 1 / (2π√(LC)). Zero-voltage switching (ZVS) reduces IGBT switching losses. Portable cooktop: 1–2 kW, 25–50 kHz; pot must be ferromagnetic (iron, steel, cast iron; not pure aluminium or copper). Safety: ferrite flux concentrators limit stray fields; keep switching frequency above 20 kHz to avoid audible noise. Temperature control: NTC thermistor or IR sensor with PID loop adjusting duty cycle. Alternative: resistive heating element—simpler but 30 % larger and slower thermal response.",
+  "formula": "f₀ = 1 / (2π √(LC))",
+  "units": "Frequency: Hz; inductance: H; capacitance: F",
+  "source": "Kazimierczuk & Czarkowski, Resonant Power Converters, 2nd ed.",
+  "source_url": null,
+  "confidence_score": 0.94,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "induction heating",
+    "IGBT",
+    "ZVS",
+    "resonant",
+    "power electronics",
+    "cooktop",
+    "mechatronics"
+  ],
+  "created_by": "seed"
+}

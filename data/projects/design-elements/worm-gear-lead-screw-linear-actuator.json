@@ -1,0 +1,22 @@
+{
+  "title": "Worm Gear Lead-Screw Linear Actuator",
+  "component_category": "mechanical",
+  "design_question": "How to convert rotary motor motion to a self-locking linear stroke for lifting applications?",
+  "selected_approach": "M8 or M10 threaded lead screw + T8 brass nut driven by DC gear motor via worm gearbox (gear ratio 20:1–50:1). Limit switches at each end of travel. Self-locking worm prevents back-driving under load.",
+  "rationale": "Worm gear ratio provides high mechanical advantage (hold load without power) and self-locking property prevents lowering under gravity. Suitable for scissor jacks, forklifts, and folding tables.",
+  "alternatives": [
+    {
+      "approach": "Ball screw + stepper",
+      "reason_rejected": "Back-drivable—requires holding current; higher efficiency (90 % vs 50 %) but not self-locking."
+    },
+    {
+      "approach": "Rack and pinion",
+      "reason_rejected": "Fast linear motion but not self-locking—needs brake for vertical loads."
+    }
+  ],
+  "verification_notes": "FACT: 'Worm Gear Ratio and Self-Locking Property' confirms self-locking condition (lead angle < friction angle).",
+  "supporting_fact_titles": [
+    "Worm Gear Ratio and Self-Locking Property",
+    "DC Motor Speed Control via PWM"
+  ]
+}

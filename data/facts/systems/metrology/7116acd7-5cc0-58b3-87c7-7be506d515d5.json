@@ -1,0 +1,26 @@
+{
+  "id": "7116acd7-5cc0-58b3-87c7-7be506d515d5",
+  "title": "Sensor Calibration and Traceability to SI",
+  "domain": "systems",
+  "category": "metrology",
+  "subcategory": "calibration",
+  "detail_level": "intermediate",
+  "content": "Sensor calibration establishes the relationship between an instrument's output and a reference standard, providing an uncertainty chain traceable to SI units via national metrology institutes.",
+  "extended_content": "ISO/IEC 17025 governs calibration laboratory competence.  For weather-station sensors: temperature traceable to ITS-90 (triple point of water = 273.16 K), pressure to primary pressure standards (U < 0.1 hPa), RH to gravimetric hygrometers (U < 0.5 %RH). Field calibration intervals recommended by WMO: temperature 1–2 yr, pressure 1–2 yr, RH 6–12 months.  Calibration certificates must include measurement uncertainty at 95% confidence (coverage factor k = 2) and environmental conditions during calibration.",
+  "formula": null,
+  "units": null,
+  "source": "WMO-No.49 Technical Regulations Vol.I; ISO/IEC 17025:2017",
+  "source_url": null,
+  "confidence_score": 0.99,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "calibration",
+    "metrology",
+    "traceability",
+    "uncertainty",
+    "weather-station",
+    "systems"
+  ],
+  "created_by": "seed"
+}

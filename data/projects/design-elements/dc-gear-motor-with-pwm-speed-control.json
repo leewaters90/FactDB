@@ -1,0 +1,23 @@
+{
+  "title": "DC Gear Motor with PWM Speed Control",
+  "component_category": "actuation",
+  "design_question": "Which motor provides sufficient torque for wheeled robot locomotion?",
+  "selected_approach": "Standard DC gear motor (12 V, 100–300 RPM, gear ratio 1:30–1:100). Speed controlled via L298N or TB6612FNG PWM. Gear reduction provides high torque at low speed for reliable traction.",
+  "rationale": "Gear motors rated 0.5–2 kg·cm provide adequate drive for robots up to 2 kg. 12 V operation compatible with common Li-Ion packs. Encoder-equipped variants enable closed-loop speed control.",
+  "alternatives": [
+    {
+      "approach": "BLDC + ESC",
+      "reason_rejected": "Higher speed/efficiency but needs ESC; overkill for slow indoor robots."
+    },
+    {
+      "approach": "Servo motor (continuous)",
+      "reason_rejected": "Limited to 360° rotation hack; lower torque than gearbox."
+    }
+  ],
+  "verification_notes": "FACT: 'DC Motor Speed Control via PWM' confirms H-bridge PWM direction and speed control.",
+  "supporting_fact_titles": [
+    "DC Motor Speed Control via PWM",
+    "H-Bridge Motor Driver Circuit",
+    "Differential Drive Robot Kinematics"
+  ]
+}

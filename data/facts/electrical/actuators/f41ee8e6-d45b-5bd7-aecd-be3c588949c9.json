@@ -1,0 +1,26 @@
+{
+  "id": "f41ee8e6-d45b-5bd7-aecd-be3c588949c9",
+  "title": "RC Servo Motor PWM Control",
+  "domain": "electrical",
+  "category": "actuators",
+  "subcategory": "servo motors",
+  "detail_level": "fundamental",
+  "content": "An RC servo motor is commanded by a PWM signal with a 50 Hz frame rate; pulse width 1–2 ms maps to shaft angle 0–180°.",
+  "extended_content": "Standard servo protocol: 1 ms = 0°, 1.5 ms = 90° (neutral), 2 ms = 180°.  Internal feedback loop (potentiometer + H-bridge) maintains position against load.  Torque ratings: micro servo 1–2 kg·cm, standard 3–6 kg·cm, high-torque 10–25 kg·cm.  Servo signal voltage is 3.3–5 V; operating voltage typically 4.8–7.4 V. Most MCU PWM timers generate servo pulses directly (Arduino: Servo.h, STM32 TIM_OC, ESP32 ledc).  For continuous-rotation servos, 1.5 ms = stop, <1.5 ms = CW, >1.5 ms = CCW — useful for low-cost drive wheels.  Backlash (0.1–0.5°) limits positioning accuracy.",
+  "formula": null,
+  "units": "Pulse width: µs (1000–2000 µs); angle: degrees",
+  "source": "Futaba Servo Specifications; Arduino Servo Library Reference",
+  "source_url": null,
+  "confidence_score": 0.98,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "servo",
+    "PWM",
+    "actuator",
+    "motor",
+    "mechatronics",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

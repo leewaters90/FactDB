@@ -1,0 +1,26 @@
+{
+  "id": "f4fbc4ba-189f-570e-833d-b9787d826329",
+  "title": "MEMS Barometric Pressure Sensor",
+  "domain": "electrical",
+  "category": "sensors",
+  "subcategory": "pressure sensing",
+  "detail_level": "intermediate",
+  "content": "Micro-Electro-Mechanical Systems (MEMS) barometric sensors measure absolute atmospheric pressure by detecting the deflection of a micro-machined silicon membrane using piezoresistive or capacitive techniques.",
+  "extended_content": "Typical range: 300–1100 hPa (equivalent to altitudes from +9000 m to −500 m).  Resolution: ±0.06 hPa (Bosch BMP390), equivalent to ±0.5 m altitude.  Temperature compensation is required: most devices include an on-chip temperature sensor and compensation coefficients stored in OTP memory.  Output is via SPI or I²C at sample rates up to 200 Hz.  For sea-level pressure reduction (QNH), apply: P_SL = P_stn × exp(g·h / (R_d·T_virt)), where h is station elevation.",
+  "formula": "P_SL = P_stn · exp(g · h / (R_d · T_virt))",
+  "units": "hPa (hectopascal)",
+  "source": "Bosch BMP390 Datasheet; WMO Technical Note No.61",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "pressure",
+    "barometric",
+    "MEMS",
+    "sensor",
+    "weather-station",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

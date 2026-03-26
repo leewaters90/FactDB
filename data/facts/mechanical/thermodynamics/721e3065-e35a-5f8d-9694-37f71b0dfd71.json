@@ -1,0 +1,24 @@
+{
+  "id": "721e3065-e35a-5f8d-9694-37f71b0dfd71",
+  "title": "Carnot Efficiency",
+  "domain": "mechanical",
+  "category": "thermodynamics",
+  "subcategory": "heat engines",
+  "detail_level": "intermediate",
+  "content": "The maximum thermal efficiency of any heat engine operating between two temperature reservoirs is the Carnot efficiency: η_max = 1 − T_L / T_H.",
+  "extended_content": "T_H is the absolute temperature of the hot reservoir and T_L is the absolute temperature of the cold reservoir (both in Kelvin). No real engine can exceed this limit; practical engines are further limited by irreversibilities such as friction, heat transfer across finite temperature differences, and internal leakage.",
+  "formula": "η_Carnot = 1 − T_L / T_H",
+  "units": "dimensionless (0–1)",
+  "source": "Cengel & Boles, Thermodynamics: An Engineering Approach, 8th ed.",
+  "source_url": null,
+  "confidence_score": 1.0,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "thermodynamics",
+    "heat-engine",
+    "efficiency",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}

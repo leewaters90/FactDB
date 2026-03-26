@@ -1,0 +1,18 @@
+{
+  "title": "ICM-42688-P High-Rate IMU via SPI",
+  "component_category": "sensing",
+  "design_question": "How to sample IMU at 8 kHz with <5 µs latency for a 4 kHz flight control loop?",
+  "selected_approach": "ICM-42688-P on SPI at 8 MHz; gyro at 8 kHz downsampled to 4 kHz. Anti-aliasing filter at 1 kHz. Mahony complementary filter.",
+  "rationale": "SPI at 8 MHz gives <5 µs latency vs I²C 400 kHz at 40 µs—critical for 4 kHz loop. Mahony filter proven in Betaflight.",
+  "alternatives": [
+    {
+      "approach": "MPU-6050 on I²C 400 kHz",
+      "reason_rejected": "I²C too slow for 8 kHz sample rate; 40 µs latency unacceptable—rejected."
+    }
+  ],
+  "verification_notes": "FACT: 'Nyquist–Shannon Sampling Theorem'—8 kHz satisfies Nyquist for rotor vibrations up to 4 kHz.",
+  "supporting_fact_titles": [
+    "IMU (Inertial Measurement Unit) for Robot Navigation",
+    "Nyquist–Shannon Sampling Theorem"
+  ]
+}

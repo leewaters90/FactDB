@@ -1,5 +1,11 @@
 """
-Project seeder — loads shared DesignElements and the 10 mechatronics projects.
+Project seeder — loads shared DesignElements and mechatronics projects from
+the JSON folder tree.
+
+Data sources
+------------
+- Design elements: ``data/projects/design-elements/*.json``
+- Projects:        ``data/projects/projects/*.json``
 
 Idempotency
 -----------
@@ -14,22 +20,46 @@ Load order
 2. Seed Projects (metadata only).
 3. Link Projects → DesignElements.
 
-Requires :func:`factdb.seeder.seed` (or :func:`factdb.device_seeder.seed_devices`)
-to have been called first so that the Fact records exist.
+Requires :func:`factdb.seeder.seed` to have been called first so that the
+Fact records referenced by ``supporting_fact_titles`` exist in the database.
 """
 
 from __future__ import annotations
+
+import json
+import os
+from pathlib import Path
 
 from sqlalchemy.orm import Session
 
 from factdb.project_models import ComponentCategory, ProjectStatus
 from factdb.project_repository import ProjectRepository
-from factdb.project_seed_data import DESIGN_ELEMENTS, MECHATRONICS_PROJECTS
+
+# Root directory for project JSON data.
+_PROJECTS_DIR = Path(os.path.dirname(os.path.dirname(__file__))) / "data" / "projects"
+
+
+def _load_json_dir(directory: Path) -> list[dict]:
+    """Return all JSON objects found in *directory* (non-recursive)."""
+    if not directory.exists():
+        return []
+    results = []
+    for path in sorted(directory.glob("*.json")):
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            if isinstance(data, dict):
+                results.append(data)
+        except (json.JSONDecodeError, OSError):
+            pass
+    return results
 
 
 def seed_projects(session: Session, created_by: str = "system-seed") -> dict:
     """
     Populate the database with shared DesignElements and project designs.
+
+    Reads design element data from ``data/projects/design-elements/*.json``
+    and project data from ``data/projects/projects/*.json``.
 
     Args:
         session:     Active SQLAlchemy session (caller commits).
@@ -41,14 +71,19 @@ def seed_projects(session: Session, created_by: str = "system-seed") -> dict:
     """
     repo = ProjectRepository(session)
 
+    design_elements = _load_json_dir(_PROJECTS_DIR / "design-elements")
+    mechatronics_projects = _load_json_dir(_PROJECTS_DIR / "projects")
+
     elements_created = 0
     elements_skipped = 0
 
     # ----------------------------------------------------------------
     # 1. Seed all DesignElements
     # ----------------------------------------------------------------
-    for edata in DESIGN_ELEMENTS:
-        title = edata["title"]
+    for edata in design_elements:
+        title = edata.get("title", "")
+        if not title:
+            continue
         _, created = repo.get_or_create_design_element(
             title=title,
             selected_approach=edata["selected_approach"],
@@ -73,8 +108,10 @@ def seed_projects(session: Session, created_by: str = "system-seed") -> dict:
     projects_skipped = 0
     links_created = 0
 
-    for pdata in MECHATRONICS_PROJECTS:
-        ptitle = pdata["title"]
+    for pdata in mechatronics_projects:
+        ptitle = pdata.get("title", "")
+        if not ptitle:
+            continue
 
         project = repo.get_project_by_title(ptitle)
         is_new_project = project is None
@@ -95,12 +132,11 @@ def seed_projects(session: Session, created_by: str = "system-seed") -> dict:
             projects_created += 1
 
         # Link design elements (idempotent per element title).
-        # Only count links that are truly new (i.e. for newly created projects).
         usage_notes_map: dict = pdata.get("element_usage_notes", {})
         for etitle in pdata.get("design_element_titles", []):
             element = repo.get_design_element_by_title(etitle)
             if element is None:
-                continue  # element not seeded — skip silently
+                continue
             repo.link_element_to_project(
                 project_id=project.id,
                 element_id=element.id,

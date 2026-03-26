@@ -1,0 +1,22 @@
+{
+  "title": "Servo-Based Gripper Jaw Mechanism",
+  "component_category": "mechanical",
+  "design_question": "How to grip and release objects with a compact, lightweight end-effector?",
+  "selected_approach": "Parallel-jaw gripper driven by MG996R servo (180° range, 10 kg·cm). Rack-and-pinion or scissor linkage converts servo rotation to symmetric jaw closure. Jaw gap 0–60 mm; grip force up to 5 N.",
+  "rationale": "Single servo gripper is compact (< 80 g), inexpensive (< £5), and directly controlled by PWM from the robot arm controller. Adequate for picking objects up to 200 g.",
+  "alternatives": [
+    {
+      "approach": "Pneumatic gripper",
+      "reason_rejected": "Faster and stronger but requires compressor and solenoid valves."
+    },
+    {
+      "approach": "3-finger underactuated gripper",
+      "reason_rejected": "Handles irregular objects but 3 servos and complex linkage."
+    }
+  ],
+  "verification_notes": "FACT: 'RC Servo Motor PWM Control' confirms MG996R PWM range and 10 kg·cm stall torque.",
+  "supporting_fact_titles": [
+    "RC Servo Motor PWM Control",
+    "Forward and Inverse Kinematics — Serial Robot Arm"
+  ]
+}

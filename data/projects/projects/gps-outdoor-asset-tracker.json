@@ -1,0 +1,25 @@
+{
+  "title": "GPS Outdoor Asset Tracker",
+  "description": "Low-power GPS tracker for vehicles or outdoor equipment. Publishes location over MQTT via ESP32 WiFi on movement events and periodic heartbeat; logs to microSD when offline.",
+  "objective": "Fix ≤ 10 m CEP; ≤ 5 s cold start outdoors; wake on >5 m movement; ≥ 1-week battery at 1 fix/10 min.",
+  "constraints": "90×50×25 mm; IP54; USB-C; WiFi-only (no cellular); ≤ £30.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "MQTT Protocol for IoT Sensor Data",
+    "NTP Time Synchronisation for Data Logging",
+    "Low-Power Microcontroller Sleep Modes"
+  ],
+  "design_element_titles": [
+    "NEO-6M GPS Module for Navigation",
+    "MCU Deep-Sleep Duty Cycle Power Management",
+    "ESP32 WiFi + MQTT IoT Telemetry",
+    "Li-Po 3.7 V USB-C Rechargeable Battery Pack",
+    "NTP UTC Timestamped Data Logging",
+    "MicroSD 1 Hz Time-Series Data Logger"
+  ],
+  "element_usage_notes": {
+    "NEO-6M GPS Module for Navigation": "Sleep between fixes; 1 Hz NMEA UART 9600 baud; backup battery for warm start.",
+    "MCU Deep-Sleep Duty Cycle Power Management": "ESP32 10-min deep sleep; RTC wakeup; ≤ 12 µA idle current."
+  }
+}

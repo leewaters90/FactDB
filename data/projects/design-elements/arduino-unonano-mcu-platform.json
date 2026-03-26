@@ -1,0 +1,23 @@
+{
+  "title": "Arduino Uno/Nano MCU Platform",
+  "component_category": "control",
+  "design_question": "Which low-cost 8-bit MCU board suits simple sensor/actuator projects?",
+  "selected_approach": "ATmega328P-based Arduino Uno (5 V, 16 MHz, 14 digital I/O, 6 ADC) or Arduino Nano (same chip, smaller footprint). Programmed via Arduino IDE with C++ Arduino framework over USB.",
+  "rationale": "Arduino Uno/Nano provides ample I/O for projects with < 10 actuators and < 8 sensors. The 5 V operating voltage is directly compatible with common modules (HC-05, L298N, servos). Wide community support.",
+  "alternatives": [
+    {
+      "approach": "Raspberry Pi",
+      "reason_rejected": "Overkill for simple actuator projects; higher cost and Linux boot time."
+    },
+    {
+      "approach": "STM32 Blue Pill",
+      "reason_rejected": "More performant but harder to program for beginners."
+    }
+  ],
+  "verification_notes": "FACT: 'DC Motor Speed Control via PWM' confirms Arduino hardware PWM at 490/980 Hz on pins 3/5/6/9/10/11.",
+  "supporting_fact_titles": [
+    "DC Motor Speed Control via PWM",
+    "RC Servo Motor PWM Control",
+    "I²C Serial Communication Protocol"
+  ]
+}

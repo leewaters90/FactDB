@@ -1,0 +1,26 @@
+{
+  "id": "cab5369b-2d7b-5d07-b307-0b92906c93d1",
+  "title": "Solenoid Valve for Pneumatic and Fluid Control",
+  "domain": "electrical",
+  "category": "actuators",
+  "subcategory": "valves",
+  "detail_level": "intermediate",
+  "content": "A solenoid valve uses an electromagnet coil to move a plunger that opens or closes a fluid (air, water, oil) passage.  Energising the coil produces force F = N²·µ₀·A·I² / (2·g²) acting on the ferromagnetic plunger.",
+  "extended_content": "Types: 2/2 (2-port, 2-position), 3/2, 5/2 (common for double-acting cylinders — extends on one solenoid, retracts on the other). Operating voltage: 12 V DC or 24 V DC standard; coil power typically 2–10 W.  Response time: 10–50 ms.  MCU control via N-channel MOSFET or relay; flyback diode essential on DC coil.  Cv (flow coefficient) determines maximum flow; ensure Cv ≥ Q_required / (√ΔP) for the application.  IP65+ sealing for wet or dusty environments.  Fail-safe variants: normally-open (NO) de-energised = flow; normally-closed (NC) de-energised = blocked.",
+  "formula": "F_solenoid ≈ N²·µ₀·A·I² / (2·g²)",
+  "units": "F: N, I: A, g: m (air gap)",
+  "source": "Festo Pneumatic Fundamentals Guide; Parker 3/2 Valve Application Note",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "solenoid-valve",
+    "pneumatic",
+    "fluid-control",
+    "actuator",
+    "mechatronics",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

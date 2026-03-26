@@ -1,0 +1,18 @@
+{
+  "title": "BLDC 2306 Motor + BLHeli-32 ESC Drive",
+  "component_category": "actuation",
+  "design_question": "Which BLDC motor/ESC combination achieves ≥5 min flight with 450 g AUW?",
+  "selected_approach": "4× Emax RS2306 2750 KV + 4× BLHeli-32 30 A ESCs. 5-inch 3-blade props. Hover at ≈30 % throttle on 4S 14.8 V.",
+  "rationale": "2750 KV × 14.8 V ≈ 40 000 RPM. Thrust/motor at hover = 112 g ≈15 % max thrust—highly efficient operating point.",
+  "alternatives": [
+    {
+      "approach": "Coreless brushed motors",
+      "reason_rejected": "60–70 % efficiency vs 85–95 % for BLDC; shorter brush life—rejected."
+    }
+  ],
+  "verification_notes": "FACT: 'Brushless DC (BLDC) Motor for Suction Fan' confirms electronic commutation principle applicable to propulsion.",
+  "supporting_fact_titles": [
+    "Brushless DC (BLDC) Motor for Suction Fan",
+    "Robot Runtime Estimation from Battery Capacity"
+  ]
+}

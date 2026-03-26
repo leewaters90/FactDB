@@ -1,0 +1,21 @@
+{
+  "title": "Load Cell IV-Bag / Fluid Weight Monitor",
+  "component_category": "sensing",
+  "design_question": "How to monitor drip-bag remaining volume and trigger a low-volume alert?",
+  "selected_approach": "50–100 g single-point load cell + HX711 24-bit ADC bridge amplifier. MCU reads weight at 10 Hz; triggers audible/WiFi alert at programmed threshold (e.g. 50 g remaining in IV bag).",
+  "rationale": "Load cell gives direct mass measurement (±0.1 g accuracy with HX711). IV bag density ≈ 1 g/mL so mass = volume directly. Completely non-invasive—no contact with fluid.",
+  "alternatives": [
+    {
+      "approach": "Optical drip counter",
+      "reason_rejected": "Counts drops but errors accumulate; affected by bubbles."
+    },
+    {
+      "approach": "Ultrasonic level sensor",
+      "reason_rejected": "Requires reflective surface; impractical for flexible IV bags."
+    }
+  ],
+  "verification_notes": "FACT: 'Load Cell and Wheatstone Bridge' confirms Wheatstone bridge and HX711 24-bit ADC instrumentation amplifier.",
+  "supporting_fact_titles": [
+    "Load Cell and Wheatstone Bridge"
+  ]
+}

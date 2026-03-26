@@ -1,0 +1,18 @@
+{
+  "title": "PID Weighted-Average Line-Tracking Controller",
+  "component_category": "control",
+  "design_question": "How to keep a differential-drive robot on a black line at 0.3 m/s?",
+  "selected_approach": "Error = weighted centroid of 8 IR sensors (−35 to +35 mm). L = base + PID_out; R = base − PID_out. K_p=0.4, K_i=0, K_d=8.",
+  "rationale": "High K_d damps oscillation on straights. Zero K_i prevents windup during sharp corners. K_i added only for banked surfaces.",
+  "alternatives": [
+    {
+      "approach": "P-only control",
+      "reason_rejected": "Oscillates at high speed; K_d essential."
+    }
+  ],
+  "verification_notes": "FACT: 'PID Controller — Transfer Function'—K_d reduces overshoot; consistent with derivative-heavy strategy.",
+  "supporting_fact_titles": [
+    "PID Controller — Transfer Function",
+    "Differential Drive Robot Kinematics"
+  ]
+}

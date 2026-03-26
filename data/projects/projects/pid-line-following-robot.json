@@ -1,0 +1,22 @@
+{
+  "title": "PID Line-Following Robot",
+  "description": "Small differential-drive robot following a black line on white surface using an IR reflectance array and real-time PID heading correction.",
+  "objective": "Follow 19 mm line at ≥ 0.3 m/s with ≤ 30 mm cross-track error on 90° corners.",
+  "constraints": "Cost ≤ £20; 4× AA NiMH; chassis ≤ 20×15 cm.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "PID Controller — Transfer Function",
+    "Differential Drive Robot Kinematics",
+    "DC Motor Speed Control via PWM"
+  ],
+  "design_element_titles": [
+    "8-Sensor TCRT5000 IR Reflectance Array",
+    "PID Weighted-Average Line-Tracking Controller",
+    "TB6612FNG Dual H-Bridge PWM Motor Drive",
+    "Magnetic Quadrature Wheel Encoders"
+  ],
+  "element_usage_notes": {
+    "TB6612FNG Dual H-Bridge PWM Motor Drive": "5 V gearmotors; 20 kHz PWM."
+  }
+}

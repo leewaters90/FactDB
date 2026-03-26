@@ -1,0 +1,33 @@
+{
+  "title": "Automatic Weather Station",
+  "description": "Solar-powered outdoor station measuring air temperature, RH, barometric pressure, wind speed, wind direction, and rainfall. Logs at 1-min intervals to microSD and publishes over MQTT. Sensors housed in radiation shield and anemometer mast.",
+  "objective": "T ±0.3 °C; RH ±2 %; pressure ±1 hPa; wind ±0.5 m/s; rainfall 0.2 mm resolution; 30-day local data retention.",
+  "constraints": "Outdoor IP65; mast-mounted; 12 V LiFePO₄ + 10 W solar; WiFi uplink.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Cup Anemometer — Wind Speed Measurement",
+    "Wind Vane — Wind Direction Measurement",
+    "Tipping Bucket Rain Gauge",
+    "Capacitive Relative Humidity Sensing",
+    "MEMS Barometric Pressure Sensor",
+    "Solar Panel Sizing for Remote IoT Stations",
+    "MQTT Protocol for IoT Sensor Data",
+    "NTP Time Synchronisation for Data Logging",
+    "Radiation Shield for Meteorological Temperature Sensors",
+    "Sensor Calibration and Traceability to SI"
+  ],
+  "design_element_titles": [
+    "SHT41 Digital Temperature and RH Sensing",
+    "I²C TCA9548A Multi-Device Sensor Bus",
+    "Solar Panel + LiFePO₄ MPPT Power System",
+    "MCU Deep-Sleep Duty Cycle Power Management",
+    "ESP32 WiFi + MQTT IoT Telemetry",
+    "NTP UTC Timestamped Data Logging",
+    "MicroSD 1 Hz Time-Series Data Logger"
+  ],
+  "element_usage_notes": {
+    "SHT41 Digital Temperature and RH Sensing": "Housed in Stevenson screen; radiation shield reduces solar error to < 0.3 °C.",
+    "MicroSD 1 Hz Time-Series Data Logger": "1-min interval averages; CSV with UTC timestamp; 30-day FAT32 rolling archive."
+  }
+}

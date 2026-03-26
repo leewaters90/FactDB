@@ -1,0 +1,23 @@
+{
+  "title": "SCT-013 Split-Core CT Clamp Current Sensing",
+  "component_category": "sensing",
+  "design_question": "How to measure 0–100 A AC current non-invasively with <0.5 % gain error?",
+  "selected_approach": "SCT-013-100 (100 A:50 mA, N=2000). Burden R_b=33 Ω → 2.33 V peak. Biased to mid-rail (1.65 V). Sampled at 4800 Hz.",
+  "rationale": "SCT-013 ±1 % accuracy 10–120 % rated current. Burden voltage <3.3 V safe for ESP32 ADC. 4800 Hz ≫ 2×60 Hz Nyquist.",
+  "alternatives": [
+    {
+      "approach": "ACS712 inline Hall sensor",
+      "reason_rejected": "Requires cutting the monitored wire—defeats non-invasive objective."
+    },
+    {
+      "approach": "Shunt resistor inline",
+      "reason_rejected": "Mains-side connection; isolated ADC required; safety risk—rejected."
+    }
+  ],
+  "verification_notes": "FACT: 'CT Clamp Current Sensing and RMS Calculation' confirms parameters and open-circuit safety warning.",
+  "supporting_fact_titles": [
+    "CT Clamp Current Sensing and RMS Calculation",
+    "ADC Resolution and Measurement Precision",
+    "Nyquist–Shannon Sampling Theorem"
+  ]
+}

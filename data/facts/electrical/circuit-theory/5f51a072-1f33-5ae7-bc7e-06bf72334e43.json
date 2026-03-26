@@ -1,0 +1,24 @@
+{
+  "id": "5f51a072-1f33-5ae7-bc7e-06bf72334e43",
+  "title": "Kirchhoff's Current Law (KCL)",
+  "domain": "electrical",
+  "category": "circuit theory",
+  "subcategory": "network analysis",
+  "detail_level": "fundamental",
+  "content": "The algebraic sum of currents entering a node equals the sum of currents leaving that node: Σ I_in = Σ I_out.",
+  "extended_content": "KCL is a statement of conservation of charge.  It holds at every node (junction) in a circuit and is the basis of nodal analysis.",
+  "formula": "∑ I_in = ∑ I_out  (at a node)",
+  "units": "Amperes (A)",
+  "source": "Hayt & Kemmerly, Engineering Circuit Analysis, 8th ed.",
+  "source_url": null,
+  "confidence_score": 1.0,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "circuit",
+    "current",
+    "kirchhoff",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

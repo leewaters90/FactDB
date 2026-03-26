@@ -1,0 +1,18 @@
+{
+  "title": "Mahony IMU Attitude + Heading Filter",
+  "component_category": "control",
+  "design_question": "How to estimate full 3D attitude (roll/pitch/yaw) for flight control at 4 kHz?",
+  "selected_approach": "Mahony complementary filter with two gains (Kp, Ki). Proven in Betaflight; runs in <5 µs on STM32F4.",
+  "rationale": "Simpler to tune than EKF (2 gains vs Q/R matrices). Proven stability in open-source flight controllers.",
+  "alternatives": [
+    {
+      "approach": "Madgwick filter",
+      "reason_rejected": "Similar performance; single β gain—alternative if Mahony proves unstable in specific configuration."
+    }
+  ],
+  "verification_notes": "FACT: 'Kalman Filter for Sensor Fusion' provides EKF as a more accurate alternative for GPS-aided mode.",
+  "supporting_fact_titles": [
+    "Kalman Filter for Sensor Fusion",
+    "IMU (Inertial Measurement Unit) for Robot Navigation"
+  ]
+}

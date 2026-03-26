@@ -1,0 +1,26 @@
+{
+  "id": "3f4fde0d-2cbc-5786-b9eb-bb7cdba0d9fd",
+  "title": "IP (Ingress Protection) Rating — IEC 60529",
+  "domain": "systems",
+  "category": "enclosure design",
+  "subcategory": "environmental protection",
+  "detail_level": "fundamental",
+  "content": "The IP Code (IEC 60529) classifies the degree of protection an enclosure provides against solid particles and liquids using two digits: IP XY, where X = solid (0–6) and Y = liquid (0–8/9K).",
+  "extended_content": "Key levels for weather-station electronics: IP54 — dust protected, splash proof; IP65 — dust tight, low-pressure water jet; IP67 — dust tight, temporary immersion (1 m / 30 min); IP68 — dust tight, continuous immersion (manufacturer-specified depth).  Cable glands and connectors must match or exceed the enclosure IP rating.  Thermal management (ventilation or thermal mass) must not compromise the IP rating; Gore-Tex vent membranes allow pressure equalisation while maintaining IP67.",
+  "formula": null,
+  "units": null,
+  "source": "IEC 60529:2013+AMD1:2013, Degrees of protection provided by enclosures",
+  "source_url": null,
+  "confidence_score": 0.99,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "IP-rating",
+    "enclosure",
+    "weatherproofing",
+    "IEC60529",
+    "weather-station",
+    "systems"
+  ],
+  "created_by": "seed"
+}

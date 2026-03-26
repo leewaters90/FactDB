@@ -1,0 +1,22 @@
+{
+  "title": "Hovercraft Lift and Thrust Propulsion System",
+  "component_category": "mechanical",
+  "design_question": "How to achieve frictionless ground effect locomotion over land and water?",
+  "selected_approach": "Separate lift fan (centrifugal, 12 V BLDC) inflating a rubber skirt; two thrust propellers (BLDC, 1045 props) for forward propulsion and differential thrust steering. MCU commands lift fan duty and two ESC thrust channels via RC inputs.",
+  "rationale": "Hovercraft achieves near-frictionless travel over water, sand, and grass by maintaining a 2–5 cm air cushion. Separate lift and thrust motors decouple altitude from propulsion.",
+  "alternatives": [
+    {
+      "approach": "Combined lift/thrust (single fan)",
+      "reason_rejected": "Simpler but steering requires movable duct vanes—mechanically complex."
+    },
+    {
+      "approach": "Wheeled vehicle",
+      "reason_rejected": "No water traversal capability."
+    }
+  ],
+  "verification_notes": "FACT: 'Brushless DC (BLDC) Motor for Suction Fan' covers centrifugal fan characteristics used for the lift chamber.",
+  "supporting_fact_titles": [
+    "Brushless DC (BLDC) Motor for Suction Fan",
+    "Suction Pressure and Airflow in Vacuum Systems"
+  ]
+}

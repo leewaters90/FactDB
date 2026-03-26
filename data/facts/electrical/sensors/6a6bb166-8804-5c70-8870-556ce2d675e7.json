@@ -1,0 +1,27 @@
+{
+  "id": "6a6bb166-8804-5c70-8870-556ce2d675e7",
+  "title": "Turbidity Sensing — NTU Optical Measurement",
+  "domain": "electrical",
+  "category": "sensors",
+  "subcategory": "water quality",
+  "detail_level": "intermediate",
+  "content": "Turbidity sensors measure the cloudiness of water caused by suspended particles by detecting IR or visible light scattered at 90° (nephelometric) or attenuation (transmission).  Units: NTU (Nephelometric Turbidity Units).",
+  "extended_content": "Nephelometric method (ISO 7027): 860 nm IR source, detector at 90°; insensitive to colour.  Output voltage inversely proportional to NTU (cleaner water = less scatter = lower signal).  Typical module (SEN0189): 0–3 V output → 0–3000 NTU; calibrated against formazin or SDVB standards.  WHO drinking water guideline: < 1 NTU (treated), < 5 NTU (raw).  Cross-sensitivity: air bubbles produce false high readings; wiper-equipped sensors (for continuous deployment) prevent fouling.  Stagnant water probe placement: avoid boundaries.  Analogue output read by MCU ADC; some sensors provide digital I²C output.",
+  "formula": null,
+  "units": "NTU (Nephelometric Turbidity Units)",
+  "source": "ISO 7027:2016 Water Quality Turbidity; DFRobot Turbidity Sensor SEN0189 Datasheet",
+  "source_url": null,
+  "confidence_score": 0.96,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "turbidity",
+    "NTU",
+    "water-quality",
+    "sensor",
+    "optical",
+    "mechatronics",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

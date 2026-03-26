@@ -1,0 +1,26 @@
+{
+  "id": "20ea865d-99db-5f6d-93b5-16234187391d",
+  "title": "ADC Resolution and Measurement Precision",
+  "domain": "electrical",
+  "category": "signal processing",
+  "subcategory": "analog-to-digital conversion",
+  "detail_level": "intermediate",
+  "content": "The resolution of an n-bit ADC divides the full-scale input range into 2ⁿ discrete steps.  The minimum detectable voltage change (1 LSB) is: ΔVLSB = V_FS / 2ⁿ.",
+  "extended_content": "For a 12-bit ADC with 3.3 V full-scale: ΔVLSB = 3.3 / 4096 ≈ 0.81 mV. Effective Number of Bits (ENOB) accounts for real-world noise and nonlinearity: ENOB = (SINAD − 1.76) / 6.02.  For weather-station temperature reading a 16-bit ADC provides ≈ 50 µV resolution, corresponding to ≈ 0.01 °C with a typical thermistor slope.  Anti-aliasing filter cut-off must satisfy the Nyquist criterion: f_c < f_s / 2.",
+  "formula": "ΔV_LSB = V_FS / 2ⁿ",
+  "units": "V (volts per LSB)",
+  "source": "Kester, The Data Conversion Handbook, Analog Devices, 2005",
+  "source_url": null,
+  "confidence_score": 0.99,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "ADC",
+    "resolution",
+    "signal-processing",
+    "sensor",
+    "weather-station",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

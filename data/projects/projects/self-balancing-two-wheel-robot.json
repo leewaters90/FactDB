@@ -1,0 +1,26 @@
+{
+  "title": "Self-Balancing Two-Wheel Robot",
+  "description": "Inverted-pendulum robot maintaining balance using IMU-based tilt measurement and cascaded PID driving differential DC motors.",
+  "objective": "Balance autonomously on flat surfaces; BLE app control; ±5° tilt tolerance.",
+  "constraints": "Height ≤ 300 mm; ≤ 1.5 kg; battery ≥ 30 min; max speed ≥ 0.5 m/s.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "IMU (Inertial Measurement Unit) for Robot Navigation",
+    "PID Controller — Transfer Function",
+    "H-Bridge Motor Driver Circuit",
+    "Differential Drive Robot Kinematics"
+  ],
+  "design_element_titles": [
+    "MPU-6050 IMU Gyro + Accel (I²C)",
+    "Complementary Filter IMU Attitude Fusion",
+    "Cascaded PID Rate and Attitude Controller",
+    "TB6612FNG Dual H-Bridge PWM Motor Drive",
+    "Magnetic Quadrature Wheel Encoders",
+    "BLE GATT Smartphone App Interface"
+  ],
+  "element_usage_notes": {
+    "Cascaded PID Rate and Attitude Controller": "Inner balance loop at 200 Hz; outer speed loop at 50 Hz.",
+    "TB6612FNG Dual H-Bridge PWM Motor Drive": "12 V gearmotors; 20 kHz PWM."
+  }
+}

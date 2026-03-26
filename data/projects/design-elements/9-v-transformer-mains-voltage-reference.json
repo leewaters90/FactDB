@@ -1,0 +1,18 @@
+{
+  "title": "9 V Transformer Mains Voltage Reference",
+  "component_category": "sensing",
+  "design_question": "How to measure mains voltage safely for real-power calculation?",
+  "selected_approach": "9 V AC plug-in wall-wart (1:25.6 ratio); resistive divider to 1.65 V mid-rail. Phase-corrected in software (≈3° CT offset). Real power P = (1/N)·Σ(v_n·i_n).",
+  "rationale": "Wall-wart is fully mains-isolated—no user shock risk. Preserves waveform shape for phase and THD analysis.",
+  "alternatives": [
+    {
+      "approach": "Direct resistive divider live/neutral",
+      "reason_rejected": "Mains potential on PCB; requires certified isolation—unacceptable for DIY."
+    }
+  ],
+  "verification_notes": "FACT: 'Ohm's Law'—voltage divider V_out = V_in·R₂/(R₁+R₂). FACT: 'Kirchhoff's Voltage Law (KVL)'.",
+  "supporting_fact_titles": [
+    "Ohm's Law",
+    "Kirchhoff's Voltage Law (KVL)"
+  ]
+}

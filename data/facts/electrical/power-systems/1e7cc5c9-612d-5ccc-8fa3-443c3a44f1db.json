@@ -1,0 +1,27 @@
+{
+  "id": "1e7cc5c9-612d-5ccc-8fa3-443c3a44f1db",
+  "title": "Regenerative Braking — BLDC Back-EMF Energy Recovery",
+  "domain": "electrical",
+  "category": "power systems",
+  "subcategory": "energy recovery",
+  "detail_level": "intermediate",
+  "content": "Regenerative braking converts kinetic energy back to electrical energy by running the traction BLDC motor as a generator during deceleration, feeding current back into the battery through the ESC/motor driver.",
+  "extended_content": "In a BLDC drive, the ESC or H-bridge is switched so winding back-EMF pushes current into the DC bus. Regeneration efficiency: 60–75 % of braking energy recovered (limited by winding resistance, commutation losses, and battery charge acceptance rate). Battery requirement: LiFePO₄ and Li-Ion accept 0.5–1 C continuous. Braking torque: τ_regen = (V_bemf − V_bus) / R_phase × K_t. Combined with friction braking (blended strategy) for full deceleration range. INA226 or CT clamp power monitor logs recovered power and validates efficiency claims.",
+  "formula": "τ_regen = (V_bemf − V_bus) / R × K_t",
+  "units": "Torque: Nm; voltage: V; resistance: Ω",
+  "source": "Ehsani et al., Modern Electric, Hybrid Electric and Fuel Cell Vehicles, 3rd ed.",
+  "source_url": null,
+  "confidence_score": 0.94,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "regenerative braking",
+    "BLDC",
+    "energy recovery",
+    "EV",
+    "back-EMF",
+    "power systems",
+    "mechatronics"
+  ],
+  "created_by": "seed"
+}

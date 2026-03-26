@@ -1,0 +1,21 @@
+{
+  "title": "Electric NC Door Strike Solenoid",
+  "component_category": "actuation",
+  "design_question": "How to actuate a door lock with fail-safe (locked on power failure) behaviour?",
+  "selected_approach": "Normally-Closed (NC) electric strike driven by MOSFET. Energised 300 ms to allow passage; locked when MCU or power off.",
+  "rationale": "NC strike fail-safe: lost power = locked (safe). 300 ms pulse limits thermal dissipation in solenoid coil.",
+  "alternatives": [
+    {
+      "approach": "NO electric strike",
+      "reason_rejected": "Fails open on power loss—unacceptable for security application."
+    },
+    {
+      "approach": "Motor-driven deadbolt",
+      "reason_rejected": "Slower actuation (>500 ms); higher complexity—rejected."
+    }
+  ],
+  "verification_notes": "FACT: 'N-Channel MOSFET as a Low-Side Power Switch' confirms flyback diode for solenoid and NC configuration.",
+  "supporting_fact_titles": [
+    "N-Channel MOSFET as a Low-Side Power Switch"
+  ]
+}

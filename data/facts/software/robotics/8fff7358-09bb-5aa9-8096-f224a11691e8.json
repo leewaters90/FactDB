@@ -1,0 +1,27 @@
+{
+  "id": "8fff7358-09bb-5aa9-8096-f224a11691e8",
+  "title": "SLAM — Simultaneous Localisation and Mapping",
+  "domain": "software",
+  "category": "robotics",
+  "subcategory": "navigation",
+  "detail_level": "advanced",
+  "content": "SLAM is the computational problem of building a map of an unknown environment while simultaneously tracking the robot's location within that map, using sensor data without prior maps.",
+  "extended_content": "SLAM methods include: Extended Kalman Filter (EKF-SLAM) — linearises nonlinear motion/measurement models; Particle Filter (FastSLAM) — represents the posterior with weighted samples; Graph SLAM / pose-graph optimisation — poses as nodes, constraints as edges, solved via Gauss-Newton or Levenberg-Marquardt.  Robot vacuum cleaners typically use LiDAR-based SLAM (e.g., GMapping, Cartographer) or optical flow + IMU fusion.  Computational cost: EKF O(n²) per step where n = landmark count; particle SLAM O(M·n) per step where M = particle count.  Map resolution typically 1–5 cm/cell.",
+  "formula": null,
+  "units": null,
+  "source": "Thrun, Burgard & Fox, Probabilistic Robotics, MIT Press, 2005",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "SLAM",
+    "mapping",
+    "localisation",
+    "robotics",
+    "navigation",
+    "robot-vacuum",
+    "software"
+  ],
+  "created_by": "seed"
+}

@@ -1,0 +1,21 @@
+{
+  "title": "Voice Recognition UART Speech Module",
+  "component_category": "sensing",
+  "design_question": "How to add offline voice command control to an embedded system?",
+  "selected_approach": "LD3320-based module (DFRobot SEN0089 or compatible). Up to 50 keywords stored and recognised offline. UART at 9600 baud returns command ID on recognition. Onboard microphone; 1–3 m recognition range in quiet environment.",
+  "rationale": "Offline recognition eliminates network dependency. Command ID mapped in firmware to actuator action. < £8 module cost. Satisfactory accuracy for 10–20 distinct command vocabulary.",
+  "alternatives": [
+    {
+      "approach": "Android STT (Google ASR)",
+      "reason_rejected": "Unlimited vocabulary but requires smartphone and internet—rejected for standalone."
+    },
+    {
+      "approach": "Raspberry Pi + PocketSphinx",
+      "reason_rejected": "Unlimited offline vocab but adds £35 cost and Linux complexity."
+    }
+  ],
+  "verification_notes": "FACT: 'Voice Recognition — Keyword Spotting UART Module (LD3320)' confirms 50-command limit and 1–3 m range.",
+  "supporting_fact_titles": [
+    "Voice Recognition — Keyword Spotting UART Module (LD3320)"
+  ]
+}

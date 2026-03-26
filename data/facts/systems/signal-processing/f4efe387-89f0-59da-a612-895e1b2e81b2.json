@@ -1,0 +1,26 @@
+{
+  "id": "f4efe387-89f0-59da-a612-895e1b2e81b2",
+  "title": "Nyquist–Shannon Sampling Theorem",
+  "domain": "systems",
+  "category": "signal processing",
+  "subcategory": "sampling theory",
+  "detail_level": "fundamental",
+  "content": "To perfectly reconstruct a band-limited signal, the sampling frequency must be at least twice the signal's highest frequency component: f_s ≥ 2 · f_max (Nyquist rate).",
+  "extended_content": "Sampling below the Nyquist rate causes aliasing — high-frequency components appear as spurious lower-frequency components.  In weather-station design, atmospheric temperature changes slowly (< 0.01 Hz), so 1 Hz sampling is far above Nyquist; wind gusts contain energy up to ≈ 10 Hz requiring at least 20 Hz sampling for gust analysis.  An anti-aliasing low-pass filter with cut-off below f_s/2 must precede the ADC.",
+  "formula": "f_s ≥ 2 · f_max",
+  "units": "Hz",
+  "source": "Shannon, C.E. (1949). Communication in the Presence of Noise. Proc. IRE.",
+  "source_url": null,
+  "confidence_score": 1.0,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "sampling",
+    "Nyquist",
+    "signal-processing",
+    "aliasing",
+    "weather-station",
+    "systems"
+  ],
+  "created_by": "seed"
+}

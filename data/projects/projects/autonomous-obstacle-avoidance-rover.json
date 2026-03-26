@@ -1,0 +1,28 @@
+{
+  "title": "Autonomous Obstacle-Avoidance Rover",
+  "description": "Six-wheel rocker-bogie rover navigating rough terrain using forward-facing LiDAR and sonar array. Performs A* path replanning on obstacle detection; operated via nRF24L01 wireless link from a remote base station.",
+  "objective": "Traverse 30° inclines; detect obstacles ≥ 50 mm at 1 m; navigate a 10×10 m outdoor area without manual intervention.",
+  "constraints": "≤ 5 kg; 12 V LiPo; nRF24 link ≤ 100 m; ≤ £150 BOM.",
+  "domain": "systems",
+  "status": "in_design",
+  "supporting_fact_titles": [
+    "A* Pathfinding Algorithm",
+    "Ultrasonic Proximity Sensor — ToF Distance Measurement",
+    "2D LiDAR Distance Measurement Principle",
+    "Differential Drive Robot Kinematics",
+    "DC Motor Speed Control via PWM"
+  ],
+  "design_element_titles": [
+    "TFMini-S Single-Point LiDAR Distance Sensor",
+    "HC-SR04 Ultrasonic Obstacle-Distance Sensor",
+    "Rocker-Bogie Rough-Terrain Drive System",
+    "L298N Dual H-Bridge Motor Driver Module",
+    "DC Gear Motor with PWM Speed Control",
+    "nRF24L01 2.4 GHz RF Transceiver Link",
+    "Arduino Mega 2560 MCU Platform"
+  ],
+  "element_usage_notes": {
+    "Rocker-Bogie Rough-Terrain Drive System": "6-wheel passive suspension; 3D-printed PETG links; 80 mm diameter wheels.",
+    "nRF24L01 2.4 GHz RF Transceiver Link": "Auto-ACK; 250 kbps; 100 m open-field range; pipe 0 = telemetry, pipe 1 = cmd."
+  }
+}

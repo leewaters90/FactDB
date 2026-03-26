@@ -1,0 +1,22 @@
+{
+  "title": "HC-05 Bluetooth Serial Bridge",
+  "component_category": "communication",
+  "design_question": "How to enable Android smartphone control of an Arduino project?",
+  "selected_approach": "HC-05 Bluetooth 2.0 SPP module wired to Arduino UART TX/RX. Android app (e.g. Bluetooth RC Controller or custom MIT App Inventor app) sends single-byte ASCII commands at 9600 baud.",
+  "rationale": "HC-05 pairs as a virtual serial port on Android with no custom BLE GATT profile required. AT commands reconfigure baud rate and name. Total cost < £3. Round-trip latency < 50 ms typical.",
+  "alternatives": [
+    {
+      "approach": "BLE HM-10 module",
+      "reason_rejected": "Preferred for iOS; slightly higher latency; lower power."
+    },
+    {
+      "approach": "WiFi ESP8266",
+      "reason_rejected": "Requires TCP/IP stack; higher latency and complexity for joystick commands."
+    }
+  ],
+  "verification_notes": "FACT: 'Bluetooth Classic SPP — HC-05 Serial Bridge Module' confirms 9600–115200 baud UART bridge and 10 m class-2 range.",
+  "supporting_fact_titles": [
+    "Bluetooth Classic SPP — HC-05 Serial Bridge Module",
+    "Bluetooth Low Energy (BLE) for App Control"
+  ]
+}

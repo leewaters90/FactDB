@@ -1,0 +1,24 @@
+{
+  "id": "6d445a9f-c504-51f4-bb93-cc22803d9801",
+  "title": "Kirchhoff's Voltage Law (KVL)",
+  "domain": "electrical",
+  "category": "circuit theory",
+  "subcategory": "network analysis",
+  "detail_level": "fundamental",
+  "content": "The algebraic sum of all voltages around any closed loop in a circuit is zero: Σ V_k = 0.",
+  "extended_content": "KVL is a consequence of conservation of energy.  Sign convention: voltage drops are positive, voltage rises are negative (or vice-versa, as long as consistent).  Together with KCL it enables nodal and mesh analysis of any planar circuit.",
+  "formula": "∑ V_k = 0  (around a closed loop)",
+  "units": "Volts (V)",
+  "source": "Hayt & Kemmerly, Engineering Circuit Analysis, 8th ed.",
+  "source_url": null,
+  "confidence_score": 1.0,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "circuit",
+    "voltage",
+    "kirchhoff",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

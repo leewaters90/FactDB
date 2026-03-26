@@ -1,0 +1,26 @@
+{
+  "id": "ce37ef46-5e69-54e7-85f5-00f96cc3044f",
+  "title": "Rope and Pulley Mechanical Advantage",
+  "domain": "mechanical",
+  "category": "mechanisms",
+  "subcategory": "simple machines",
+  "detail_level": "fundamental",
+  "content": "A block-and-tackle pulley system multiplies input force by the mechanical advantage MA = n_ropes, where n_ropes is the number of rope segments supporting the load.  Ideal MA: F_load = F_effort × MA; distance: d_effort = d_load × MA.",
+  "extended_content": "Single fixed pulley: MA = 1 (changes direction only).  Single movable pulley: MA = 2.  Compound block-and-tackle with n movable pulleys: MA = 2n.  Efficiency: η = MA_actual / MA_ideal; real systems lose 15–25% to rope friction and sheave bearing friction.  Wire rope: breaking strength = π·d²/4 × σ_UTS (fibre core ~0.7× wire rope rated load for safety).  In crane applications, wire diameter selection: use wire with FoS ≥ 5 over rated working load.  Snatch block redirect: changes rope direction without increasing MA.  Speed ratio: v_load = v_haul / MA (conservation of power).",
+  "formula": "F_load = F_effort × MA ;  MA = n_supporting_rope_segments",
+  "units": "F: N, MA: dimensionless",
+  "source": "Shigley's Mechanical Engineering Design, 10th ed., Ch.17; Meriam & Kraige, Engineering Mechanics: Statics",
+  "source_url": null,
+  "confidence_score": 0.99,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "pulley",
+    "mechanical-advantage",
+    "crane",
+    "rope",
+    "mechanisms",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}

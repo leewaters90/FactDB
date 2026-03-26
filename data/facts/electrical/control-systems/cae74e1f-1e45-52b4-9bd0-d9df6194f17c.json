@@ -1,0 +1,26 @@
+{
+  "id": "cae74e1f-1e45-52b4-9bd0-d9df6194f17c",
+  "title": "Automatic Charging Dock — IR Beacon Homing",
+  "domain": "electrical",
+  "category": "control systems",
+  "subcategory": "docking navigation",
+  "detail_level": "intermediate",
+  "content": "Robot vacuums locate their charging dock using modulated infrared beacons emitted by the dock.  The robot's IR receivers detect signal strength and bearing to navigate back to the dock for autonomous recharging.",
+  "extended_content": "The dock typically emits three overlapping IR beams at different modulation frequencies or codes: a wide 'home' beam (≈ 180°) for initial acquisition, a narrow 'force field' beam (≈ 20°) to guide final approach, and a 'virtual wall' beam.  Robot IR receivers (two or more) decode beam identity and compare signal amplitudes for bearing estimation.  Docking accuracy: ±5–15 mm lateral, ±3° angular.  Fail-safe: if docking attempt fails after N tries, the robot returns to its last known position and retries.",
+  "formula": null,
+  "units": null,
+  "source": "iRobot Open Interface Specification v2; Neato Robotics Design Patent US8739355",
+  "source_url": null,
+  "confidence_score": 0.95,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "docking",
+    "IR",
+    "charging",
+    "navigation",
+    "robot-vacuum",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

@@ -1,0 +1,26 @@
+{
+  "id": "aea62606-77ce-5c88-abc1-8344af54a2c9",
+  "title": "CubeSat Standard Platform (1U–3U)",
+  "domain": "aerospace",
+  "category": "small satellites",
+  "subcategory": "CubeSat",
+  "detail_level": "advanced",
+  "content": "A CubeSat is a standardised small satellite (1U = 10×10×10 cm, ≤ 1.33 kg) built to the CubeSat Design Specification (CDS) to enable low-cost access to orbit via standardised deployers (P-POD).",
+  "extended_content": "Form factors: 1U, 2U (10×10×20 cm), 3U (10×10×30 cm), 6U (20×10×30 cm).  Power budget: body-mounted 30% efficient GaAs cells; 1U ≈ 1–2 W average, 3U ≈ 3–6 W.  Communications: UHF 437 MHz (LoRa or AX.25 packet), S-band (2.4 GHz, 100 kbps–1 Mbps).  Attitude control: passive (magnets/gravity gradient) or active (reaction wheels, magnetorquers).  Typical subsystems: EPS (power), OBC (onboard computer), ADCS (attitude), COM, payload.  Orbital lifetime: 300–400 km altitude → 1–12 months de-orbit; 550 km → 5–10 years.  Radiation: SEU (single-event upset) mitigation via ECC RAM and watchdog timers.  Export control: EAR/ITAR regulations apply to components and communication frequencies.",
+  "formula": null,
+  "units": null,
+  "source": "CubeSat Design Specification Rev. 14; Woellert et al., Advances in Space Research 2011",
+  "source_url": null,
+  "confidence_score": 0.96,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "CubeSat",
+    "satellite",
+    "aerospace",
+    "small-satellite",
+    "telemetry",
+    "mechatronics"
+  ],
+  "created_by": "seed"
+}

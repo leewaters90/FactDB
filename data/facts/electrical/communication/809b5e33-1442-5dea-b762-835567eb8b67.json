@@ -1,0 +1,28 @@
+{
+  "id": "809b5e33-1442-5dea-b762-835567eb8b67",
+  "title": "2.4 GHz RF Transceiver — nRF24L01 SPI Interface",
+  "domain": "electrical",
+  "category": "communication",
+  "subcategory": "wireless RF",
+  "detail_level": "intermediate",
+  "content": "The nRF24L01+ is a 2.4 GHz GFSK transceiver IC communicating over SPI at up to 10 MHz. It operates at 250 kbps, 1 Mbps, or 2 Mbps and supports 126 channels and up to 6 simultaneous data pipes with auto-acknowledge and automatic retransmission.",
+  "extended_content": "Supply voltage: 1.9–3.6 V; I/O tolerant to 5 V with level-shifter. Transmit power: −18 to 0 dBm (4 levels). Receiver sensitivity: −94 dBm at 250 kbps; −82 dBm at 2 Mbps. SPI interface: CE pin enables RX/TX; CSN is chip-select. Packet length: 1–32 bytes with 6-byte address per pipe. Enhanced ShockBurst™: automatic acknowledgement and retransmission eliminate MCU overhead for reliability. Typical range: 100 m open air at 250 kbps; 30 m indoors. PA+LNA variant extends range to 1 km open air with external antenna. Alternatives: HC-12 (433 MHz, 1 km) for longer range; ESP-NOW (ESP32) for higher-level API without separate module.",
+  "formula": null,
+  "units": null,
+  "source": "Nordic Semiconductor nRF24L01+ Product Specification v1.0",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "RF",
+    "nRF24L01",
+    "2.4GHz",
+    "SPI",
+    "wireless",
+    "communication",
+    "mechatronics",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

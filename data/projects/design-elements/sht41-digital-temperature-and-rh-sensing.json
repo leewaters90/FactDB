@@ -1,0 +1,22 @@
+{
+  "title": "SHT41 Digital Temperature and RH Sensing",
+  "component_category": "sensing",
+  "design_question": "Which humidity/temperature sensor provides factory-calibrated accuracy without field calibration?",
+  "selected_approach": "Sensirion SHT41 (I²C, ±0.2 °C, ±1.8 %RH) for each zone. NIST-traceable factory calibration; no field adjustment required.",
+  "rationale": "SHT41 ±0.2 °C vs DHT22 ±0.5 °C; factory calibration eliminates field zeroing cost. Integrated on same I²C bus as other sensors.",
+  "alternatives": [
+    {
+      "approach": "DHT22",
+      "reason_rejected": "1-wire timing-critical protocol; no factory calibration—rejected."
+    },
+    {
+      "approach": "NTC thermistor + capacitive RH",
+      "reason_rejected": "Two separate components; requires individual calibration."
+    }
+  ],
+  "verification_notes": "FACT: 'Capacitive Relative Humidity Sensing' confirms SHT4x accuracy and I²C interface. FACT: 'I²C Serial Communication Protocol'.",
+  "supporting_fact_titles": [
+    "Capacitive Relative Humidity Sensing",
+    "I²C Serial Communication Protocol"
+  ]
+}

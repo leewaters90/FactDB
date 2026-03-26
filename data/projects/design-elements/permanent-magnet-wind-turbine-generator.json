@@ -1,0 +1,23 @@
+{
+  "title": "Permanent Magnet Wind Turbine Generator",
+  "component_category": "power",
+  "design_question": "How to generate off-grid electrical power from local wind for IoT sensors?",
+  "selected_approach": "3-blade horizontal-axis turbine (0.5–1 m diameter), axial-flux PMA, 3-phase AC bridge-rectified to 12 V DC. MPPT controller (CN3791 or wind-specific boost converter) charges 12 V 10 Ah LiFePO₄ battery. Mechanical overspeed protection via furling tail.",
+  "rationale": "Wind generation complements PV in low-insolation and nighttime periods. Typical mini turbine (0.5 m) generates 50–100 W at 8 m/s wind speed. LiFePO₄ buffer handles calm periods up to 5 days.",
+  "alternatives": [
+    {
+      "approach": "Solar PV only",
+      "reason_rejected": "Zero output at night or in low wind/high cloud regions."
+    },
+    {
+      "approach": "Vertical-axis Savonius",
+      "reason_rejected": "Lower Cp (0.15) but lower cut-in speed (1.5 m/s) for calm regions."
+    }
+  ],
+  "verification_notes": "FACT: 'Permanent Magnet Alternator — Small Wind Turbine' confirms Betz limit and power equation P = ½ρAv³.",
+  "supporting_fact_titles": [
+    "Permanent Magnet Alternator — Small Wind Turbine",
+    "Solar Panel Sizing for Remote IoT Stations",
+    "Li-Ion Battery Capacity and Energy Calculation"
+  ]
+}

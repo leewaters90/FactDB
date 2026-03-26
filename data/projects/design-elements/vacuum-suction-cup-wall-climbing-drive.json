@@ -1,0 +1,22 @@
+{
+  "title": "Vacuum Suction Cup Wall-Climbing Drive",
+  "component_category": "mechanical",
+  "design_question": "How to enable a robot to adhere to and traverse vertical glass or smooth walls?",
+  "selected_approach": "Miniature centrifugal or diaphragm vacuum pump (12 V, −30 kPa) maintaining sub-atmospheric pressure in a compliant silicone cup array. DC gear motors drive wheels pressed against the wall surface. Suction maintained continuously during movement.",
+  "rationale": "Vacuum adhesion can support robots up to 2 kg on glass at −25 kPa (F = ΔP × A). Compliant cups accommodate slight surface irregularities. No surface modification required.",
+  "alternatives": [
+    {
+      "approach": "Magnetic adhesion",
+      "reason_rejected": "Only works on ferromagnetic steel surfaces—not applicable to glass."
+    },
+    {
+      "approach": "Electrostatic adhesion",
+      "reason_rejected": "Works on any surface but requires high-voltage (3–5 kV) supply."
+    }
+  ],
+  "verification_notes": "FACT: 'Suction Pressure and Airflow in Vacuum Systems' confirms adhesion force F = ΔP × A calculation.",
+  "supporting_fact_titles": [
+    "Suction Pressure and Airflow in Vacuum Systems",
+    "DC Motor Speed Control via PWM"
+  ]
+}

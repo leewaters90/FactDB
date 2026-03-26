@@ -1,0 +1,28 @@
+{
+  "id": "af3cab57-51d3-53bf-a414-152b2125f550",
+  "title": "ESP32 WiFi + BLE System-on-Chip",
+  "domain": "electrical",
+  "category": "microcontrollers",
+  "subcategory": "SoC",
+  "detail_level": "intermediate",
+  "content": "The ESP32 is a dual-core 32-bit Xtensa LX6 SoC integrating 802.11 b/g/n WiFi and Bluetooth 4.2 (Classic + BLE) in a single chip, widely used in IoT and mechatronics projects.",
+  "extended_content": "Key specs: 240 MHz dual-core, 520 KB SRAM, 34 programmable GPIO, 3× UART, 2× I²C, 4× SPI, 16× 12-bit ADC channels, 2× DAC, 2× I²S, LED PWM (LEDC) 16 channels, hall sensor, touch sensor.  WiFi: station + AP + hybrid modes; WPA/WPA2/WPA3 security.  BLE: Generic Attribute Profile (GATT) stack built-in.  Deep sleep current: 10–150 µA (varies with wakeup source).  Development: ESP-IDF (C/C++), Arduino ESP32, MicroPython.  ESP32-S3 variant adds AI accelerator and USB OTG.  3.3 V I/O; 5 V tolerant on select pins; flash via USB UART bridge.",
+  "formula": null,
+  "units": null,
+  "source": "Espressif ESP32 Technical Reference Manual v5; ESP32 Datasheet v3.4",
+  "source_url": null,
+  "confidence_score": 0.98,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "ESP32",
+    "WiFi",
+    "BLE",
+    "MCU",
+    "SoC",
+    "IoT",
+    "mechatronics",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

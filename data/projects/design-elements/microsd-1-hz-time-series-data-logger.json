@@ -1,0 +1,12 @@
+{
+  "title": "MicroSD 1 Hz Time-Series Data Logger",
+  "component_category": "software",
+  "design_question": "How to store 1 year of 1-second data locally without network dependency?",
+  "selected_approach": "SPI microSD (32 GB) logs raw CSV at 1 Hz → ≈2 GB/year. Summary (1-min averages) published to MQTT. NTP timestamps.",
+  "rationale": "MicroSD gives local storage independent of network. 1-min MQTT messages ≈52 MB/year—manageable bandwidth.",
+  "alternatives": [],
+  "verification_notes": "FACT: 'NTP Time Synchronisation' confirms <50 ms accuracy for energy audit timestamps.",
+  "supporting_fact_titles": [
+    "NTP Time Synchronisation for Data Logging"
+  ]
+}

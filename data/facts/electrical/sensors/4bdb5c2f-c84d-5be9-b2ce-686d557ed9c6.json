@@ -1,0 +1,27 @@
+{
+  "id": "4bdb5c2f-c84d-5be9-b2ce-686d557ed9c6",
+  "title": "Ultrasonic Proximity Sensor — ToF Distance Measurement",
+  "domain": "electrical",
+  "category": "sensors",
+  "subcategory": "proximity sensing",
+  "detail_level": "fundamental",
+  "content": "Ultrasonic sensors emit a 40 kHz sound pulse and measure the round-trip travel time to an obstacle: d = v_sound · t / 2, where v_sound ≈ 343 m/s at 20 °C.",
+  "extended_content": "Effective range: 2 cm – 4 m (HC-SR04 type); beam angle ≈ 15°. Speed of sound varies with temperature: v = 331.4 + 0.606·T (m/s, T in °C).  Ultrasonic sensors complement LiDAR in robot vacuums for close-range obstacle detection and furniture legs (thin vertical objects that LiDAR may miss).  Minimum dead zone (≈ 2–4 cm) prevents measurement during pulse emission.",
+  "formula": "d = v_sound · t_echo / 2 ;  v_sound ≈ 331.4 + 0.606·T",
+  "units": "d: m, v: m/s, T: °C",
+  "source": "Maxbotix Inc., Ultrasonic Sensor Selection Guide; Sick AG, Ultrasonic Technology Overview",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "ultrasonic",
+    "proximity",
+    "distance",
+    "ToF",
+    "sensor",
+    "robot-vacuum",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

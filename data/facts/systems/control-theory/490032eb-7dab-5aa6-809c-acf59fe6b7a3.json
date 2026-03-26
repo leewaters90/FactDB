@@ -1,0 +1,24 @@
+{
+  "id": "490032eb-7dab-5aa6-809c-acf59fe6b7a3",
+  "title": "PID Controller — Transfer Function",
+  "domain": "systems",
+  "category": "control theory",
+  "subcategory": "feedback control",
+  "detail_level": "intermediate",
+  "content": "A PID controller output is u(t) = K_p·e + K_i·∫e dt + K_d·de/dt, combining proportional, integral, and derivative actions on the error signal e(t).",
+  "extended_content": "K_p reduces rise time; K_i eliminates steady-state error; K_d reduces overshoot and improves stability.  In the Laplace domain: C(s) = K_p + K_i/s + K_d·s.  Tuning methods include Ziegler-Nichols, Cohen-Coon, and model-based (IMC) approaches.",
+  "formula": "u(t) = K_p·e(t) + K_i·∫e(t)dt + K_d·(de/dt)",
+  "units": null,
+  "source": "Ogata, Modern Control Engineering, 5th ed.",
+  "source_url": null,
+  "confidence_score": 1.0,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "control",
+    "PID",
+    "feedback",
+    "systems"
+  ],
+  "created_by": "seed"
+}

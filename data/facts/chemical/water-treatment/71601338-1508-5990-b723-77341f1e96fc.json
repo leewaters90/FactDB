@@ -1,0 +1,25 @@
+{
+  "id": "71601338-1508-5990-b723-77341f1e96fc",
+  "title": "Solar Thermal Distillation and Desalination",
+  "domain": "chemical",
+  "category": "water treatment",
+  "subcategory": "desalination",
+  "detail_level": "intermediate",
+  "content": "Solar distillation evaporates saline or polluted water using solar radiation, then condenses vapour on a cooler surface to yield fresh water.  Daily yield: Y ≈ I_s · A · η / h_fg, where h_fg is the latent heat of vaporisation (2.26 MJ/kg).",
+  "extended_content": "Single-basin solar still: glass or polycarbonate inclined cover (15–30° for mid-latitude); black basin liner maximises solar absorption (α > 0.95).  Typical productivity: 2–5 L/m²/day.  Multi-effect evaporation: each effect uses waste heat from prior stage; 3-effect gives ~3× single-still yield.  Reverse osmosis (RO): solar PV drives high-pressure pump (40–80 bar for seawater); membrane rejects 99.7% salt; energy: 3–10 kWh/m³ depending on salinity.  Comparison: solar still — zero electricity, low yield, low cost; solar PV + RO — higher yield (50–200 L/m²/day), higher capital cost.  Latent heat of vaporisation at 100°C: h_fg = 2260 kJ/kg; at 60°C (low-pressure): h_fg ≈ 2357 kJ/kg.",
+  "formula": "Y (kg/m²/day) = I_s · A · η / h_fg",
+  "units": "Y: L/m²/day, I_s: W/m², h_fg: J/kg",
+  "source": "Tiwari, Solar Energy Fundamentals, Design, Modelling and Applications, Narosa; Delyannis, Solar Energy 2003",
+  "source_url": null,
+  "confidence_score": 0.96,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "desalination",
+    "solar-distillation",
+    "water-treatment",
+    "solar",
+    "chemical"
+  ],
+  "created_by": "seed"
+}

@@ -1,0 +1,24 @@
+{
+  "id": "834e66a3-5f9e-5f33-a59e-577770102c93",
+  "title": "Ideal Gas Law",
+  "domain": "chemical",
+  "category": "thermodynamics",
+  "subcategory": "gas laws",
+  "detail_level": "fundamental",
+  "content": "The pressure, volume, temperature, and amount of an ideal gas are related by PV = nRT.",
+  "extended_content": "P: absolute pressure (Pa), V: volume (m³), n: moles (mol), R: universal gas constant (8.314 J/mol·K), T: absolute temperature (K).  For real gases, use van der Waals or Peng-Robinson equations of state.",
+  "formula": "PV = nRT",
+  "units": "P: Pa, V: m³, T: K, n: mol",
+  "source": "Smith, Van Ness & Abbott, Introduction to Chemical Engineering Thermodynamics, 8th ed.",
+  "source_url": null,
+  "confidence_score": 1.0,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "gas",
+    "thermodynamics",
+    "chemical",
+    "fundamental-law"
+  ],
+  "created_by": "seed"
+}

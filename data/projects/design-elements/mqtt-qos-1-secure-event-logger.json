@@ -1,0 +1,18 @@
+{
+  "title": "MQTT QoS-1 Secure Event Logger",
+  "component_category": "communication",
+  "design_question": "How to guarantee access events reach the broker even under brief WiFi instability?",
+  "selected_approach": "MQTT QoS 1 (at-least-once) with local buffer in ESP32 PSRAM. Events include: UID, timestamp, action (ALLOW/DENY), device_id.",
+  "rationale": "QoS 1 re-transmits until broker ACKs—prevents silent event loss. Local buffer stores events during WiFi drop (up to 1000 events).",
+  "alternatives": [
+    {
+      "approach": "HTTP POST per event",
+      "reason_rejected": "Higher overhead; not easily buffered locally; MQTT preferred for IoT messaging—rejected."
+    }
+  ],
+  "verification_notes": "FACT: 'MQTT Protocol for IoT Sensor Data' confirms QoS 1 at-least-once delivery semantics.",
+  "supporting_fact_titles": [
+    "MQTT Protocol for IoT Sensor Data",
+    "NTP Time Synchronisation for Data Logging"
+  ]
+}

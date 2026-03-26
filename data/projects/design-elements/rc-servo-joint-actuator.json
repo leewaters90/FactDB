@@ -1,0 +1,18 @@
+{
+  "title": "RC Servo Joint Actuator",
+  "component_category": "actuation",
+  "design_question": "How to position a joint with ±1° accuracy and adequate torque from a 5 V supply?",
+  "selected_approach": "MG996R at shoulder (10 kg·cm); MG90S at elbow (2.2 kg·cm); SG90 for light tasks. 50 Hz PWM: 1 ms=0°, 1.5 ms=90°, 2 ms=180°.",
+  "rationale": "RC servos self-contain gearbox, driver, and potentiometer feedback. MG996R provides 5× FoS at shoulder joint.",
+  "alternatives": [
+    {
+      "approach": "Stepper + belt drive",
+      "reason_rejected": "Higher torque but requires separate driver, complex frame—rejected for simplicity."
+    }
+  ],
+  "verification_notes": "FACT: 'RC Servo Motor PWM Control' confirms MG996R protocol and torque. FACT: 'Factor of Safety' confirms FoS=5 is within 3–5 spec.",
+  "supporting_fact_titles": [
+    "RC Servo Motor PWM Control",
+    "Factor of Safety"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "title": "Non-Invasive Smart Energy Meter",
+  "description": "Clamp-on energy monitor measuring real power, apparent power, power factor, and cumulative kWh. MQTT publishing and microSD logging.",
+  "objective": "Real power ±2 % accuracy; energy error <1 %/24 h; 1 s update; 1-year data history.",
+  "constraints": "No direct mains connection; 5 V USB-C; ≤ 120×80×35 mm; ≤ £35.",
+  "domain": "electrical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "CT Clamp Current Sensing and RMS Calculation",
+    "Ohm's Law",
+    "Kirchhoff's Voltage Law (KVL)"
+  ],
+  "design_element_titles": [
+    "SCT-013 Split-Core CT Clamp Current Sensing",
+    "9 V Transformer Mains Voltage Reference",
+    "ESP32 WiFi + MQTT IoT Telemetry",
+    "NTP UTC Timestamped Data Logging",
+    "MicroSD 1 Hz Time-Series Data Logger"
+  ],
+  "element_usage_notes": {
+    "SCT-013 Split-Core CT Clamp Current Sensing": "4800 Hz sampling; 80 samples/60 Hz cycle for true RMS."
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "title": "nRF24L01 2.4 GHz RF Transceiver Link",
+  "component_category": "communication",
+  "design_question": "How to achieve real-time bidirectional wireless control up to 100 m without infrastructure?",
+  "selected_approach": "Pair of nRF24L01+ modules (one on transmitter joystick controller, one on robot/vehicle). SPI on both MCUs; 250 kbps, 6-byte address, auto-ACK. Transmitter sends 8–32 byte command frame at 20–50 Hz.",
+  "rationale": "nRF24L01 operates without WiFi/BT infrastructure, has 100 m open-air range, and auto-ACK ensures delivery. At £1 per module it is the lowest-cost bidirectional wireless option. Suitable for RC robots.",
+  "alternatives": [
+    {
+      "approach": "HC-12 433 MHz",
+      "reason_rejected": "1 km range but half-duplex UART only; 100 ms latency—too slow for RC."
+    },
+    {
+      "approach": "ESP-NOW (ESP32)",
+      "reason_rejected": "No extra module needed but requires ESP32 on both sides."
+    }
+  ],
+  "verification_notes": "FACT: '2.4 GHz RF Transceiver — nRF24L01 SPI Interface' confirms 250 kbps rate, 100 m open air range, and auto-retransmit.",
+  "supporting_fact_titles": [
+    "2.4 GHz RF Transceiver — nRF24L01 SPI Interface"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "title": "L298N Dual H-Bridge Motor Driver Module",
+  "component_category": "actuation",
+  "design_question": "How to drive two DC motors bidirectionally from a 5 V MCU at up to 2 A each?",
+  "selected_approach": "L298N-based dual full H-bridge module (5–35 V motor supply, 2 A continuous per channel, logic 5 V). IN1/IN2/ENA for motor A; IN3/IN4/ENB for motor B. ENx tied HIGH for full speed or driven by PWM for speed control.",
+  "rationale": "L298N module is universally available at < £2, accepts 5 V Arduino logic directly, and drives 12 V DC gear motors up to 2 A each. Built-in flyback diodes protect against inductive kickback.",
+  "alternatives": [
+    {
+      "approach": "TB6612FNG",
+      "reason_rejected": "Lower voltage drop (0.5 V vs 3 V), more efficient—preferred for battery projects."
+    },
+    {
+      "approach": "BTS7960 43A driver",
+      "reason_rejected": "Required for high-current motors (> 5 A); more expensive."
+    }
+  ],
+  "verification_notes": "FACT: 'H-Bridge Motor Driver Circuit' confirms full H-bridge topology and PWM speed control principle.",
+  "supporting_fact_titles": [
+    "H-Bridge Motor Driver Circuit",
+    "DC Motor Speed Control via PWM"
+  ]
+}

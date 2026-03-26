@@ -1,0 +1,26 @@
+{
+  "id": "edf362b3-5f24-5eb9-9e6c-e4e6e5d24ec6",
+  "title": "Worm Gear Ratio and Self-Locking Property",
+  "domain": "mechanical",
+  "category": "power transmission",
+  "subcategory": "gearing",
+  "detail_level": "intermediate",
+  "content": "A worm gear pair converts rotary motion through 90°; gear ratio i = N_wormwheel / N_worm_starts.  Self-locking occurs when the lead angle λ < friction angle φ: tan(λ) < µ, preventing back-driving from the wheel to the worm.",
+  "extended_content": "Gear ratio: i = z₂ / z₁_starts (worm wheel teeth / worm thread starts).  Single-start worm with 40-tooth wheel → i = 40:1.  Lead angle λ = atan(lead / (π × pitch_diameter)); self-locking when λ < atan(µ_static) ≈ atan(0.1–0.15) ≈ 6–8.5°.  Efficiency: η = tan(λ) / tan(λ + φ); typically 30–80% (lower for self-locking).  Applications: lifts, motorised stands, steering gearboxes.  Self-locking worms hold load without motor power — useful for parking brakes, adjustable stands, and overhead cranes.  Lubrication critical: grease reduces µ and improves efficiency but may reduce self-locking margin.",
+  "formula": "i = z₂/z₁ ;  self-locking iff tan(λ) < µ",
+  "units": "i: dimensionless, λ: degrees",
+  "source": "Shigley's Mechanical Engineering Design, 10th ed., Ch.13; Norton, Machine Design: An Integrated Approach",
+  "source_url": null,
+  "confidence_score": 0.98,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "worm-gear",
+    "gear-ratio",
+    "self-locking",
+    "power-transmission",
+    "mechatronics",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}

@@ -1,0 +1,26 @@
+{
+  "title": "RFID Smart Door Access Controller",
+  "description": "Wall-mounted access control using RFID reader, ESP32, electric door strike, OLED display, and MQTT event logging. OTA updates via WiFi.",
+  "objective": "Grant/deny access within 500 ms; log all events with UTC timestamp; ≥100 enrolled UIDs.",
+  "constraints": "12 V / 1 A supply; IP54 flush-mount; GDPR-compliant (no biometrics).",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "RFID/NFC Reader — ISO 14443 / 15693 Interface",
+    "N-Channel MOSFET as a Low-Side Power Switch",
+    "MQTT Protocol for IoT Sensor Data",
+    "OTA Firmware Update for Embedded Devices"
+  ],
+  "design_element_titles": [
+    "MFRC522 RFID Card Reader (NTAG216)",
+    "N-Channel MOSFET Low-Side Load Switch",
+    "Electric NC Door Strike Solenoid",
+    "ESP32 WiFi + MQTT IoT Telemetry",
+    "OTA HTTPS Dual-Bank Firmware Update",
+    "NTP UTC Timestamped Data Logging",
+    "MQTT QoS-1 Secure Event Logger"
+  ],
+  "element_usage_notes": {
+    "N-Channel MOSFET Low-Side Load Switch": "Drives 12 V NC door strike; 300 ms energise pulse."
+  }
+}

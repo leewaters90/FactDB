@@ -1,0 +1,26 @@
+{
+  "title": "Smart Coin-Operated Vending Machine",
+  "description": "Single-row vending machine accepting coins or RFID cards, driving per-lane solenoid dispensers, with MQTT sales logging, NTP-timestamped audit trail, and OTA firmware updates.",
+  "objective": "Accept 20p/50p/£1 coins and RFID cards; ≤ 5 dispense lanes; ≤ 3 s dispense; 100 % sales event logging.",
+  "constraints": "230 V mains-powered; RS232 coin validator; ≤ £100 BOM; WiFi uplink.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "MQTT Protocol for IoT Sensor Data",
+    "RFID/NFC Reader — ISO 14443 / 15693 Interface",
+    "OTA Firmware Update for Embedded Devices"
+  ],
+  "design_element_titles": [
+    "Coin Acceptor + Solenoid Dispenser Vending Mechanism",
+    "MFRC522 RFID Card Reader (NTAG216)",
+    "Arduino Mega 2560 MCU Platform",
+    "ESP32 WiFi + MQTT IoT Telemetry",
+    "OTA HTTPS Dual-Bank Firmware Update",
+    "MQTT QoS-1 Secure Event Logger",
+    "NTP UTC Timestamped Data Logging"
+  ],
+  "element_usage_notes": {
+    "Coin Acceptor + Solenoid Dispenser Vending Mechanism": "5-lane solenoid dispensers; coin acceptor UART @ 9600 baud.",
+    "Arduino Mega 2560 MCU Platform": "Handles coin/RFID validation and lane control; ESP32 co-processor for WiFi/MQTT."
+  }
+}

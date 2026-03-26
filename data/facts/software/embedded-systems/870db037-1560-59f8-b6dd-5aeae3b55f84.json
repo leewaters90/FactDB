@@ -1,0 +1,27 @@
+{
+  "id": "870db037-1560-59f8-b6dd-5aeae3b55f84",
+  "title": "NTP Time Synchronisation for Data Logging",
+  "domain": "software",
+  "category": "embedded systems",
+  "subcategory": "time management",
+  "detail_level": "intermediate",
+  "content": "Network Time Protocol (NTP) synchronises clocks over a packet-switched network to within milliseconds of Coordinated Universal Time (UTC), ensuring accurate timestamps on logged sensor data.",
+  "extended_content": "NTP uses a hierarchy of time servers (stratum 0–15).  For a weather station with cellular or WiFi connectivity, SNTP (Simple NTP, RFC 4330) over UDP port 123 is sufficient; accuracy ≈ 1–50 ms. An on-board RTC (e.g., DS3231, ±2 ppm = ±172 ms/day) maintains time during network outages.  UTC timestamps must be stored with observations; local-time conversion is applied in post-processing. WMO requires clock accuracy better than ±1 s for standard synoptic observations.",
+  "formula": null,
+  "units": null,
+  "source": "RFC 5905 (NTPv4); RFC 4330 (SNTPv4); WMO-No.8 Ch.1",
+  "source_url": null,
+  "confidence_score": 0.98,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "NTP",
+    "time-sync",
+    "UTC",
+    "data-logging",
+    "IoT",
+    "weather-station",
+    "software"
+  ],
+  "created_by": "seed"
+}

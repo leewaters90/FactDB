@@ -1,0 +1,22 @@
+{
+  "title": "12 V Peristaltic Pump Liquid Dispenser",
+  "component_category": "actuation",
+  "design_question": "How to dispense or transfer precise volumes of liquid without contaminating the pump interior?",
+  "selected_approach": "12 V DC peristaltic pump (0–100 mL/min, food-grade silicone tube). N-channel MOSFET low-side switched by MCU PWM or on/off. Flow rate calibrated by timing the pump to dispense a known volume.",
+  "rationale": "Peristaltic pumps keep fluid inside the tube—no contamination of the pump body. Suitable for water, fertiliser, and sanitiser dispensing. Self-priming and can run dry briefly.",
+  "alternatives": [
+    {
+      "approach": "Centrifugal pump",
+      "reason_rejected": "Higher flow rate but not self-priming; requires submergence."
+    },
+    {
+      "approach": "Syringe pump (stepper-driven)",
+      "reason_rejected": "Highest accuracy (µL) but slow; preferred for medical infusion."
+    }
+  ],
+  "verification_notes": "FACT: 'Solenoid Valve for Pneumatic and Fluid Control' confirms flow actuation requirements.",
+  "supporting_fact_titles": [
+    "Solenoid Valve for Pneumatic and Fluid Control",
+    "N-Channel MOSFET as a Low-Side Power Switch"
+  ]
+}

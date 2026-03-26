@@ -1,0 +1,24 @@
+{
+  "id": "80d305af-004b-507e-b564-d5fc0731263e",
+  "title": "Tsiolkovsky Rocket Equation",
+  "domain": "aerospace",
+  "category": "propulsion",
+  "subcategory": "rocket dynamics",
+  "detail_level": "intermediate",
+  "content": "The ideal delta-v of a rocket is Δv = v_e · ln(m_0 / m_f), where v_e is the effective exhaust velocity and m_0/m_f is the mass ratio.",
+  "extended_content": "v_e = I_sp · g_0 where I_sp is specific impulse (s) and g_0 = 9.81 m/s².  The equation quantifies the trade-off between propellant fraction and delta-v capability.  Staging allows higher total Δv by discarding empty tankage.",
+  "formula": "Δv = v_e · ln(m₀ / m_f)",
+  "units": "m/s",
+  "source": "Sutton, Rocket Propulsion Elements, 9th ed.",
+  "source_url": null,
+  "confidence_score": 1.0,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "propulsion",
+    "rocket",
+    "aerospace",
+    "delta-v"
+  ],
+  "created_by": "seed"
+}

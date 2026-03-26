@@ -1,0 +1,23 @@
+{
+  "title": "MPU-6050 IMU Gyro + Accel (I²C)",
+  "component_category": "sensing",
+  "design_question": "How to measure tilt angle and angular rate at ≥100 Hz with <1° noise?",
+  "selected_approach": "MPU-6050 on I²C at 200 Hz. Complementary filter θ = 0.98·(θ + ω·dt) + 0.02·θ_accel for stable angle.",
+  "rationale": "Complementary filter is computationally cheap and stable. Gyro noise 0.01 °/s/√Hz gives <0.05° error over 10 ms cycle—sufficient for ±5° balance targets.",
+  "alternatives": [
+    {
+      "approach": "Kalman filter (EKF)",
+      "reason_rejected": "More accurate but higher CPU load on 8-bit MCU."
+    },
+    {
+      "approach": "Accelerometer only",
+      "reason_rejected": "Noise from motor vibration corrupts reading during motion—rejected."
+    }
+  ],
+  "verification_notes": "FACT: 'IMU (Inertial Measurement Unit) for Robot Navigation' confirms gyro drift and necessity of accel fusion. FACT: 'Kalman Filter for Sensor Fusion' provides the EKF upgrade path.",
+  "supporting_fact_titles": [
+    "IMU (Inertial Measurement Unit) for Robot Navigation",
+    "Kalman Filter for Sensor Fusion",
+    "I²C Serial Communication Protocol"
+  ]
+}

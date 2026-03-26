@@ -1,0 +1,21 @@
+{
+  "title": "PIR HC-SR501 Motion Detection Module",
+  "component_category": "sensing",
+  "design_question": "How to trigger an action only when a person is present, saving power?",
+  "selected_approach": "HC-SR501 PIR module wired to MCU digital interrupt pin. On HIGH output (person detected) MCU activates dispenser, pump, or alarm; auto-resets after configurable hold time (0.5–200 s).",
+  "rationale": "HC-SR501 requires no MCU processing—purely digital interrupt. Quiescent < 50 µA enables battery-powered installations. Simple and reliable for hands-free/touchless triggering.",
+  "alternatives": [
+    {
+      "approach": "Ultrasonic distance sensor",
+      "reason_rejected": "Requires active MCU polling; detects objects, not specifically warm bodies."
+    },
+    {
+      "approach": "Microwave radar RCWL-0516",
+      "reason_rejected": "Detects through walls but high false-positive rate in cluttered environments."
+    }
+  ],
+  "verification_notes": "FACT: 'PIR Passive Infrared Motion Sensor — HC-SR501' confirms 50 µA quiescent and 0.5–200 s hold time.",
+  "supporting_fact_titles": [
+    "PIR Passive Infrared Motion Sensor — HC-SR501"
+  ]
+}

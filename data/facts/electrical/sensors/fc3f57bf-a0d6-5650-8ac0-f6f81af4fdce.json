@@ -1,0 +1,27 @@
+{
+  "id": "fc3f57bf-a0d6-5650-8ac0-f6f81af4fdce",
+  "title": "IMU (Inertial Measurement Unit) for Robot Navigation",
+  "domain": "electrical",
+  "category": "sensors",
+  "subcategory": "inertial sensing",
+  "detail_level": "intermediate",
+  "content": "An IMU combines a 3-axis accelerometer and 3-axis gyroscope (and optionally a magnetometer) to measure linear acceleration and angular rate, enabling dead-reckoning pose estimation in the absence of wheel odometry.",
+  "extended_content": "Gyroscope output: angular rate ω (rad/s); integrating ω gives angle θ but drift accumulates (bias instability 0.1–10 °/√h for MEMS).  Accelerometer provides gravity vector for tilt but is noisy.  Sensor fusion (Kalman filter or complementary filter) combines gyro (short-term) and accelerometer (long-term) for stable orientation.  In robot vacuums, IMU detects wheel slip (acceleration inconsistent with encoder), floor tilt, and bump/collision events.  Typical MEMS IMU (MPU-6050, BMI088): gyro noise 0.01 °/s/√Hz, accel noise 100 µg/√Hz, I²C/SPI output.",
+  "formula": "θ(t) = ∫ ω(t) dt  (gyro integration, prone to drift)",
+  "units": "ω: rad/s, θ: rad, a: m/s²",
+  "source": "Titterton & Weston, Strapdown Inertial Navigation Technology, 2nd ed.; Invensense MPU-6050 PS",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "IMU",
+    "gyroscope",
+    "accelerometer",
+    "inertial",
+    "navigation",
+    "robot-vacuum",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

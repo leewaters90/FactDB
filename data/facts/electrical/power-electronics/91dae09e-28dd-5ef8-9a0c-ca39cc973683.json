@@ -1,0 +1,26 @@
+{
+  "id": "91dae09e-28dd-5ef8-9a0c-ca39cc973683",
+  "title": "DC Motor Speed Control via PWM",
+  "domain": "electrical",
+  "category": "power electronics",
+  "subcategory": "motor control",
+  "detail_level": "intermediate",
+  "content": "Pulse-Width Modulation (PWM) controls the average voltage applied to a DC motor by varying the duty cycle D: V_avg = D · V_supply, where D ∈ [0, 1].",
+  "extended_content": "Motor speed is approximately proportional to average terminal voltage (for a given load).  The motor's electrical time constant τ_e = L/R (typically 1–10 ms) filters the PWM ripple; mechanical time constant τ_m = J·R/K²_t (typically 50–500 ms) determines speed response.  PWM frequency must be >> 1/τ_e for effective smoothing (10× rule: f_PWM > 10/τ_e).  Closed-loop speed control uses encoder feedback with a PI or PID controller.  Typical robot-vacuum wheel motor: 6–12 V, 0.5–2 A stall, 100–300 RPM at no-load.",
+  "formula": "V_avg = D · V_supply ;  n_motor ∝ V_avg − I·R_a",
+  "units": "V (Volts), D (dimensionless 0–1)",
+  "source": "Chapman, Electric Machinery Fundamentals, 5th ed.; Mohan, Power Electronics",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "PWM",
+    "DC-motor",
+    "speed-control",
+    "duty-cycle",
+    "robot-vacuum",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

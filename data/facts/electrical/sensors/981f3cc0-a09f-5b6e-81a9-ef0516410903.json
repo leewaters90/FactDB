@@ -1,0 +1,28 @@
+{
+  "id": "981f3cc0-a09f-5b6e-81a9-ef0516410903",
+  "title": "Water Quality Multi-Parameter Sensing (pH, TDS, DO)",
+  "domain": "electrical",
+  "category": "sensors",
+  "subcategory": "water quality",
+  "detail_level": "intermediate",
+  "content": "Comprehensive water quality monitoring requires co-located measurement of pH (hydrogen ion activity), Total Dissolved Solids (TDS via electrical conductivity), and Dissolved Oxygen (DO via galvanic or optical probe).",
+  "extended_content": "pH: glass electrode + reference electrode; Nernst equation: E = E₀ − (RT/F)·ln[H⁺] ≈ −59.16·pH mV at 25 °C.  Range 0–14, accuracy ±0.1 pH; temperature compensation required (slope −54.2 mV/pH at 15 °C).  TDS: conductivity probe EC = I/(V·κ·A/L); convert EC (µS/cm) to TDS (ppm) using TDS factor 0.5–0.7 (water-type dependent).  DO (galvanic): cathode O₂ reduction generates current ∝ pO₂; membrane requires periodic replacement.  DO (optical): luminescent quenching of ruthenium dye — longer life, no membrane, ±0.1 mg/L accuracy.  All probes require regular calibration (pH buffer solutions, DO air-saturated water).  Atlas Scientific EZO series provides I²C/UART output for all three sensors.",
+  "formula": "E_pH = E₀ − (59.16 mV/pH) · pH  (at 25°C);  TDS(ppm) ≈ 0.64 · EC(µS/cm)",
+  "units": "pH: dimensionless, TDS: ppm (mg/L), DO: mg/L",
+  "source": "APHA Standard Methods for Water Examination, 23rd ed.; Atlas Scientific EZO Datasheet",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "pH",
+    "TDS",
+    "DO",
+    "water-quality",
+    "sensor",
+    "monitoring",
+    "mechatronics",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

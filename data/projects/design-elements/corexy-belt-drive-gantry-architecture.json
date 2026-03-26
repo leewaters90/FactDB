@@ -1,0 +1,22 @@
+{
+  "title": "CoreXY Belt-Drive Gantry Architecture",
+  "component_category": "mechanical",
+  "design_question": "Which 2D motion architecture minimises moving mass for high-acceleration plotting?",
+  "selected_approach": "CoreXY: both motors fixed on frame, shared belt drives lightweight carriage. X = (M₁+M₂)/2; Y = (M₁−M₂)/2. GT2 20T pulley. Resolution: 0.0125 mm/step at 1/16 step.",
+  "rationale": "CoreXY keeps both motors on fixed frame → lower moving mass → higher acceleration without resonance.",
+  "alternatives": [
+    {
+      "approach": "Cartesian H-bot",
+      "reason_rejected": "One motor on moving Y-axis adds mass; introduces racking at speed."
+    },
+    {
+      "approach": "Polar/SCARA",
+      "reason_rejected": "Non-uniform resolution; complex G-code conversion; not in Grbl."
+    }
+  ],
+  "verification_notes": "FACT: 'Stepper Motor Drive' confirms 1/16 step resolution formula. FACT: 'G-code and CNC Motion Control' confirms Grbl CoreXY support.",
+  "supporting_fact_titles": [
+    "Stepper Motor Drive — Full Step and Microstepping",
+    "G-code and CNC Motion Control"
+  ]
+}

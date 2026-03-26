@@ -1,0 +1,12 @@
+{
+  "title": "OTA HTTPS Dual-Bank Firmware Update",
+  "component_category": "communication",
+  "design_question": "How to deliver security patches remotely without physical access to the device?",
+  "selected_approach": "ESP-IDF HTTPS OTA. Dual-bank flash (active + staging). ECDSA-signed image. Watchdog triggers rollback on failed first-boot.",
+  "rationale": "OTA critical for security patches on unattended devices. Dual-bank ensures safe rollback; signed image prevents injection.",
+  "alternatives": [],
+  "verification_notes": "FACT: 'OTA Firmware Update for Embedded Devices' confirms dual-bank, HMAC/ECDSA signing, and watchdog rollback requirement.",
+  "supporting_fact_titles": [
+    "OTA Firmware Update for Embedded Devices"
+  ]
+}

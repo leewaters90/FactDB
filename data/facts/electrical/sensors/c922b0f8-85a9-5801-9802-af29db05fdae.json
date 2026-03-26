@@ -1,0 +1,26 @@
+{
+  "id": "c922b0f8-85a9-5801-9802-af29db05fdae",
+  "title": "RTD (PT100/PT1000) Temperature Measurement",
+  "domain": "electrical",
+  "category": "sensors",
+  "subcategory": "temperature sensing",
+  "detail_level": "intermediate",
+  "content": "A Resistance Temperature Detector (RTD) uses the predictable increase of metal resistance with temperature.  For platinum: R(T) = R₀ · (1 + A·T + B·T²) over the range −200 °C to +850 °C.",
+  "extended_content": "PT100 (R₀ = 100 Ω at 0 °C) and PT1000 (R₀ = 1000 Ω) are the most common variants.  Callendar–Van Dusen coefficients: A = 3.9083×10⁻³ /°C, B = −5.775×10⁻⁷ /°C².  RTDs are more accurate and stable than thermistors (±0.03–0.1 °C) but require a precision 4-wire circuit or dedicated AFE to eliminate lead resistance errors.  Used in meteorological reference instruments (WMO Class-1 stations).",
+  "formula": "R(T) = R₀(1 + A·T + B·T²)",
+  "units": "R: Ω, T: °C",
+  "source": "IEC 60751:2022, Industrial platinum resistance thermometers",
+  "source_url": null,
+  "confidence_score": 0.99,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "temperature",
+    "RTD",
+    "PT100",
+    "sensor",
+    "weather-station",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

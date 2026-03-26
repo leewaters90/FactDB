@@ -1,0 +1,26 @@
+{
+  "id": "6927582d-eabd-5738-8ca8-62c1a14a2b05",
+  "title": "RFID/NFC Reader — ISO 14443 / 15693 Interface",
+  "domain": "electrical",
+  "category": "wireless communication",
+  "subcategory": "RFID",
+  "detail_level": "intermediate",
+  "content": "RFID (Radio Frequency Identification) readers communicate with passive tags by inductively powering them and exchanging data at 13.56 MHz (HF RFID / NFC, ISO 14443A/B or ISO 15693).",
+  "extended_content": "Reader coil generates an alternating magnetic field; tag rectifies the field to power its IC and modulates load impedance to transmit data (load modulation back to reader).  ISO 14443A (Mifare, NTAG): range 0–10 cm, data rate 106–848 kbps, 4- or 7-byte UID.  ISO 15693: range 0–1 m (vicinity), 26 kbps.  MFRC522 module (common): SPI/I²C interface, reads Mifare Classic/Ultralight/NTAG. Security considerations: Mifare Classic uses weak crypto (CRYPTO1) — vulnerable to cloning; use NTAG216 or DESFire EV2 for access-control applications.  Read latency: 50–200 ms per card.",
+  "formula": null,
+  "units": null,
+  "source": "ISO 14443:2018, Identification Cards — Contactless; NXP MFRC522 Datasheet",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "RFID",
+    "NFC",
+    "access-control",
+    "13.56MHz",
+    "mechatronics",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

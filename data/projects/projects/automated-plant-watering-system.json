@@ -1,0 +1,28 @@
+{
+  "title": "Automated Plant Watering System",
+  "description": "Solar-powered IoT device monitoring soil moisture and temperature, actuating a solenoid valve to irrigate autonomously and reporting to an MQTT broker.",
+  "objective": "Maintain soil VWC 20–60 % without manual intervention; log at 15-min intervals.",
+  "constraints": "Budget ≤ £30; IP54+; ≥ 1-week solar autonomy; single PCB ≤ 100×60 mm.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Capacitive Soil Moisture Sensing",
+    "N-Channel MOSFET as a Low-Side Power Switch",
+    "MQTT Protocol for IoT Sensor Data",
+    "Solar Panel Sizing for Remote IoT Stations",
+    "Li-Ion Battery Capacity and Energy Calculation",
+    "ESP32 WiFi + BLE System-on-Chip"
+  ],
+  "design_element_titles": [
+    "Capacitive Soil Moisture Probe",
+    "N-Channel MOSFET Low-Side Load Switch",
+    "Solar Panel + LiFePO₄ MPPT Power System",
+    "MCU Deep-Sleep Duty Cycle Power Management",
+    "ESP32 WiFi + MQTT IoT Telemetry",
+    "NTP UTC Timestamped Data Logging"
+  ],
+  "element_usage_notes": {
+    "N-Channel MOSFET Low-Side Load Switch": "Drives 12 V NC solenoid valve; 1N4007 flyback diode fitted.",
+    "Solar Panel + LiFePO₄ MPPT Power System": "1 W 60×90 mm panel + 2 Ah LiFePO₄ via CN3791."
+  }
+}

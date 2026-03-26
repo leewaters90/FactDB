@@ -1,0 +1,27 @@
+{
+  "id": "233eb182-6ffa-5370-8a52-9f83ac91a56f",
+  "title": "G-code and CNC Motion Control",
+  "domain": "software",
+  "category": "motion control",
+  "subcategory": "CNC programming",
+  "detail_level": "intermediate",
+  "content": "G-code is the standard numerical control language for CNC machines. Modal codes (G0/G1/G2/G3) command the machine to move to absolute or relative coordinates using linear (G1) or circular (G2/G3) interpolation.",
+  "extended_content": "G0: rapid traverse (non-cutting); G1: linear feed (cutting speed F in mm/min); G2/G3: circular arc (centre I, J or radius R); G90/G91: absolute/relative mode; M3/M5: spindle on/off; M106/M107: fan; M0: pause.  Step-pulse generation: planner converts G-code to acceleration-limited velocity profiles (trapezoidal or S-curve jerk control); step pulse frequency: f_step = v / (step_angle_rad × r_wheel_or_pitch). Firmware: Grbl (AVR/STM32, 2-axis plotter), Marlin (3D printing), LinuxCNC (full CNC).  Grbl achieves 30 kHz step rate on ATmega328P.  Backlash compensation and probe-based auto-levelling are supported.",
+  "formula": null,
+  "units": null,
+  "source": "EIA RS-274-D G-code Standard; Grbl GitHub Documentation",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "G-code",
+    "CNC",
+    "motion-control",
+    "stepper",
+    "plotter",
+    "mechatronics",
+    "software"
+  ],
+  "created_by": "seed"
+}

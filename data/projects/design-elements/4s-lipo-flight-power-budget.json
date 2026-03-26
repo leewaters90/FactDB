@@ -1,0 +1,18 @@
+{
+  "title": "4S LiPo Flight Power Budget",
+  "component_category": "power",
+  "design_question": "Which battery achieves ≥5 min hover with 450 g AUW on a 250 mm quad?",
+  "selected_approach": "4S 1500 mAh 75C LiPo (14.8 V, 22.2 Wh). Hover current ≈ 28 A total. Runtime = 22.2×0.8 / (28×14.8/1000×60) ≈ 5.4 min.",
+  "rationale": "1500 mAh @ 75C = 112.5 A burst—adequate for aggressive manoeuvres. Weight 115 g fits under 500 g AUW budget.",
+  "alternatives": [
+    {
+      "approach": "3S 2200 mAh",
+      "reason_rejected": "Lower C-rating limits peak current for 2306 motors; heavier than 4S 1500 mAh—rejected for performance."
+    }
+  ],
+  "verification_notes": "FACT: 'Robot Runtime Estimation from Battery Capacity': usable Wh = 22.2×0.8 = 17.8 Wh; P_hover = 450×9.81×(1/FoM) ≈ 200 W.",
+  "supporting_fact_titles": [
+    "Li-Ion Battery Capacity and Energy Calculation",
+    "Robot Runtime Estimation from Battery Capacity"
+  ]
+}

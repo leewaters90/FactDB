@@ -1,0 +1,26 @@
+{
+  "id": "e4f2925f-4fbc-5d66-b817-415531070d76",
+  "title": "NDIR CO₂ Sensor — Non-Dispersive Infrared",
+  "domain": "electrical",
+  "category": "sensors",
+  "subcategory": "gas sensing",
+  "detail_level": "intermediate",
+  "content": "NDIR (Non-Dispersive Infrared) sensors measure CO₂ concentration by detecting absorption of infrared radiation at 4.26 µm (CO₂ absorption band) using Beer–Lambert law: I = I₀ · e^(−α·c·L).",
+  "extended_content": "Light source (IR LED or broad-band lamp) illuminates the gas sample over path length L; a wavelength-selective detector at 4.26 µm measures transmitted intensity I.  Concentration c is derived from the absorbance.  Typical modules (SCD41, MH-Z19B): range 400–5000 ppm, accuracy ±50 ppm + 5%, I²C or UART output.  Warm-up time 30–120 s.  Pressure and temperature correction needed at altitude or non-standard conditions.  ABC (Automatic Baseline Correction) compensates for long-term drift by assuming outdoor fresh-air CO₂ ≈ 400 ppm.",
+  "formula": "I = I₀ · exp(−α · c · L)",
+  "units": "ppm (parts per million)",
+  "source": "Sensirion SCD41 Datasheet; ISO 17521:2016",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "CO2",
+    "NDIR",
+    "gas-sensor",
+    "air-quality",
+    "mechatronics",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

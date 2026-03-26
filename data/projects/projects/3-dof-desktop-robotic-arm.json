@@ -1,0 +1,23 @@
+{
+  "title": "3-DOF Desktop Robotic Arm",
+  "description": "Three-joint planar arm driven by RC servos, controlled by ESP32 accepting joint-space commands or IK Cartesian targets over BLE.",
+  "objective": "200 mm reach; ±2 mm accuracy; ≥ 100 g payload; ±1 mm repeatability.",
+  "constraints": "≤ 500 g; 3D-printed; 5 V USB-C; cost ≤ £25.",
+  "domain": "mechanical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "RC Servo Motor PWM Control",
+    "Forward and Inverse Kinematics — Serial Robot Arm",
+    "ESP32 WiFi + BLE System-on-Chip"
+  ],
+  "design_element_titles": [
+    "RC Servo Joint Actuator",
+    "Analytical 2R Planar Inverse Kinematics Solver",
+    "BLE GATT Smartphone App Interface",
+    "ESP32 WiFi + MQTT IoT Telemetry"
+  ],
+  "element_usage_notes": {
+    "RC Servo Joint Actuator": "MG996R shoulder, MG90S elbow, SG90 wrist.",
+    "ESP32 WiFi + MQTT IoT Telemetry": "Used primarily for BLE mode; MQTT optional telemetry."
+  }
+}

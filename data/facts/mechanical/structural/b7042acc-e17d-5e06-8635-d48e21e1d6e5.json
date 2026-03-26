@@ -1,0 +1,25 @@
+{
+  "id": "b7042acc-e17d-5e06-8635-d48e21e1d6e5",
+  "title": "Wind Loading on Structures (ASCE 7)",
+  "domain": "mechanical",
+  "category": "structural",
+  "subcategory": "environmental loads",
+  "detail_level": "intermediate",
+  "content": "The design wind pressure on a structure is: p = q_z · G · C_f, where q_z is the velocity pressure at height z, G is the gust factor, and C_f is the net force coefficient.",
+  "extended_content": "Velocity pressure: q_z = 0.613 · K_z · K_zt · K_d · V² (Pa), where V is the 3-second gust design wind speed (m/s) and K factors account for terrain, topography, and directionality.  For a weather-station mast at 10 m in open terrain (Exposure C): K_z ≈ 1.0.  A 10 m mast must withstand a ±50 m/s gust in many climates.  Guy wires reduce bending moment significantly; base moments must include dynamic amplification for slender masts.",
+  "formula": "p = q_z · G · C_f ;  q_z = 0.613 · K_z · K_zt · K_d · V²",
+  "units": "p: Pa, q_z: Pa, V: m/s",
+  "source": "ASCE 7-22, Minimum Design Loads for Buildings and Other Structures",
+  "source_url": null,
+  "confidence_score": 0.96,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "wind-load",
+    "structural",
+    "mast",
+    "mechanical",
+    "weather-station"
+  ],
+  "created_by": "seed"
+}

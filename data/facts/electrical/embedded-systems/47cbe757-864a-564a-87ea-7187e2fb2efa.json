@@ -1,0 +1,26 @@
+{
+  "id": "47cbe757-864a-564a-87ea-7187e2fb2efa",
+  "title": "Low-Power Microcontroller Sleep Modes",
+  "domain": "electrical",
+  "category": "embedded systems",
+  "subcategory": "power management",
+  "detail_level": "intermediate",
+  "content": "Modern microcontrollers offer multiple sleep modes that reduce current consumption from milliamps (active) to microamps (deep sleep) while retaining register state and waking on timers or external interrupts.",
+  "extended_content": "Typical current: active 10–50 mA, sleep 1–100 µA, deep sleep 0.1–5 µA.  Average current for a duty-cycled sensor node: I_avg = I_active × t_active/(t_active + t_sleep) + I_sleep.  For a weather station sampling every 60 s with 100 ms active burst: I_avg ≈ 25 mA × (0.1/60) + 5 µA ≈ 46 µA.  Peripheral power gating (sensor VCC via GPIO MOSFET) further reduces quiescent current.  ARM Cortex-M0+ (e.g., SAMD21) and Nordic nRF52 offer excellent sleep performance for weather-station applications.",
+  "formula": "I_avg = I_active · (t_on / T_period) + I_sleep",
+  "units": "µA (microamperes)",
+  "source": "ARM Cortex-M0+ TRM; Nordic nRF52840 Product Specification",
+  "source_url": null,
+  "confidence_score": 0.96,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "microcontroller",
+    "sleep-mode",
+    "power",
+    "embedded",
+    "IoT",
+    "weather-station"
+  ],
+  "created_by": "seed"
+}

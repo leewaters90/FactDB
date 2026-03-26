@@ -1,0 +1,17 @@
+{
+  "title": "Cascaded PID Rate and Attitude Controller",
+  "component_category": "control",
+  "design_question": "What control topology achieves attitude hold and disturbance rejection simultaneously?",
+  "selected_approach": "Outer attitude loop (50 Hz) generates angular rate setpoints. Inner rate loop (200–4000 Hz) generates actuator outputs. Inner must be ≥10× outer bandwidth.",
+  "rationale": "Cascaded structure separates tracking (outer) from rejection (inner). Inner loop acts on rate—faster response than single-loop PID on angle.",
+  "alternatives": [
+    {
+      "approach": "Single-loop PID on angle only",
+      "reason_rejected": "Cannot achieve >5 Hz bandwidth—oscillation at high gain."
+    }
+  ],
+  "verification_notes": "FACT: 'PID Controller — Transfer Function' confirms K_d reduces overshoot; cascaded structure is standard for multi-rotor/balance.",
+  "supporting_fact_titles": [
+    "PID Controller — Transfer Function"
+  ]
+}

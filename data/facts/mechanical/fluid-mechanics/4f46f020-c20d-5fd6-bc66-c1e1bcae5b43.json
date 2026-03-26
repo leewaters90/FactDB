@@ -1,0 +1,27 @@
+{
+  "id": "4f46f020-c20d-5fd6-bc66-c1e1bcae5b43",
+  "title": "Suction Pressure and Airflow in Vacuum Systems",
+  "domain": "mechanical",
+  "category": "fluid mechanics",
+  "subcategory": "suction performance",
+  "detail_level": "intermediate",
+  "content": "Vacuum cleaner performance is characterised by sealed suction (maximum pressure difference at zero flow, Pa) and airflow (maximum flow at zero pressure, m³/s), and is traded off along the fan's performance curve.",
+  "extended_content": "Bernoulli's principle and the fan affinity laws govern the suction-airflow curve.  Airflow (volumetric) Q and pressure drop ΔP relate to particle pickup: heavy particles (sand, crumbs) require high ΔP; light particles (dust, hair) require high Q. Robot vacuums: typical sealed suction 1000–4000 Pa, airflow 5–20 L/s.  Suction power P_air = ΔP × Q (watts).  HEPA filter reduces Q by 15–30% at the same motor speed; system losses include cyclone separator, duct bends, and brush roll.  Fan affinity: Q ∝ N, ΔP ∝ N², P ∝ N³ where N = rotational speed.",
+  "formula": "P_air = ΔP · Q ;  Q ∝ N,  ΔP ∝ N²,  P ∝ N³",
+  "units": "ΔP: Pa, Q: m³/s (or L/s), P_air: W",
+  "source": "Çengel & Cimbala, Fluid Mechanics, 3rd ed.; IEC 62885 Vacuum Cleaner Test Standards",
+  "source_url": null,
+  "confidence_score": 0.96,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "suction",
+    "airflow",
+    "vacuum",
+    "fan",
+    "fluid-mechanics",
+    "robot-vacuum",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}

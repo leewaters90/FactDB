@@ -1,0 +1,27 @@
+{
+  "id": "bdaf23fd-92ea-5dca-ac40-53a4fe78ef08",
+  "title": "UV-C LED Germicidal Irradiation",
+  "domain": "electrical",
+  "category": "lighting / disinfection",
+  "subcategory": "UV sterilisation",
+  "detail_level": "intermediate",
+  "content": "UV-C radiation (200–280 nm, peak germicidal efficacy at 265 nm) destroys micro-organism DNA/RNA by forming thymine dimers, preventing replication.  Required dose D = E · t (J/m²) where E is irradiance (W/m²) and t is exposure time.",
+  "extended_content": "Typical lethal doses: E. coli 6 mJ/cm², SARS-CoV-2 3.7 mJ/cm², B. subtilis spores 100 mJ/cm².  LED-based UV-C (270 nm AlGaN): wall-plug efficiency 1–5% vs 30–35% for low-pressure Hg lamps.  Radiant intensity falls as 1/r² from point source.  Safety: UV-C is carcinogenic and damages corneas — opto-electronic interlock (lid switch, PIR) mandatory.  Surface disinfection: place items 5–20 cm from lamp; rotate or use reflective chamber to dose all surfaces.  Log-reduction: N = N₀ · 10^(−D/D_99), where D_99 is the dose for 99% kill.  Driver: constant-current LED driver (100–500 mA); duty-cycle timing via MCU for precise dose control.",
+  "formula": "D (J/m²) = E (W/m²) · t (s) ;  N = N₀ · 10^(−D/D_99)",
+  "units": "D: J/m² (or mJ/cm²), E: W/m², t: s",
+  "source": "IES RP-27 UV Disinfection Guide; IUVA, UV Disinfection of COVID-19; ASHRAE Epidemic Task Force",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "UV-C",
+    "disinfection",
+    "germicidal",
+    "sterilisation",
+    "LED",
+    "mechatronics",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

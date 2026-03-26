@@ -1,0 +1,24 @@
+{
+  "title": "UV-C Automated Sterilisation Cabinet",
+  "description": "Enclosed UV-C LED cabinet with PIR door-occupancy interlock, timed sterilisation cycle controller, OLED status display, and MQTT audit log. Suitable for tools, masks, or small medical equipment.",
+  "objective": "≥ 99.9 % microbial reduction in ≤ 10 min at 275 nm; door interlock prevents UV exposure to occupants; ≥ 1000 h LED rated life.",
+  "constraints": "40×30×20 cm internal; 230 V mains; ≤ £60; CE safety markings.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "MQTT Protocol for IoT Sensor Data",
+    "N-Channel MOSFET as a Low-Side Power Switch"
+  ],
+  "design_element_titles": [
+    "UV-C LED Germicidal + Ozone Sterilisation Module",
+    "PIR HC-SR501 Motion Detection Module",
+    "N-Channel MOSFET Low-Side Load Switch",
+    "ESP32 WiFi + MQTT IoT Telemetry",
+    "MQTT QoS-1 Secure Event Logger",
+    "NTP UTC Timestamped Data Logging"
+  ],
+  "element_usage_notes": {
+    "UV-C LED Germicidal + Ozone Sterilisation Module": "Six 3 W LEDs at 275 nm; timed 10-min cycle; PWM dimming for dose control.",
+    "PIR HC-SR501 Motion Detection Module": "Door-open proxy; HIGH output immediately kills UV driver via MOSFET."
+  }
+}

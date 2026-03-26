@@ -1,0 +1,27 @@
+{
+  "id": "507e7360-bf8d-53ce-95f0-b07e1cb97cec",
+  "title": "Solar Panel Sizing for Remote IoT Stations",
+  "domain": "electrical",
+  "category": "power systems",
+  "subcategory": "renewable energy",
+  "detail_level": "intermediate",
+  "content": "The required solar panel peak power is P_panel = (E_daily / η_total) / PSH, where E_daily is daily energy consumption, η_total is system efficiency, and PSH is Peak Sun Hours.",
+  "extended_content": "Peak Sun Hours (PSH) represents equivalent hours of 1000 W/m² irradiance per day; typical values: 2–3 h (UK winter), 4–5 h (mid-latitude summer), 5–7 h (desert).  System efficiency η includes panel derating (temperature, soiling ≈ 0.8), charge-controller efficiency (MPPT ≈ 0.95), and battery charge/discharge efficiency (Li-ion ≈ 0.95).  Battery capacity should cover ≥ 5 days of autonomy (no sun) at 50% depth-of-discharge (DoD).",
+  "formula": "P_panel = E_daily / (η_total · PSH)",
+  "units": "P: W, E_daily: Wh, PSH: hours",
+  "source": "Perez-Aparicio et al., Solar Energy Systems Design, 2019",
+  "source_url": null,
+  "confidence_score": 0.96,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "solar",
+    "power",
+    "IoT",
+    "remote",
+    "battery",
+    "weather-station",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

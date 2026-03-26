@@ -1,0 +1,27 @@
+{
+  "id": "6351b8e4-8eeb-5f09-81db-66cce55fbf37",
+  "title": "Forward and Inverse Kinematics — Serial Robot Arm",
+  "domain": "mechanical",
+  "category": "robotics",
+  "subcategory": "kinematics",
+  "detail_level": "advanced",
+  "content": "Forward kinematics (FK) maps joint angles θ to end-effector pose using Denavit-Hartenberg (DH) transformation matrices. Inverse kinematics (IK) solves for joint angles given a desired end-effector pose — generally non-linear with multiple solutions.",
+  "extended_content": "FK: T_0n = T_01(θ₁)·T_12(θ₂)·…·T_{n-1,n}(θₙ), each 4×4 homogeneous transformation using DH parameters (a, d, α, θ).  IK analytical solutions exist for specific arm geometries (e.g., 3R planar, 6R with spherical wrist); numerical methods (Jacobian pseudo-inverse, gradient descent) solve the general case.  Workspace: reachable positions for given joint limits.  Singularities occur when the Jacobian is rank-deficient (arm fully extended or wrist aligned with shoulder).  For a 3-DOF planar arm: θ₁ = atan2(y,x) − atan2(l₂·sin(θ₂), l₁+l₂·cos(θ₂)); θ₂ = ±acos((x²+y²−l₁²−l₂²)/(2·l₁·l₂)).",
+  "formula": "T_0n = T_01(θ₁) · T_12(θ₂) · … · T_{n−1,n}(θₙ)",
+  "units": null,
+  "source": "Siciliano et al., Robotics: Modelling, Planning and Control, Springer, 2009",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "kinematics",
+    "IK",
+    "FK",
+    "robot-arm",
+    "DH-parameters",
+    "mechatronics",
+    "mechanical"
+  ],
+  "created_by": "seed"
+}

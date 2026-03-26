@@ -1,0 +1,24 @@
+{
+  "id": "0c1cdade-15a4-5177-b8d7-260e89abc937",
+  "title": "Amdahl's Law — Parallel Speedup",
+  "domain": "software",
+  "category": "parallel computing",
+  "subcategory": "scalability",
+  "detail_level": "intermediate",
+  "content": "The maximum theoretical speedup of a program using P processors is S = 1 / ((1 − p) + p/P), where p is the parallelisable fraction.",
+  "extended_content": "As P → ∞, speedup converges to 1/(1−p).  A program that is 90% parallel can never exceed 10× speedup regardless of the number of processors.  Gustafson's Law provides a more optimistic view when problem size scales with processor count.",
+  "formula": "S(P) = 1 / ((1 − p) + p / P)",
+  "units": "dimensionless",
+  "source": "Amdahl, G. (1967). Validity of the single processor approach.",
+  "source_url": null,
+  "confidence_score": 1.0,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "parallel",
+    "performance",
+    "scalability",
+    "software"
+  ],
+  "created_by": "seed"
+}

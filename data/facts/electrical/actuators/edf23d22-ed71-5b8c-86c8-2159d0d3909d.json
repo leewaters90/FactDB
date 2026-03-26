@@ -1,0 +1,27 @@
+{
+  "id": "edf23d22-ed71-5b8c-86c8-2159d0d3909d",
+  "title": "Stepper Motor Drive — Full Step and Microstepping",
+  "domain": "electrical",
+  "category": "actuators",
+  "subcategory": "stepper motors",
+  "detail_level": "intermediate",
+  "content": "A stepper motor rotates a fixed angle (step angle) for each electrical pulse.  Step angle = 360° / (steps per rev); microstepping subdivides this further for smoother motion.",
+  "extended_content": "Common step angles: 1.8° (200 steps/rev, NEMA 17/23) and 0.9° (400 steps/rev).  Drive modes: full step (1 coil), half step (0.9° for 1.8° motor), 1/8 step, 1/16 step, 1/32 step (microstepping — reduces resonance, improves resolution).  Position = step count × (360° / (steps/rev × microstep_factor)). No feedback required (open-loop), but missed steps are not detected. Drivers: A4988 (up to 1/16 step), DRV8825 (up to 1/32 step).  Torque falls with speed; acceleration ramps (trapezoidal or S-curve) prevent stall.  Typical NEMA 17: 2 A, 40 N·cm holding torque, used in CNC machines, 3D printers, and plotters.",
+  "formula": "θ_step = 360° / (steps_per_rev × microstep_divisor)",
+  "units": "degrees per step",
+  "source": "Jones, Microstepping: Myths and Realities, Microchip Tech Note; Pololu A4988 Datasheet",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "stepper",
+    "motor",
+    "microstepping",
+    "CNC",
+    "actuator",
+    "mechatronics",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

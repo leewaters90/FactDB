@@ -1,0 +1,26 @@
+{
+  "id": "fd03f778-f18e-56f8-817b-570a80781ae5",
+  "title": "Coin Acceptor — Pulse-Count Authentication and Relay Dispense",
+  "domain": "mechanical",
+  "category": "vending mechanisms",
+  "subcategory": "coin acceptor",
+  "detail_level": "intermediate",
+  "content": "A pulse-type coin acceptor (CH-926 / HX-616) validates coins using optical and magnetic sensors then outputs a pulse burst—one pulse per configured denomination—for counting by an MCU. A relay or solenoid then actuates product dispensing.",
+  "extended_content": "Mechanism: coin rolls past magnetic + optical sensor array; if diameter, thickness, and magnetic signature match the template, the acceptor outputs N pulses (e.g. 1 pulse = 10 p, 2 = 20 p). MCU counting: falling-edge interrupt accumulates credit. Dispense: when credit ≥ product price, MCU energises a solenoid or DC motor for a timed stroke to release product. Programming: acceptor accepts up to 6 coin types; learn mode by inserting a valid sample 10×. Supply: 12 V DC, < 500 mA. Alternative: NFC/RFID tap payment for contactless—higher cost but supports mobile payments.",
+  "formula": null,
+  "units": null,
+  "source": "CH-926 Coin Acceptor Datasheet; vending machine engineering practice",
+  "source_url": null,
+  "confidence_score": 0.92,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "coin acceptor",
+    "vending",
+    "solenoid dispense",
+    "pulse count",
+    "mechanical",
+    "mechatronics"
+  ],
+  "created_by": "seed"
+}

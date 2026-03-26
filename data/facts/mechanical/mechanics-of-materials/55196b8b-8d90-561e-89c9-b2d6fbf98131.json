@@ -1,0 +1,25 @@
+{
+  "id": "55196b8b-8d90-561e-89c9-b2d6fbf98131",
+  "title": "Hooke's Law — Linear Elasticity",
+  "domain": "mechanical",
+  "category": "mechanics of materials",
+  "subcategory": "stress-strain",
+  "detail_level": "fundamental",
+  "content": "Within the elastic limit, stress is proportional to strain: σ = E·ε, where E is Young's modulus.",
+  "extended_content": "Young's modulus (E) is a material constant representing stiffness. Steel: ~200 GPa; Aluminium: ~70 GPa; Concrete: ~30 GPa.  Hooke's Law holds only in the linear elastic region; beyond the yield strength, permanent (plastic) deformation occurs.",
+  "formula": "σ = E · ε",
+  "units": "σ: Pa, E: Pa, ε: dimensionless",
+  "source": "Beer & Johnston, Mechanics of Materials, 7th ed.",
+  "source_url": null,
+  "confidence_score": 1.0,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "stress",
+    "strain",
+    "elasticity",
+    "mechanical",
+    "materials"
+  ],
+  "created_by": "seed"
+}
