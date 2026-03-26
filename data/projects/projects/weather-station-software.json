@@ -1,0 +1,48 @@
+{
+  "title": "Weather Station Software",
+  "description": "Python software for the automatic weather station project. Reads temperature, humidity, rainfall, and wind speed from hardware sensors, applies unit-conversion transforms, and publishes aggregated JSON payloads to an MQTT broker at 1-minute intervals. Designed to run on a Raspberry Pi with the existing weather station hardware.",
+  "objective": "Collect and publish temperature (°C and °F), relative humidity (%), accumulated rainfall (mm), and wind speed (km/h and m/s) at 1-minute intervals with full MQTT telemetry and local error logging.",
+  "constraints": "Python 3.11; Raspberry Pi 4; paho-mqtt broker on local network; 1-minute logging interval; graceful retry on sensor read failure (up to 3 attempts); station_id configurable via environment variable.",
+  "domain": "software",
+  "status": "in_design",
+  "supporting_fact_titles": [
+    "Read DHT22 Temperature and Humidity",
+    "Read Rain Gauge Tip Count",
+    "Read Anemometer Wind Speed",
+    "Celsius to Fahrenheit Temperature Transform",
+    "Sensor Reading to MQTT Payload Transform"
+  ],
+  "design_element_titles": [
+    "Weather Station Temperature and Humidity Sensing",
+    "Weather Station Rainfall Measurement",
+    "Weather Station Wind Speed Measurement",
+    "Weather Station Telemetry Publishing"
+  ],
+  "element_usage_notes": {
+    "Weather Station Temperature and Humidity Sensing": "DHT22 on GPIO pin 4 (BCM); retry up to 3 times on read failure; dual-unit output (°C and °F) fed into telemetry payload.",
+    "Weather Station Rainfall Measurement": "Reed-switch interrupt on GPIO pin 17 (BCM); calibration_factor=0.2794 mm/tip (Davis sensor); tip_count reset after each 1-minute logging cycle.",
+    "Weather Station Wind Speed Measurement": "Reed-switch interrupt on GPIO pin 27 (BCM); three 1-second windows averaged per logging cycle; calibration_factor=2.4 km/h per Hz.",
+    "Weather Station Telemetry Publishing": "station_id read from STATION_ID environment variable; MQTT broker at mqtt://localhost:1883; topic weather/{station_id}/reading; QoS 1; retry up to 3 times on publish failure."
+  },
+  "element_interactions": [
+    {
+      "from": "Weather Station Temperature and Humidity Sensing",
+      "to": "Weather Station Telemetry Publishing",
+      "data": "dict with keys temperature_c (float), temperature_f (float), humidity_pct (float)",
+      "description": "read_temperature_humidity() output is merged into the aggregated reading dict passed to publish_reading()."
+    },
+    {
+      "from": "Weather Station Rainfall Measurement",
+      "to": "Weather Station Telemetry Publishing",
+      "data": "rainfall_mm (float)",
+      "description": "read_and_reset_rainfall() returns a single float keyed as 'rainfall_mm' in the aggregated reading dict."
+    },
+    {
+      "from": "Weather Station Wind Speed Measurement",
+      "to": "Weather Station Telemetry Publishing",
+      "data": "dict with keys wind_speed_kmh (float), wind_speed_ms (float)",
+      "description": "read_wind_speed() output is merged into the aggregated reading dict. Wind measurement blocks for ~3 s (3 × 1-second windows) and runs before the other sensors to consume that time at the start of each cycle."
+    }
+  ],
+  "integration_code": "\"\"\"weather_station.py — main entry point for the Weather Station Software project.\n\nOrchestrates all four design elements in a 60-second logging loop:\n  1. Weather Station Wind Speed Measurement  (blocks ~3 s for 3-window average)\n  2. Weather Station Temperature and Humidity Sensing  (GPIO DHT22 read, retried)\n  3. Weather Station Rainfall Measurement  (reads + resets tip counter)\n  4. Weather Station Telemetry Publishing  (merges readings → MQTT JSON payload)\n\"\"\"\n\nimport logging\nimport time\n\nimport RPi.GPIO as GPIO\n\n# Design element modules\nfrom temperature_humidity import read_temperature_humidity, setup_temperature_humidity\nfrom rainfall import read_and_reset_rainfall, setup_rain_gauge\nfrom wind_speed import read_wind_speed, setup_anemometer\nfrom telemetry import publish_reading\n\nLOG_INTERVAL_S: int = 60\n\nlogging.basicConfig(\n    level=logging.INFO,\n    format='%(asctime)s %(levelname)s %(message)s',\n)\nlog = logging.getLogger(__name__)\n\n\ndef main() -> None:\n    \"\"\"Initialise hardware and run the main 60-second logging loop.\"\"\"\n    GPIO.setmode(GPIO.BCM)\n    setup_rain_gauge(pin=17)\n    setup_anemometer(pin=27)\n    log.info('Weather station started. Logging every %d s.', LOG_INTERVAL_S)\n\n    try:\n        while True:\n            cycle_start = time.monotonic()\n\n            # --- 1. Wind speed (blocks for windows × 1 s) ---\n            # Runs first so the 3-second sampling window fills part of the\n            # 60-second interval rather than adding to it.\n            wind = read_wind_speed(windows=3, calibration_factor=2.4)\n\n            # --- 2. Temperature and humidity ---\n            th = read_temperature_humidity(pin=4, retries=3)\n            if th is None:\n                log.warning('T/RH read failed after retries; skipping cycle.')\n                time.sleep(max(0.0, LOG_INTERVAL_S - (time.monotonic() - cycle_start)))\n                continue\n\n            # --- 3. Rainfall (reads and resets the interrupt counter) ---\n            rainfall_mm = read_and_reset_rainfall(mm_per_tip=0.2794)\n\n            # --- 4. Merge all element outputs into one reading dict ---\n            reading = {\n                **th,                          # temperature_c, temperature_f, humidity_pct\n                'rainfall_mm': rainfall_mm,    # from Rainfall element\n                **wind,                        # wind_speed_kmh, wind_speed_ms\n            }\n            log.info('Reading: %s', reading)\n\n            # --- 5. Publish via Telemetry element ---\n            if not publish_reading(reading):\n                log.error('Telemetry publish failed; reading lost.')\n\n            # Sleep for the remainder of the 60-second interval.\n            elapsed = time.monotonic() - cycle_start\n            time.sleep(max(0.0, LOG_INTERVAL_S - elapsed))\n\n    finally:\n        GPIO.cleanup()\n        log.info('GPIO cleaned up. Weather station stopped.')\n\n\nif __name__ == '__main__':\n    main()\n"
+}

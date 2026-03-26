@@ -1,0 +1,23 @@
+{
+  "title": "Weather Station Temperature and Humidity Sensing",
+  "component_category": "software",
+  "design_question": "How to read raw temperature and humidity from a DHT22 sensor and produce both Celsius and Fahrenheit outputs ready for logging and display?",
+  "selected_approach": "Call `read_dht22(pin)` to obtain `{'temperature_c', 'humidity_pct'}` from the sensor. Pass `temperature_c` through the `celsius_to_fahrenheit` transform to produce a dual-unit reading dict. Return a merged dict containing `temperature_c`, `temperature_f`, and `humidity_pct`. Handle `None` returns from the sensor on read failure by retrying up to 3 times before logging an error and skipping the cycle.",
+  "rationale": "Separating the sensor I/O function (`read_dht22`) from the unit-conversion transform (`celsius_to_fahrenheit`) keeps both independently testable. The DHT22 provides ±0.3 °C and ±2% RH accuracy—sufficient for a garden weather station. Dual-unit output satisfies both SI logging and Fahrenheit display requirements without duplicating conversion logic.",
+  "alternatives": [
+    {
+      "approach": "SHT41 I²C sensor with on-chip calibration",
+      "reason_rejected": "Higher accuracy (±0.2 °C) but requires I²C bus; DHT22 single-wire protocol is simpler for standalone sensing."
+    },
+    {
+      "approach": "Convert to °F inside the read function",
+      "reason_rejected": "Couples unit conversion to sensor I/O, making each harder to test in isolation."
+    }
+  ],
+  "verification_notes": "Verified by benchmark tests on both 'Read DHT22 Temperature and Humidity' (output key presence) and 'Celsius to Fahrenheit Temperature Transform' (freezing, boiling, body-temperature points).",
+  "implementation_code": "import time\n\nfrom read_dht22 import read_dht22\nfrom celsius_to_fahrenheit import celsius_to_fahrenheit\n\n\ndef read_temperature_humidity(\n    pin: int = 4, retries: int = 3, retry_delay_s: float = 0.5\n) -> dict | None:\n    \"\"\"Read temperature and humidity from a DHT22 with retry on failure.\n\n    Calls read_dht22() to obtain the raw sensor dict, then applies the\n    celsius_to_fahrenheit transform to produce a dual-unit output.\n\n    Args:\n        pin:           BCM GPIO pin the DHT22 data line is connected to.\n        retries:       Maximum read attempts before returning None.\n        retry_delay_s: Seconds to wait between attempts.\n\n    Returns:\n        Dict with 'temperature_c' (float), 'temperature_f' (float), and\n        'humidity_pct' (float), or None if all attempts fail.\n    \"\"\"\n    for attempt in range(retries):\n        result = read_dht22(pin)\n        if result['temperature_c'] is not None and result['humidity_pct'] is not None:\n            return {\n                'temperature_c': result['temperature_c'],\n                'temperature_f': celsius_to_fahrenheit(result['temperature_c']),\n                'humidity_pct': result['humidity_pct'],\n            }\n        if attempt < retries - 1:\n            time.sleep(retry_delay_s)\n    return None\n",
+  "supporting_fact_titles": [
+    "Read DHT22 Temperature and Humidity",
+    "Celsius to Fahrenheit Temperature Transform"
+  ]
+}

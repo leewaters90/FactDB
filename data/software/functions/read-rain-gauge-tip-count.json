@@ -1,0 +1,44 @@
+{
+  "title": "Read Rain Gauge Tip Count",
+  "content": "Counts reed-switch tip events from a tipping-bucket rain gauge to calculate accumulated rainfall in millimetres.",
+  "artifact_type": "function",
+  "language": "python",
+  "language_version": "3.11",
+  "signature": "def read_rain_gauge(tip_count: int, mm_per_tip: float = 0.2794) -> float",
+  "code": "def read_rain_gauge(tip_count: int, mm_per_tip: float = 0.2794) -> float:\n    \"\"\"Convert tip-bucket event count to accumulated rainfall in mm.\n\n    Each tip of the bucket displaces a fixed volume of water.  The standard\n    Sparkfun / Davis rain gauge tips at 0.2794 mm per event.\n\n    Args:\n        tip_count:   Number of bucket-tip events recorded since last reset.\n        mm_per_tip:  Rainfall depth per tip in millimetres (default 0.2794).\n\n    Returns:\n        Accumulated rainfall in millimetres.\n    \"\"\"\n    return round(tip_count * mm_per_tip, 4)\n",
+  "input_schema": [
+    {"name": "tip_count", "type": "int", "description": "Number of bucket-tip interrupt events"},
+    {"name": "mm_per_tip", "type": "float", "description": "Rainfall depth per tip in mm (default 0.2794)"}
+  ],
+  "output_schema": {
+    "type": "float",
+    "description": "Accumulated rainfall in millimetres"
+  },
+  "packages": [],
+  "domain": "software",
+  "category": "sensing",
+  "tags": ["sensor", "rain-gauge", "rainfall", "weather-station"],
+  "benchmark_tests": [
+    {
+      "name": "zero_tips",
+      "description": "Zero tips should return 0.0 mm.",
+      "test_code": "result = read_rain_gauge(0)",
+      "expected_output": 0.0,
+      "tolerance": 1e-9
+    },
+    {
+      "name": "ten_tips_default_calibration",
+      "description": "10 tips at 0.2794 mm/tip = 2.794 mm.",
+      "test_code": "result = read_rain_gauge(10)",
+      "expected_output": 2.794,
+      "tolerance": 0.0001
+    },
+    {
+      "name": "custom_calibration",
+      "description": "Custom calibration factor.",
+      "test_code": "result = read_rain_gauge(5, mm_per_tip=0.5)",
+      "expected_output": 2.5,
+      "tolerance": 0.0001
+    }
+  ]
+}

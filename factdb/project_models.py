@@ -152,6 +152,7 @@ class DesignElement(Base):
     rationale: str = Column(Text, nullable=True)
     alternatives_json: str = Column(Text, nullable=True)   # JSON array of {approach, reason_rejected}
     verification_notes: str = Column(Text, nullable=True)
+    implementation_code: str = Column(Text, nullable=True)  # Python/pseudocode using the supporting artifacts
 
     # --- Timestamps ---
     created_at: datetime = Column(
@@ -205,6 +206,7 @@ class DesignElement(Base):
             "rationale": self.rationale,
             "alternatives": self.get_alternatives(),
             "verification_notes": self.verification_notes,
+            "implementation_code": self.implementation_code,
             "supporting_fact_titles": [f.title for f in self.supporting_facts],
             "used_in_projects": [link.project.title for link in self.project_links],
         }
@@ -307,6 +309,12 @@ class Project(Base):
     )
     created_by: str = Column(String(200), nullable=True)
 
+    # --- Integration code ---
+    # Python source that orchestrates the design elements into a working whole.
+    integration_code: str = Column(Text, nullable=True)
+    # JSON array of {from, to, data} describing inter-element data flow.
+    element_interactions_json: str = Column(Text, nullable=True)
+
     # --- Relationships ---
     element_links = relationship(
         "ProjectDesignElement",
@@ -325,6 +333,16 @@ class Project(Base):
         """Return all DesignElements used by this project (ordered by link id)."""
         return [link.element for link in self.element_links]
 
+    def set_element_interactions(self, interactions: list[dict]) -> None:
+        """Store inter-element data-flow descriptions as JSON."""
+        self.element_interactions_json = json.dumps(interactions, ensure_ascii=False)
+
+    def get_element_interactions(self) -> list[dict]:
+        """Return inter-element data-flow descriptions (empty list if none)."""
+        if not self.element_interactions_json:
+            return []
+        return json.loads(self.element_interactions_json)
+
     def __repr__(self) -> str:
         return f"<Project title={self.title!r} status={self.status!r}>"
 
@@ -339,6 +357,8 @@ class Project(Base):
             "status": self.status,
             "created_by": self.created_by,
             "created_at": self.created_at.isoformat() if self.created_at else None,
+            "integration_code": self.integration_code,
+            "element_interactions": self.get_element_interactions(),
             "supporting_fact_titles": [f.title for f in self.supporting_facts],
             "design_elements": [
                 {

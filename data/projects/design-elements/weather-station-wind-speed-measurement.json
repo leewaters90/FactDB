@@ -1,0 +1,22 @@
+{
+  "title": "Weather Station Wind Speed Measurement",
+  "component_category": "software",
+  "design_question": "How to convert anemometer pulse counts into wind speed in both km/h and m/s, with configurable calibration for different anemometer hardware?",
+  "selected_approach": "Count anemometer reed-switch pulses over a fixed 1-second sampling window using a GPIO interrupt counter, then call `read_anemometer(pulse_hz, calibration_factor)` at the end of each window. The result dict `{'wind_speed_kmh', 'wind_speed_ms'}` is passed directly to the telemetry element. Store `calibration_factor` in configuration (default 2.4 km/h per Hz for the Davis/Sparkfun anemometer). Average over three 1-second windows for each logged data point to smooth short gusts.",
+  "rationale": "`read_anemometer` is a pure arithmetic function with no hardware dependency, enabling unit tests without a physical sensor. Dual-unit output avoids downstream conversion. Configurable calibration supports alternative anemometer models. Three-window averaging provides smoother minute-interval data without adding significant latency.",
+  "alternatives": [
+    {
+      "approach": "Ultrasonic anemometer",
+      "reason_rejected": "No moving parts and higher accuracy, but significantly higher cost; cup anemometer adequate for garden station."
+    },
+    {
+      "approach": "Fixed 2-second sampling window",
+      "reason_rejected": "Lower temporal resolution; 1 s windows with averaging gives better response to wind gusts."
+    }
+  ],
+  "verification_notes": "Benchmark tests on 'Read Anemometer Wind Speed' verify 0 Hz calm condition and 1 Hz → 2.4 km/h calibration.",
+  "implementation_code": "import time\n\nimport RPi.GPIO as GPIO\n\nfrom read_anemometer import read_anemometer\n\nANEMOMETER_PIN = 27  # BCM\n\n_pulse_count: int = 0\n\n\ndef _on_pulse(channel: int) -> None:  # noqa: ARG001\n    \"\"\"ISR: increment pulse counter on each anemometer reed-switch closure.\"\"\"\n    global _pulse_count\n    _pulse_count += 1\n\n\ndef setup_anemometer(pin: int = ANEMOMETER_PIN) -> None:\n    \"\"\"Configure the GPIO interrupt for the anemometer reed switch.\n\n    Must be called once during initialisation before the main loop.\n\n    Args:\n        pin: BCM GPIO pin connected to the anemometer reed switch.\n    \"\"\"\n    GPIO.setmode(GPIO.BCM)\n    GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)\n    # 5 ms debounce: short enough not to miss rapid rotations at high wind speed.\n    GPIO.add_event_detect(pin, GPIO.FALLING, callback=_on_pulse, bouncetime=5)\n\n\ndef read_wind_speed(\n    windows: int = 3, calibration_factor: float = 2.4\n) -> dict:\n    \"\"\"Sample wind speed over multiple 1-second windows and return the average.\n\n    For each window, counts pulses for exactly 1 second (pulse_hz = pulse\n    count per second), calls read_anemometer() to convert to km/h and m/s,\n    then averages the results across all windows.\n\n    Args:\n        windows:            Number of 1-second sampling windows to average.\n        calibration_factor: km/h per Hz (default 2.4 for Davis anemometer).\n\n    Returns:\n        Dict with 'wind_speed_kmh' (float) and 'wind_speed_ms' (float).\n    \"\"\"\n    global _pulse_count\n    samples = []\n    for _ in range(windows):\n        _pulse_count = 0\n        time.sleep(1.0)\n        # Pulses accumulated in 1 s == pulse frequency in Hz.\n        samples.append(read_anemometer(_pulse_count, calibration_factor))\n    avg_kmh = round(sum(s['wind_speed_kmh'] for s in samples) / windows, 3)\n    avg_ms = round(sum(s['wind_speed_ms'] for s in samples) / windows, 3)\n    return {'wind_speed_kmh': avg_kmh, 'wind_speed_ms': avg_ms}\n",
+  "supporting_fact_titles": [
+    "Read Anemometer Wind Speed"
+  ]
+}
