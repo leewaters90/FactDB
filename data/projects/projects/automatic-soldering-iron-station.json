@@ -1,0 +1,56 @@
+{
+  "title": "Automatic Soldering Iron Station",
+  "description": "Temperature-controlled soldering station for a Hakko-style or generic 24 V DC heating-element iron. A PT100 RTD in the iron tip feeds a MAX31865 SPI amplifier; a PID loop drives an SSR switching the 24 V heater supply; rotary encoder and OLED give setpoint control and live temperature readout.",
+  "objective": "Regulate tip temperature within ±3 °C of setpoint (150–480 °C); reach setpoint from cold in < 45 s; auto-sleep after 5 min idle (iron in stand); tip-temperature displayed in °C.",
+  "constraints": "24 V DC 60 W supply for heater; 5 V USB for logic; PT100 in iron handle; SSR for 24 V DC switching; ≤ £25 BOM.",
+  "domain": "electrical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "RTD (PT100/PT1000) Temperature Measurement",
+    "PID Controller — Transfer Function",
+    "Solid-State Relay (SSR) Mains Load Switching",
+    "Rotary Encoder — Incremental A/B Quadrature Pulse Counting",
+    "OLED SSD1306 Monochrome Display I²C Interface"
+  ],
+  "design_element_titles": [
+    "MAX31865 PT100 RTD Amplifier",
+    "N-Channel MOSFET Low-Side Load Switch",
+    "Rotary Encoder User-Interface Navigation",
+    "SSD1306 OLED Display UI Module",
+    "Arduino Uno/Nano MCU Platform"
+  ],
+  "element_usage_notes": {
+    "MAX31865 PT100 RTD Amplifier": "2-wire PT100 in iron handle; SPI on D10–D13; polled at 10 Hz; thermal mass compensation: derivative term K_d reduced to prevent overshoot at heat-up.",
+    "N-Channel MOSFET Low-Side Load Switch": "IRLZ44N switches 24 V heater element return path (max 2.5 A); PWM at 10 Hz from D5 matches SSR zero-cross rate; gate via 100 Ω resistor from Nano D5.",
+    "Rotary Encoder User-Interface Navigation": "KY-040; CLK D2 INT0, DT D4, SW D3; 5 °C per detent (hold for 1 °C fine); press to toggle sleep mode.",
+    "SSD1306 OLED Display UI Module": "128×64; shows setpoint vs actual, HEATING/AT TEMP/SLEEP status, PID bar graph; 2 Hz refresh.",
+    "Arduino Uno/Nano MCU Platform": "Nano 3.0; SPI MAX31865 CS=D10; I²C OLED A4/A5; MOSFET PWM D5; reed switch stand sensor D6 (auto-sleep)."
+  },
+  "element_interactions": [
+    {
+      "from": "MAX31865 PT100 RTD Amplifier",
+      "to": "Arduino Uno/Nano MCU Platform",
+      "data": "temp_c (float) via SPI at 10 Hz",
+      "description": "10-Hz read; 3-sample median filter removes spike noise from heater EMI. Temperature process variable fed to PID loop."
+    },
+    {
+      "from": "Rotary Encoder User-Interface Navigation",
+      "to": "Arduino Uno/Nano MCU Platform",
+      "data": "direction delta (±1 per detent) + press event via INT",
+      "description": "CW = setpoint +5 °C; CCW = setpoint −5 °C; range 150–480 °C. Short press: sleep on/off. Setpoint saved to EEPROM on change."
+    },
+    {
+      "from": "Arduino Uno/Nano MCU Platform",
+      "to": "N-Channel MOSFET Low-Side Load Switch",
+      "data": "PWM duty cycle (0–100 %) on GPIO D5 at 10 Hz",
+      "description": "PID output (0–100) mapped to 100 ms window: output=70 → 70 ms HIGH per 100 ms window. MOSFET switches 24 V heater element current."
+    },
+    {
+      "from": "Arduino Uno/Nano MCU Platform",
+      "to": "SSD1306 OLED Display UI Module",
+      "data": "I²C update (setpoint, actual_temp, status_str, pid_pct)",
+      "description": "Status: HEATING if temp < setpoint − 10 °C; AT TEMP if within ±3 °C; SLEEP if idle > 5 min. PID bar graph shows heat duty."
+    }
+  ],
+  "integration_code": "/*\n * soldering_station.ino — Automatic Soldering Iron Station\n *\n * Elements:\n *   1. MAX31865 PT100 RTD   — SPI, tip temp at 10 Hz\n *   2. N-MOSFET load switch — D5, 10 Hz PWM duty cycle\n *   3. Rotary Encoder       — setpoint ±5 °C per detent\n *   4. SSD1306 OLED         — temp / setpoint / status\n *   5. Arduino Nano 3.0     — PID + auto-sleep\n */\n\n#include <Wire.h>\n#include <SPI.h>\n#include <Adafruit_MAX31865.h>\n#include <Adafruit_SSD1306.h>\n#include <EEPROM.h>\n\n// --- Pins ---\n#define RTD_CS     10\n#define HEAT_PIN    5\n#define STAND_PIN   6   // reed switch: LOW = iron in stand\n#define ENC_CLK     2\n#define ENC_DT      4\n#define ENC_SW      3\n\n// --- PID tuning ---\n#define KP 15.0f\n#define KI  0.4f\n#define KD  8.0f\n#define PERIOD_MS  100UL   // 10 Hz\n#define WINDOW_MS  100UL\n\n// --- Sleep after idle ---\n#define SLEEP_IDLE_MS (5UL * 60 * 1000)\n#define SLEEP_TEMP_C  150.0f\n\n// --- EEPROM ---\n#define EE_SETPT 0\n\n// --- Globals ---\nAdafruit_MAX31865 rtd(RTD_CS);\nAdafruit_SSD1306  oled(128, 64, &Wire, -1);\n\nfloat setpoint    = 350.0f;\nfloat actual      = 20.0f;\nfloat i_term      = 0.0f;\nfloat prev_err    = 0.0f;\nfloat output      = 0.0f;\nbool  sleeping    = false;\nunsigned long last_activity = 0;\n\nvolatile int  enc_d = 0;\nvolatile bool enc_p = false;\nvoid ICACHE_RAM_ATTR isr_clk() { enc_d += digitalRead(ENC_DT) ? -1 : 1; }\nvoid ICACHE_RAM_ATTR isr_sw()  { enc_p = true; }\n\nfloat run_pid(float sp, float pv, float dt) {\n  float e = sp - pv;\n  i_term   = constrain(i_term + KI * e * dt, 0.0f, 100.0f);\n  float d  = (e - prev_err) / dt;\n  prev_err = e;\n  return constrain(KP * e + i_term + KD * d, 0.0f, 100.0f);\n}\n\nvoid update_oled(const char* status) {\n  oled.clearDisplay();\n  oled.setTextSize(1); oled.setTextColor(SSD1306_WHITE);\n  oled.setCursor(0,  0); oled.printf(\"Set: %3.0f C  Act: %3.0f C\", setpoint, actual);\n  oled.setCursor(0, 16); oled.print(status);\n  oled.setCursor(0, 32); oled.printf(\"Power: %3.0f %%\", output);\n  int bar = (int)(output);\n  oled.fillRect(0, 44, bar, 8, SSD1306_WHITE);\n  oled.display();\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  Wire.begin(); SPI.begin();\n\n  rtd.begin(MAX31865_2WIRE);\n  oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);\n  oled.clearDisplay(); oled.display();\n\n  // Load saved setpoint\n  int16_t saved_sp;\n  EEPROM.get(EE_SETPT, saved_sp);\n  if (saved_sp >= 150 && saved_sp <= 480) setpoint = (float)saved_sp;\n\n  pinMode(HEAT_PIN,  OUTPUT); digitalWrite(HEAT_PIN, LOW);\n  pinMode(STAND_PIN, INPUT_PULLUP);\n  pinMode(ENC_CLK, INPUT_PULLUP); pinMode(ENC_DT, INPUT_PULLUP); pinMode(ENC_SW, INPUT_PULLUP);\n  attachInterrupt(digitalPinToInterrupt(ENC_CLK), isr_clk, FALLING);\n  attachInterrupt(digitalPinToInterrupt(ENC_SW),  isr_sw,  FALLING);\n\n  last_activity = millis();\n  Serial.println(F(\"Soldering station ready.\"));\n}\n\nvoid loop() {\n  static unsigned long last_pid  = 0;\n  static unsigned long win_start = 0;\n\n  unsigned long now = millis();\n\n  // --- Encoder ---\n  noInterrupts(); int d = enc_d; enc_d = 0; bool p = enc_p; enc_p = false; interrupts();\n  if (d != 0) {\n    setpoint = constrain(setpoint + d * 5.0f, 150.0f, 480.0f);\n    EEPROM.put(EE_SETPT, (int16_t)setpoint);\n    last_activity = now;\n    sleeping = false;\n  }\n  if (p) { sleeping = !sleeping; last_activity = now; }\n\n  // Auto-sleep when iron in stand\n  bool in_stand = !digitalRead(STAND_PIN);\n  if (in_stand && (now - last_activity > SLEEP_IDLE_MS)) sleeping = true;\n  if (!in_stand) last_activity = now;\n\n  // --- PID at 10 Hz ---\n  if (now - last_pid >= PERIOD_MS) {\n    float dt = (now - last_pid) / 1000.0f;\n    last_pid = now;\n\n    // Median filter\n    float s[3] = { rtd.temperature(100.0f, 430.0f),\n                   rtd.temperature(100.0f, 430.0f),\n                   rtd.temperature(100.0f, 430.0f) };\n    // simple sort 3\n    if (s[0] > s[1]) { float t = s[0]; s[0] = s[1]; s[1] = t; }\n    if (s[1] > s[2]) { float t = s[1]; s[1] = s[2]; s[2] = t; }\n    if (s[0] > s[1]) { float t = s[0]; s[0] = s[1]; s[1] = t; }\n    actual = s[1];\n\n    float eff_sp = sleeping ? SLEEP_TEMP_C : setpoint;\n    output = run_pid(eff_sp, actual, dt);\n\n    const char* status = sleeping   ? \"SLEEP (150 C)\" :\n                         actual < setpoint - 10.0f ? \"HEATING...\" : \"AT TEMP\";\n    update_oled(status);\n    Serial.printf(\"T=%.1f SP=%.0f OUT=%.0f%s\\n\", actual, eff_sp, output, sleeping ? \" [SLP]\" : \"\");\n  }\n\n  // --- PWM window ---\n  if (now - win_start >= WINDOW_MS) win_start = now;\n  bool heat = (now - win_start) < (unsigned long)(output * WINDOW_MS / 100.0f);\n  digitalWrite(HEAT_PIN, heat ? HIGH : LOW);\n}\n"
+}

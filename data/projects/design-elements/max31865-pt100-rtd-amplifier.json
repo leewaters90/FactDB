@@ -1,0 +1,21 @@
+{
+  "title": "MAX31865 PT100 RTD Temperature Amplifier",
+  "component_category": "sensing",
+  "design_question": "How to read a PT100 or PT1000 RTD with < 0.1 °C accuracy for high-temperature industrial applications (soldering, forge, sous-vide)?",
+  "selected_approach": "Maxim MAX31865 RTD-to-Digital Converter breakout. SPI interface; 15-bit ADC; 400 Hz noise rejection filter. Wired for 2-wire PT100 (or 4-wire for higher accuracy). Adafruit MAX31865 Arduino library converts raw resistance reading to temperature via Callendar-Van Dusen equation.",
+  "rationale": "MAX31865 provides a complete solution for RTD reading: internal precision reference resistor (430 Ω for PT100), ADC, and SPI output. Accuracy ±0.05 °C (4-wire) vs ±0.5 °C for DS18B20; operating range −200 °C to +850 °C — covers soldering iron tip (300–450 °C) and forge temperatures. Adafruit breakout handles all passive components.",
+  "alternatives": [
+    {
+      "approach": "DS18B20 digital probe",
+      "reason_rejected": "Maximum 125 °C — cannot be used for soldering station tip or forge temperatures."
+    },
+    {
+      "approach": "Thermocouple + MAX31855",
+      "reason_rejected": "Type K thermocouple ±2 °C accuracy acceptable for forge but not for sous-vide (±0.5 °C requirement) or precision soldering."
+    }
+  ],
+  "verification_notes": "FACT: 'RTD (PT100/PT1000) Temperature Measurement' confirms Callendar-Van Dusen equation, ±0.05 °C accuracy (4-wire), and 850 °C operating limit.",
+  "supporting_fact_titles": [
+    "RTD (PT100/PT1000) Temperature Measurement"
+  ]
+}

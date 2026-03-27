@@ -1,0 +1,21 @@
+{
+  "title": "SX1276 LoRa Radio Module (RFM95W)",
+  "component_category": "communication",
+  "design_question": "How to transmit sensor data from a remote outdoor node over several kilometres with minimal power consumption?",
+  "selected_approach": "HopeRF RFM95W (Semtech SX1276 core) 868 MHz / 915 MHz LoRa module. SPI interface; 3.3 V; +20 dBm output. Configured via Arduino LoRa library (Sandeep Mistry): spreading factor SF10, bandwidth 125 kHz, coding rate 4/5. Gateway: same module or LoRaWAN-compatible gateway (RAK7268). Node transmits 50-byte payload, then sleeps.",
+  "rationale": "LoRa achieves 2–5 km range in urban areas and up to 15 km line-of-sight on 868 MHz at SF10 with < 40 mA transmit current. No WiFi infrastructure required. SX1276 is the de-facto standard for DIY long-range sensor nodes. RFM95W module is £4–6 and readily available.",
+  "alternatives": [
+    {
+      "approach": "nRF24L01 2.4 GHz",
+      "reason_rejected": "100 m range only; unsuitable for field stations more than 50 m from the base."
+    },
+    {
+      "approach": "GSM/4G modem (SIM800)",
+      "reason_rejected": "Requires SIM card, ongoing data cost, draws 2 A peak — incompatible with solar power budget."
+    }
+  ],
+  "verification_notes": "FACT: 'LoRa / LoRaWAN — LPWAN for Remote Telemetry' confirms 2–15 km range, SF7–SF12, and 40 mA Tx current for SX1276.",
+  "supporting_fact_titles": [
+    "LoRa / LoRaWAN — LPWAN for Remote Telemetry"
+  ]
+}

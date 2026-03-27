@@ -1,0 +1,29 @@
+{
+  "id": "a4b4d4c8-e991-58fe-8a23-4b98d62c07d1",
+  "title": "Aerobic Composting — Temperature, Moisture, and Gas Indicators",
+  "domain": "general",
+  "category": "biology",
+  "subcategory": "decomposition",
+  "detail_level": "intermediate",
+  "content": "Aerobic composting passes through four temperature phases: mesophilic (10–40 °C, weeks 1–2), thermophilic (40–70 °C, weeks 2–4), cooling (40–50 °C), and maturation (ambient). Optimal moisture: 40–60 % by weight; CO₂ production peaks during thermophilic phase; CH₄ (methane) indicates anaerobic zones.",
+  "extended_content": "Key monitoring parameters: (1) Temperature — thermophilic phase (55–65 °C for 3 days) kills pathogens per EPA Part 503. (2) Moisture — below 40 % slows microbial activity; above 65 % causes anaerobic pockets and odour (NH₃, H₂S). (3) O₂/CO₂ ratio — healthy aerobic composting: O₂ > 10 %, CO₂ < 10 %. (4) C:N ratio — optimal 25:1 to 30:1 by dry mass. Sensor implementation: DS18B20 probes at multiple depths for temperature mapping; capacitive soil moisture sensors adapted for compost moisture; NDIR CO₂ sensors (SCD41) for headspace CO₂; MQ-4 or MQ-2 gas sensors for methane detection. Turning frequency: every 3–5 days during thermophilic phase to maintain aerobic conditions. Maturity indicators: temperature returns to ambient, CO₂ drops to < 2 %, stable dark colour.",
+  "formula": "Moisture_% = (wet_mass − dry_mass) / wet_mass × 100",
+  "units": "T: °C, Moisture: %, CO₂: %",
+  "source": "Haug, The Practical Handbook of Compost Engineering, CRC Press, 1993; EPA 40 CFR Part 503",
+  "source_url": null,
+  "confidence_score": 0.93,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "composting",
+    "aerobic",
+    "decomposition",
+    "temperature",
+    "moisture",
+    "co2",
+    "methane",
+    "general",
+    "biology"
+  ],
+  "created_by": "seed"
+}

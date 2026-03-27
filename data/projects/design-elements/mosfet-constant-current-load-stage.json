@@ -1,0 +1,23 @@
+{
+  "title": "MOSFET Constant-Current Load Stage",
+  "component_category": "power",
+  "design_question": "How to draw a precise, programmable constant current from a device under test (battery, power supply, or LED) while dissipating the power in a MOSFET?",
+  "selected_approach": "IRFP250N N-MOSFET (200 V, 30 A) in linear mode controlled by LM358 op-amp feedback loop. 0.1 Ω / 5 W sense resistor in source circuit; op-amp inverting input = V_sense, non-inverting = setpoint from MCP4725 12-bit I²C DAC. MOSFET and sense resistor mounted on 200 mm × 150 mm aluminium heatsink. Operating range: 0–5 A, 0–30 V DUT.",
+  "rationale": "Op-amp feedback linearises MOSFET gate control, providing I_load = V_set / R_sense with < 2 % accuracy limited by op-amp offset. 0.1 Ω sense resistor produces 0–500 mV at full scale, within LM358 common-mode range. MCP4725 DAC allows digital setpoint from Arduino over I²C. Maximum power dissipation 30 A × 0.1 Ω = 3 W in sense resistor; MOSFET dissipates remainder.",
+  "alternatives": [
+    {
+      "approach": "Power resistor bank",
+      "reason_rejected": "Fixed load only; not programmable; large resistor array needed for different test currents."
+    },
+    {
+      "approach": "IT8511 commercial electronic load",
+      "reason_rejected": "Commercial units cost £100–400; educational value in building own is significant for understanding feedback control."
+    }
+  ],
+  "verification_notes": "FACT: 'MOSFET Linear-Mode Constant-Current Electronic Load' confirms op-amp feedback topology, IRFP250N suitability, and I = V_set / R_shunt formula.",
+  "supporting_fact_titles": [
+    "MOSFET Linear-Mode Constant-Current Electronic Load",
+    "N-Channel MOSFET as a Low-Side Power Switch",
+    "Ohm's Law"
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "title": "Induction Forge Temperature Controller",
+  "description": "PID temperature controller for a DIY IGBT induction heater coil used as a small metal forge (for knife-making, blacksmithing, or heat-treatment). A PT100 RTD probe near the workpiece feeds a MAX31865 SPI amplifier; the PID loop drives a PWM MOSFET gate that modulates the induction heater's power IGBT driver enable input. Setpoint and live temperature shown on OLED; rotary encoder adjusts setpoint.",
+  "objective": "Regulate forge temperature 200–1200 °C within ±15 °C of setpoint; power modulation 0–100 % via PWM to induction driver; manual setpoint control; auto-cutoff above 1250 °C safety limit.",
+  "constraints": "230 V / 2 kW induction heater module (ZVS driver); 12 V DC auxiliary supply for controller logic; safety interlock (thermal cutoff relay); ≤ £40 controller BOM.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Induction Heating — IGBT Resonant Series Circuit",
+    "RTD (PT100/PT1000) Temperature Measurement",
+    "PID Controller — Transfer Function",
+    "N-Channel MOSFET as a Low-Side Power Switch",
+    "Rotary Encoder — Incremental A/B Quadrature Pulse Counting",
+    "OLED SSD1306 Monochrome Display I²C Interface"
+  ],
+  "design_element_titles": [
+    "IGBT Resonant Induction Heating Circuit",
+    "MAX31865 PT100 RTD Amplifier",
+    "N-Channel MOSFET Low-Side Load Switch",
+    "Rotary Encoder User-Interface Navigation",
+    "SSD1306 OLED Display UI Module",
+    "Arduino Uno/Nano MCU Platform"
+  ],
+  "element_usage_notes": {
+    "IGBT Resonant Induction Heating Circuit": "ZVS induction heater module (2 kW, 12–48 V input); WORK_EN gate exposed; controller Arduino GPIO drives N-MOSFET that controls WORK_EN via open-drain — HIGH = heater enabled.",
+    "MAX31865 PT100 RTD Amplifier": "Pt100 in ceramic sheath, 200 mm stainless probe; SPI CS=D10; 2-wire; polled at 10 Hz; Adafruit MAX31865 library (Callendar-Van Dusen coefficient A, B).",
+    "N-Channel MOSFET Low-Side Load Switch": "IRLZ44N low-side switch on induction driver WORK_EN pin; 10 Hz PWM from D5 modulates heating duty; gate via 100 Ω to Nano D5; drain to WORK_EN, source to GND.",
+    "Rotary Encoder User-Interface Navigation": "KY-040; CLK D2 INT0; 10 °C per detent; long-press activates/deactivates forge; safety cutoff disables independently of encoder.",
+    "SSD1306 OLED Display UI Module": "128×64; setpoint °C (large) / actual °C / PID power % / status (HEATING/AT TEMP/CUTOFF).",
+    "Arduino Uno/Nano MCU Platform": "Nano 3.0; SPI MAX31865 D10–D13; I²C OLED A4/A5; MOSFET PWM D5; safety relay D8; buzzer D9."
+  },
+  "element_interactions": [
+    {
+      "from": "MAX31865 PT100 RTD Amplifier",
+      "to": "Arduino Uno/Nano MCU Platform",
+      "data": "temp_c (float, range −200 to 850 °C) via SPI at 10 Hz",
+      "description": "10-Hz SPI read; 5-sample median filter removes noise from induction EMI. Temperature fed to PID as process variable. Values > 1250 °C trigger immediate safety cutoff."
+    },
+    {
+      "from": "Rotary Encoder User-Interface Navigation",
+      "to": "Arduino Uno/Nano MCU Platform",
+      "data": "direction (±1 per detent) + long-press flag",
+      "description": "CW = setpoint +10 °C; CCW = setpoint −10 °C; range 200–1200 °C. Long press (> 1 s) toggles forge active state. Short press with forge off = no action."
+    },
+    {
+      "from": "Arduino Uno/Nano MCU Platform",
+      "to": "N-Channel MOSFET Low-Side Load Switch",
+      "data": "10 Hz PWM duty (0–100 %) on GPIO D5",
+      "description": "PID output mapped to 100 ms window duty cycle on D5. MOSFET drain pulls WORK_EN LOW when gate = LOW (heater off), HIGH when gate = HIGH (heater on). Safety cutoff forces D5 LOW and D8 (relay) LOW."
+    },
+    {
+      "from": "Arduino Uno/Nano MCU Platform",
+      "to": "SSD1306 OLED Display UI Module",
+      "data": "I²C update (setpoint, actual, pid_pct, status_str) at 2 Hz",
+      "description": "Status: HEATING if T < SP−30 °C; AT TEMP if |T−SP| ≤ 15 °C; CUTOFF if T > 1250 °C. Flashes CUTOFF in inverted text with buzzer."
+    },
+    {
+      "from": "IGBT Resonant Induction Heating Circuit",
+      "to": "N-Channel MOSFET Low-Side Load Switch",
+      "data": "WORK_EN signal (3.3–5 V logic, active HIGH to enable heater)",
+      "description": "Induction driver WORK_EN pin connected to MOSFET drain via pull-up to 5 V. MOSFET pulls LOW to disable; floating (MOSFET off) = heater enabled by pull-up."
+    }
+  ],
+  "integration_code": "/*\n * forge_controller.ino — Induction Forge Temperature Controller\n *\n * Elements:\n *   1. MAX31865 PT100 RTD   — SPI, forge temp at 10 Hz\n *   2. N-MOSFET             — D5, 10 Hz PWM → induction driver WORK_EN\n *   3. Rotary Encoder       — setpoint ±10 °C per detent, long-press on/off\n *   4. SSD1306 OLED         — setpoint / actual / power / status\n *   5. Arduino Nano         — PID + safety cutoff\n */\n\n#include <Wire.h>\n#include <SPI.h>\n#include <Adafruit_MAX31865.h>\n#include <Adafruit_SSD1306.h>\n\n// --- Pins ---\n#define RTD_CS     10\n#define HEAT_PWM    5\n#define RELAY_PIN   8   // safety cutoff relay (NC contact)\n#define BUZZ_PIN    9\n#define ENC_CLK     2\n#define ENC_DT      4\n#define ENC_SW      3\n\n// --- Safety ---\n#define CUTOFF_C   1250.0f\n\n// --- PID (conservative for large thermal mass) ---\n#define KP  0.3f\n#define KI  0.02f\n#define KD  5.0f\n#define PERIOD_MS 100UL\n#define WINDOW_MS 100UL\n\n// --- Objects ---\nAdafruit_MAX31865 rtd(RTD_CS);\nAdafruit_SSD1306  oled(128, 64, &Wire, -1);\n\n// --- State ---\nfloat setpoint  = 800.0f;\nfloat actual    = 20.0f;\nfloat i_term    = 0.0f;\nfloat prev_err  = 0.0f;\nfloat output    = 0.0f;\nbool  active    = false;\nbool  cutoff    = false;\n\nvolatile int  enc_d  = 0;\nvolatile bool enc_p  = false;\nvolatile bool enc_lp = false;\nunsigned long press_start = 0;\n\nvoid ICACHE_RAM_ATTR isr_clk() { enc_d += digitalRead(ENC_DT) ? -1 : 1; }\nvoid ICACHE_RAM_ATTR isr_sw()  {\n  if (digitalRead(ENC_SW) == LOW) press_start = millis();\n  else {\n    if (millis() - press_start > 1000) enc_lp = true;\n    else enc_p = true;\n  }\n}\n\nfloat median5(float* a) {\n  for (int i = 0; i < 4; i++)\n    for (int j = i+1; j < 5; j++)\n      if (a[i] > a[j]) { float t=a[i]; a[i]=a[j]; a[j]=t; }\n  return a[2];\n}\n\nfloat run_pid(float sp, float pv, float dt) {\n  float e = sp - pv;\n  i_term   = constrain(i_term + KI * e * dt, 0.0f, 100.0f);\n  float d  = (e - prev_err) / dt;\n  prev_err = e;\n  return constrain(KP * e + i_term + KD * d, 0.0f, 100.0f);\n}\n\nvoid trigger_cutoff() {\n  cutoff = true; active = false;\n  analogWrite(HEAT_PWM, 0);\n  digitalWrite(RELAY_PIN, LOW);  // open NC relay = cuts heater power\n  for (int i = 0; i < 10; i++) {\n    digitalWrite(BUZZ_PIN, HIGH); delay(100);\n    digitalWrite(BUZZ_PIN, LOW);  delay(100);\n  }\n  Serial.printf(\"CUTOFF at %.0f C\\n\", actual);\n}\n\nvoid update_oled(const char* status) {\n  oled.clearDisplay();\n  oled.setTextSize(2); oled.setTextColor(SSD1306_WHITE);\n  oled.setCursor(0, 0); oled.printf(\"%4.0f C\", setpoint);\n  oled.setTextSize(1);\n  oled.setCursor(0, 20); oled.printf(\"Actual: %5.1f C\", actual);\n  oled.setCursor(0, 32); oled.printf(\"Power:  %5.1f %%\", output);\n  oled.setCursor(0, 44);\n  if (cutoff) {\n    oled.fillRect(0, 42, 128, 12, SSD1306_WHITE);\n    oled.setTextColor(SSD1306_BLACK);\n    oled.setCursor(2, 44); oled.print(\"!! CUTOFF !!\");\n    oled.setTextColor(SSD1306_WHITE);\n  } else {\n    oled.print(status);\n  }\n  oled.display();\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  Wire.begin(); SPI.begin();\n  rtd.begin(MAX31865_2WIRE);\n  oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);\n  oled.clearDisplay(); oled.display();\n\n  pinMode(HEAT_PWM, OUTPUT); analogWrite(HEAT_PWM, 0);\n  pinMode(RELAY_PIN, OUTPUT); digitalWrite(RELAY_PIN, HIGH); // NC relay closed = power available\n  pinMode(BUZZ_PIN, OUTPUT); digitalWrite(BUZZ_PIN, LOW);\n  pinMode(ENC_CLK, INPUT_PULLUP); pinMode(ENC_DT, INPUT_PULLUP); pinMode(ENC_SW, INPUT_PULLUP);\n  attachInterrupt(digitalPinToInterrupt(ENC_CLK), isr_clk, FALLING);\n  attachInterrupt(digitalPinToInterrupt(ENC_SW),  isr_sw,  CHANGE);\n\n  Serial.println(F(\"Forge controller ready.\"));\n}\n\nvoid loop() {\n  static unsigned long last_pid  = 0;\n  static unsigned long win_start = 0;\n\n  unsigned long now = millis();\n\n  // --- Encoder ---\n  noInterrupts(); int d = enc_d; enc_d = 0; bool p = enc_p; enc_p = false; bool lp = enc_lp; enc_lp = false; interrupts();\n  if (d != 0 && !cutoff) setpoint = constrain(setpoint + d * 10.0f, 200.0f, 1200.0f);\n  if (lp && !cutoff) { active = !active; if (!active) { output = 0; analogWrite(HEAT_PWM, 0); } }\n\n  // --- PID at 10 Hz ---\n  if (now - last_pid >= PERIOD_MS) {\n    float dt = (now - last_pid) / 1000.0f;\n    last_pid = now;\n\n    // Median-5 filter\n    float s[5];\n    for (int i = 0; i < 5; i++) s[i] = rtd.temperature(100.0f, 430.0f);\n    actual = median5(s);\n\n    if (actual >= CUTOFF_C && !cutoff) trigger_cutoff();\n\n    if (active && !cutoff) {\n      output = run_pid(setpoint, actual, dt);\n    } else {\n      output = 0.0f;\n    }\n\n    const char* status = !active ? \"STANDBY\" :\n                          actual < setpoint - 30.0f ? \"HEATING\" : \"AT TEMP\";\n    update_oled(status);\n    Serial.printf(\"T=%.1f SP=%.0f OUT=%.0f %s\\n\", actual, setpoint, output, status);\n  }\n\n  // --- PWM window ---\n  if (!cutoff && active) {\n    if (now - win_start >= WINDOW_MS) win_start = now;\n    bool on = (now - win_start) < (unsigned long)(output * WINDOW_MS / 100.0f);\n    analogWrite(HEAT_PWM, on ? 255 : 0);\n  } else {\n    analogWrite(HEAT_PWM, 0);\n  }\n}\n"
+}

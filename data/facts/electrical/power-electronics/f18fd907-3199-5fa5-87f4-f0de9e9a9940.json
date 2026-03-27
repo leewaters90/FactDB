@@ -1,0 +1,28 @@
+{
+  "id": "f18fd907-3199-5fa5-87f4-f0de9e9a9940",
+  "title": "MOSFET Linear-Mode Constant-Current Electronic Load",
+  "domain": "electrical",
+  "category": "power-electronics",
+  "subcategory": "test equipment",
+  "detail_level": "advanced",
+  "content": "A constant-current (CC) electronic load uses an N-MOSFET biased in its linear (ohmic-to-saturation) region by a feedback op-amp. The op-amp compares a shunt-resistor voltage (I_set × R_shunt) against a setpoint voltage, adjusting the gate to maintain I_drain = V_setpoint / R_shunt.",
+  "extended_content": "Design: op-amp (LM358 or TL071) non-inverting input = setpoint voltage from DAC or potentiometer; inverting input = V_shunt = I_drain × R_shunt. Op-amp output drives MOSFET gate. Feedback loop maintains I_drain constant as V_drain (DUT voltage) varies. Power dissipation P = V_drain × I_set — MOSFET must be mounted on a heatsink; thermal resistance θ_JA must satisfy T_junction = T_ambient + P × θ_JA ≤ T_j_max (typically 150 °C). IRFP250N (200 V, 30 A) is commonly used. Accuracy: limited by op-amp offset voltage and R_shunt tolerance (1 % metal film). Current range: 0–5 A typical for bench-top DIY load; 0.1 Ω shunt gives 0–500 mV at full scale. DAC (MCP4725 I²C, 12-bit) allows digital setpoint control from MCU. Measurement: INA219 or current shunt + ADC reads actual current for display. Safety: include series diode on DUT+ to prevent reverse polarity; TVS diode at MOSFET drain for inductive load protection.",
+  "formula": "I_load = V_setpoint / R_shunt;  P_MOSFET = V_DUT × I_load",
+  "units": "I_load: A, V_setpoint: V, R_shunt: Ω, P: W",
+  "source": "Horowitz & Hill, The Art of Electronics, 3rd ed.; Analog Devices App Note AN-531",
+  "source_url": null,
+  "confidence_score": 0.95,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "mosfet",
+    "constant-current",
+    "electronic-load",
+    "op-amp",
+    "feedback",
+    "power-electronics",
+    "test-equipment",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

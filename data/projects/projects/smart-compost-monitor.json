@@ -1,0 +1,64 @@
+{
+  "title": "Smart Compost Monitor",
+  "description": "Wireless compost bin monitoring system tracking temperature at three depths, surface moisture, and headspace CO₂ concentration. An ESP32 reads sensors and publishes readings to an MQTT broker over WiFi; an OLED shows live data locally. Alerts when temperature drops out of the optimal thermophilic range or moisture falls below threshold.",
+  "objective": "Monitor compost temperature at 3 depths (0–70 °C), moisture (0–100 %), and CO₂ (0–5000 ppm); MQTT publish every 2 min; alert if T < 40 °C during active phase or moisture < 40 %; battery-backed in case of power outage.",
+  "constraints": "Mains USB power (5 V 2 A); outdoor IP54 sensor probe enclosure; WiFi on home LAN; MQTT broker (Mosquitto); ≤ £30 BOM.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Aerobic Composting — Temperature, Moisture, and Gas Indicators",
+    "DS18B20 1-Wire Digital Temperature Sensing",
+    "Capacitive Soil Moisture Sensing",
+    "NDIR CO₂ Sensor — Non-Dispersive Infrared",
+    "MQTT Protocol for IoT Sensor Data"
+  ],
+  "design_element_titles": [
+    "DS18B20 1-Wire Temperature Probe Array",
+    "Capacitive Soil Moisture Probe",
+    "SCD41 NDIR CO₂ Sensing Module",
+    "SSD1306 OLED Display UI Module",
+    "ESP32 WiFi + MQTT IoT Telemetry",
+    "MQTT QoS-1 Secure Event Logger"
+  ],
+  "element_usage_notes": {
+    "DS18B20 1-Wire Temperature Probe Array": "Three waterproof DS18B20 probes on one 1-Wire bus (D4); 12-bit mode; probes at 15 cm / 30 cm / 45 cm depth via 50 cm stainless cables; 4.7 kΩ pull-up.",
+    "Capacitive Soil Moisture Probe": "One v2.0 capacitive probe adapted for compost (silicone-sealed); analog output on A0; calibrated at air=dry (0 %) and saturated peat (100 %).",
+    "SCD41 NDIR CO₂ Sensing Module": "I²C address 0x62; periodic measurement every 5 s; headspace probe tube inserted 5 cm into compost mound; reports CO₂ ppm + T + RH.",
+    "SSD1306 OLED Display UI Module": "128×64; 4-line layout: T1/T2/T3 / moisture % / CO₂ ppm / status (ACTIVE/COOLING/DONE).",
+    "ESP32 WiFi + MQTT IoT Telemetry": "Broker at 192.168.1.x; topic compost/{sensor}; QoS 1; publishes every 120 s; retained messages for HA dashboard.",
+    "MQTT QoS-1 Secure Event Logger": "Alert events (T out of range, dry, CO₂ spike) published to compost/alerts with timestamp."
+  },
+  "element_interactions": [
+    {
+      "from": "DS18B20 1-Wire Temperature Probe Array",
+      "to": "ESP32 WiFi + MQTT IoT Telemetry",
+      "data": "temp_c[3] (float array) via 1-Wire on GPIO 4",
+      "description": "Dallas Temperature library enumerates three ROM addresses; reads all three after requestTemperatures(); values averaged over 3 readings before MQTT publish."
+    },
+    {
+      "from": "Capacitive Soil Moisture Probe",
+      "to": "ESP32 WiFi + MQTT IoT Telemetry",
+      "data": "moisture_pct (float) from ADC1 channel on GPIO 36",
+      "description": "ESP32 ADC1 (GPIO 36) samples 32× averaged; linear map from calibrated dry_raw and wet_raw to 0–100 %. Alert fired if < 40 % and T > 40 °C (active phase)."
+    },
+    {
+      "from": "SCD41 NDIR CO₂ Sensing Module",
+      "to": "ESP32 WiFi + MQTT IoT Telemetry",
+      "data": "co2_ppm (uint16), scd_temp_c (float), scd_rh_pct (float) via I²C",
+      "description": "SCD41 read every 5 s; 3-sample median used for MQTT payload. CO₂ > 3000 ppm triggers 'CO2_HIGH' alert (indicates very active aerobic decomposition)."
+    },
+    {
+      "from": "ESP32 WiFi + MQTT IoT Telemetry",
+      "to": "SSD1306 OLED Display UI Module",
+      "data": "I²C framebuffer update (temp array, moisture, co2, status)",
+      "description": "OLED updated at 2 Hz locally regardless of MQTT publish interval. Status line: ACTIVE if T > 45 °C; COOLING if 35–45 °C; DONE if < 35 °C + CO₂ < 1000 ppm."
+    },
+    {
+      "from": "ESP32 WiFi + MQTT IoT Telemetry",
+      "to": "MQTT QoS-1 Secure Event Logger",
+      "data": "JSON alert payload {alert_type, value, threshold, ts}",
+      "description": "Alert conditions: T[0] < 40 °C for 30 min during active phase; moisture < 40 %; CO₂ > 3000 ppm. Each distinct alert published once per hour to avoid flooding."
+    }
+  ],
+  "integration_code": "/*\n * compost_monitor.ino — Smart Compost Monitor (ESP32)\n *\n * Elements:\n *   1. DS18B20 1-Wire (3 probes, GPIO 4)  — temperature at 3 depths\n *   2. Capacitive Soil Moisture (GPIO 36)  — compost moisture %\n *   3. SCD41 NDIR CO₂ (I²C 0x62)         — headspace CO₂ + T + RH\n *   4. SSD1306 OLED (I²C 0x3C)            — local live display\n *   5. ESP32 WiFi + MQTT                  — 2-min publish cycle\n *   6. MQTT Alert Logger                  — out-of-range event alerts\n */\n\n#include <Wire.h>\n#include <WiFi.h>\n#include <PubSubClient.h>\n#include <Adafruit_SSD1306.h>\n#include <OneWire.h>\n#include <DallasTemperature.h>\n#include <SensirionI2cScd4x.h>\n\n// --- Credentials ---\nconst char* SSID      = \"HomeNet\";\nconst char* WIFI_PASS = \"changeme\";\nconst char* MQTT_HOST = \"192.168.1.10\";\nconst int   MQTT_PORT = 1883;\n\n// --- Pins ---\n#define DS18B20_PIN  4\n#define MOISTURE_PIN 36   // ADC1\n\n// --- Calibration ---\n#define MOISTURE_DRY_RAW 3200\n#define MOISTURE_WET_RAW  800\n\n// --- Alert thresholds ---\n#define TEMP_LOW_ALERT  40.0f\n#define MOIST_LOW_ALERT 40.0f\n#define CO2_HIGH_ALERT  3000\n\n// --- Publish interval ---\n#define PUB_INTERVAL_MS (2UL * 60 * 1000)\n\n// --- Objects ---\nOneWire          ow(DS18B20_PIN);\nDallasTemperature probes(&ow);\nSensirionI2cScd4x scd41;\nAdafruit_SSD1306  oled(128, 64, &Wire, -1);\nWiFiClient        wifiClient;\nPubSubClient      mqtt(wifiClient);\n\n// --- Sensor data ---\nfloat  temps[3]      = {0, 0, 0};\nfloat  moisture_pct  = 0.0f;\nuint16_t co2_ppm     = 0;\nfloat  scd_temp      = 0.0f;\nfloat  scd_rh        = 0.0f;\n\nvoid mqtt_reconnect() {\n  while (!mqtt.connected()) {\n    if (mqtt.connect(\"CompostMonitor\")) break;\n    delay(5000);\n  }\n}\n\nfloat read_moisture() {\n  long sum = 0;\n  for (int i = 0; i < 32; i++) { sum += analogRead(MOISTURE_PIN); delayMicroseconds(100); }\n  int raw = sum / 32;\n  return constrain(map(raw, MOISTURE_DRY_RAW, MOISTURE_WET_RAW, 0, 100), 0, 100);\n}\n\nvoid update_oled() {\n  const char* status = (temps[0] > 45.0f) ? \"ACTIVE\" :\n                        (temps[0] > 35.0f) ? \"COOLING\" : \"DONE/IDLE\";\n  oled.clearDisplay();\n  oled.setTextSize(1); oled.setTextColor(SSD1306_WHITE);\n  oled.setCursor(0,  0); oled.printf(\"T: %.1f/%.1f/%.1f\", temps[0], temps[1], temps[2]);\n  oled.setCursor(0, 12); oled.printf(\"Moisture: %.0f %%\", moisture_pct);\n  oled.setCursor(0, 24); oled.printf(\"CO2: %u ppm\", co2_ppm);\n  oled.setCursor(0, 36); oled.print(status);\n  oled.display();\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  Wire.begin();\n\n  probes.begin();\n  probes.setResolution(12);\n  scd41.begin(Wire, 0x62);\n  scd41.startPeriodicMeasurement();\n\n  oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);\n  oled.clearDisplay(); oled.display();\n\n  WiFi.begin(SSID, WIFI_PASS);\n  while (WiFi.status() != WL_CONNECTED) delay(500);\n  mqtt.setServer(MQTT_HOST, MQTT_PORT);\n  mqtt_reconnect();\n\n  Serial.println(F(\"Compost monitor ready.\"));\n}\n\nvoid loop() {\n  static unsigned long last_pub   = 0;\n  static unsigned long last_oled  = 0;\n  static unsigned long last_alert = 0;\n\n  unsigned long now = millis();\n\n  if (!mqtt.connected()) mqtt_reconnect();\n  mqtt.loop();\n\n  // --- 1. Read SCD41 ---\n  uint16_t raw_co2; float raw_t, raw_rh;\n  if (scd41.readMeasurement(raw_co2, raw_t, raw_rh) == 0) {\n    co2_ppm = raw_co2; scd_temp = raw_t; scd_rh = raw_rh;\n  }\n\n  // --- 2. OLED at 2 Hz ---\n  if (now - last_oled >= 500UL) {\n    last_oled = now;\n    probes.requestTemperatures();\n    for (int i = 0; i < 3; i++) temps[i] = probes.getTempCByIndex(i);\n    moisture_pct = read_moisture();\n    update_oled();\n  }\n\n  // --- 3. MQTT publish every 2 min ---\n  if (now - last_pub >= PUB_INTERVAL_MS) {\n    last_pub = now;\n    char buf[256];\n    snprintf(buf, sizeof(buf),\n      \"{\\\"t1\\\":%.1f,\\\"t2\\\":%.1f,\\\"t3\\\":%.1f,\\\"moisture\\\":%.0f,\\\"co2\\\":%u}\",\n      temps[0], temps[1], temps[2], moisture_pct, co2_ppm);\n    mqtt.publish(\"compost/readings\", buf, true);\n\n    // Alerts\n    if (now - last_alert >= 3600000UL) {\n      bool alert = false;\n      char alert_buf[128];\n      if (temps[0] < TEMP_LOW_ALERT && temps[0] > 20.0f) {\n        snprintf(alert_buf, sizeof(alert_buf), \"{\\\"alert\\\":\\\"TEMP_LOW\\\",\\\"value\\\":%.1f}\", temps[0]);\n        alert = true;\n      } else if (moisture_pct < MOIST_LOW_ALERT) {\n        snprintf(alert_buf, sizeof(alert_buf), \"{\\\"alert\\\":\\\"MOISTURE_LOW\\\",\\\"value\\\":%.0f}\", moisture_pct);\n        alert = true;\n      } else if (co2_ppm > CO2_HIGH_ALERT) {\n        snprintf(alert_buf, sizeof(alert_buf), \"{\\\"alert\\\":\\\"CO2_HIGH\\\",\\\"value\\\":%u}\", co2_ppm);\n        alert = true;\n      }\n      if (alert) { mqtt.publish(\"compost/alerts\", alert_buf); last_alert = now; }\n    }\n  }\n\n  delay(100);\n}\n"
+}

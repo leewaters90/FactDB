@@ -1,0 +1,28 @@
+{
+  "id": "b4ccc656-efa0-54ee-b02a-b161d744b793",
+  "title": "Rotary Encoder — Incremental A/B Quadrature Pulse Counting",
+  "domain": "electrical",
+  "category": "user-interface",
+  "subcategory": "rotary input",
+  "detail_level": "intermediate",
+  "content": "An incremental rotary encoder outputs two square waves A and B, 90° out of phase. Counting A-rising edges while reading B gives direction: B=LOW on A-rising = clockwise (count++); B=HIGH on A-rising = counter-clockwise (count−−). Mechanical encoders have 20–30 detents/rev; optical/magnetic encoders: 100–1024 pulses/rev.",
+  "extended_content": "Mechanical rotary encoders (e.g., EC11) include an integral push-switch (press to confirm). Bounce time: 3–10 ms — requires hardware RC debounce (10 nF to GND) or software hysteresis (sample A/B in ISR, confirm only if stable for 5 ms). Typical application: menu navigation — each detent = one menu step; push = select. Pull-up resistors (10 kΩ) required on A, B, and SW pins; most MCU internal pull-ups (40 kΩ) are too weak for reliable reading. KY-040 breakout module includes on-board pull-ups. Position tracking formula: count × (360° / pulses_per_rev) gives angular position. For user interfaces, a state-machine approach (track transitions A/B 00→01→11→10→00 for CW) is more noise-resistant than simple edge counting.",
+  "formula": "θ [°] = count × (360 / pulses_per_rev)",
+  "units": "θ: degrees, count: integer",
+  "source": "ALPS EC11 Rotary Encoder Datasheet; Bourns PEC11 Series Data Sheet; Arduino RotaryEncoder Library",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "rotary-encoder",
+    "incremental",
+    "quadrature",
+    "user-interface",
+    "menu",
+    "knob",
+    "electrical",
+    "embedded"
+  ],
+  "created_by": "seed"
+}

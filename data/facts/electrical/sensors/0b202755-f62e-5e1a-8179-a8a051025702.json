@@ -1,0 +1,28 @@
+{
+  "id": "0b202755-f62e-5e1a-8179-a8a051025702",
+  "title": "BME280 Combined Pressure, Humidity, and Temperature Sensor",
+  "domain": "electrical",
+  "category": "sensors",
+  "subcategory": "environmental sensing",
+  "detail_level": "intermediate",
+  "content": "The Bosch BME280 is a compact MEMS sensor providing barometric pressure (300–1100 hPa, ±1 hPa), relative humidity (0–100 %, ±3 % RH), and temperature (−40 to +85 °C, ±1 °C) on a single I²C (0x76/0x77) or SPI interface.",
+  "extended_content": "The BME280 uses a single tiny MEMS die for all three measurements. Pressure accuracy ±1 hPa equates to ±8.3 m altitude resolution (useful for floor-level detection in buildings). Humidity response time: 1 s (τ63 %). Oversampling settings (OS1–OS16) trade conversion time for noise reduction; typical weather-station mode: OS1 for all three, filter coeff 4, standby 1000 ms. Power: 3.6 µA at 1 Hz sampling; sleep current 0.1 µA. I²C address: 0x76 (SDO=GND) or 0x77 (SDO=VCC). Arduino: Adafruit BME280 library or Bosch BME280 driver. Altitude calculation: h = 44330 × (1 − (P/P₀)^(1/5.255)); P₀ = 1013.25 hPa at sea level. Not to be confused with BME680 (adds gas resistance / air quality) or BMP280 (pressure + temperature only, no humidity).",
+  "formula": "h ≈ 44330 × [1 − (P / P₀)^0.1903]  [m above sea level]",
+  "units": "h: m, P: hPa, P₀: hPa",
+  "source": "Bosch Sensortec BME280 Data Sheet v1.24; Adafruit BME280 Library Documentation",
+  "source_url": null,
+  "confidence_score": 0.98,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "bme280",
+    "barometric-pressure",
+    "humidity",
+    "temperature",
+    "environmental-sensor",
+    "i2c",
+    "bosch",
+    "electrical"
+  ],
+  "created_by": "seed"
+}
