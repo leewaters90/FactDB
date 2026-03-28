@@ -1,0 +1,28 @@
+{
+  "id": "6ba605a2-e0ef-5cde-8715-46e33088cf6c",
+  "title": "ESP32-CAM — OV2640 Camera Module with WiFi Streaming",
+  "domain": "electrical",
+  "category": "imaging",
+  "subcategory": "embedded camera",
+  "detail_level": "intermediate",
+  "content": "The ESP32-CAM combines an ESP32-S chip with an OV2640 2 MP camera and 4 MB PSRAM, enabling JPEG frame capture, MJPEG HTTP streaming, and face detection using the built-in ESP-WHO library. It can stream 800×600 SVGA at ~12 fps over WiFi with the HTTP camera server example.",
+  "extended_content": "The OV2640 connects to the ESP32 over 8-bit parallel DVP (camera interface). Frame sizes supported: QQVGA (160×120) to UXGA (1600×1200); SVGA (800×600) is the practical maximum for smooth MJPEG streaming. PSRAM is required for resolutions above QVGA (320×240) — without PSRAM only QVGA or smaller frames fit in internal SRAM. Programming: the module has no USB; use a USB-UART adapter (TX→UOR, RX→UOT, IO0 to GND for flash mode). Flash LED on GPIO 4 (active HIGH). Power: 5 V in (USB or VCC pin); consumes 260 mA average during streaming — use a >500 mA regulator. AI inference: ESP-WHO provides face detection (MTMN model, ~8 fps at QVGA) and face recognition on-device. Alternatively, stream frames to a Python server and run OpenCV face detection off-device. HTTP streaming endpoint: http://IP:80/stream. Battery-powered operation: deep sleep between motion events with PIR wake-up reduces average current to < 1 mA. Known issues: module gets warm during streaming; adequate heat spreading recommended for enclosures.",
+  "formula": "Streaming bitrate ≈ JPEG_quality × pixel_count × fps",
+  "units": "bitrate: kbps, pixel_count: width×height",
+  "source": "Espressif ESP32-CAM Getting Started Guide; Arducam OV2640 Datasheet V2.5; ESP-WHO GitHub Repository",
+  "source_url": null,
+  "confidence_score": 0.94,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "esp32-cam",
+    "ov2640",
+    "camera",
+    "wifi",
+    "mjpeg",
+    "face-detection",
+    "streaming",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

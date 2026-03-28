@@ -1,0 +1,28 @@
+{
+  "id": "ad5ba346-8fdb-5979-80fc-a18615590ec2",
+  "title": "AD8232 Single-Lead ECG Analog Front End",
+  "domain": "electrical",
+  "category": "sensing",
+  "subcategory": "bioelectrical measurement",
+  "detail_level": "intermediate",
+  "content": "The AD8232 is a single-supply instrumentation amplifier optimised for biopotential (ECG) signal acquisition. It amplifies the differential electrode voltage (~1 mV peak), applies a 2-pole high-pass filter to remove motion artefacts (0.5 Hz corner), a low-pass filter at ~40 Hz, and outputs a 0–3.3 V analogue signal suitable for MCU ADC sampling.",
+  "extended_content": "ECG electrodes produce a differential signal of 0.5–5 mV on a large common-mode DC offset (up to ±300 mV). The AD8232 rejects this common-mode with a CMRR > 80 dB, amplifies the differential signal by a gain of ~100 (adjustable with Rg), and drives an analogue output around a mid-supply bias (VCC/2). Two external capacitors set the high-pass corner (C_HP = 1 / (2π × R × f_HP)); typical 0.1 µF with 3.3 MΩ gives 0.48 Hz. The integrated right-leg-drive (RLD) output reduces 50/60 Hz mains interference. Leads-off detection: SDN pin pulled HIGH when any electrode is disconnected (LO+ and LO- output pins). Supply 2.0–3.5 V; current 170 µA; suited for battery-powered wearables. Sampling at ≥ 250 SPS (Arduino ADC 9.6 kSPS in practice) captures all clinical ECG bands. Pan-Tompkins algorithm can locate R-peaks and compute heart rate from the sampled waveform. Safety: AD8232 is NOT rated for clinical (IEC 60601-1) patient contact without additional isolation — it is suitable for hobbyist/research use only.",
+  "formula": "HR_bpm = 60 / RR_interval_s;  gain = 1 + (49.4 kΩ / Rg)",
+  "units": "HR: bpm, RR: s, Rg: Ω",
+  "source": "Analog Devices AD8232 Datasheet Rev B; Pan-Tompkins Algorithm (1985 IEEE Trans. Biomed. Eng.)",
+  "source_url": null,
+  "confidence_score": 0.95,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "ad8232",
+    "ecg",
+    "heart-rate",
+    "biopotential",
+    "instrumentation-amp",
+    "bioelectrical",
+    "wearable",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

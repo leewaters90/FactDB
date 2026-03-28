@@ -1,0 +1,21 @@
+{
+  "title": "MLX90614 Non-Contact IR Thermometer Module",
+  "component_category": "sensing",
+  "design_question": "How to measure surface temperature (human forehead or object) without physical contact to 0.1 °C resolution?",
+  "selected_approach": "MLX90614ESF-BAA (single-zone, 90° FOV) on I²C address 0x5A. 4.7 kΩ pull-ups on SDA/SCL (3.3 V). Adafruit MLX90614 library. Read Ta and To1 registers via readObjectTempC() at 1 Hz. 50 ms warm-up delay on power-on. For forehead temperature: position 3–5 cm from target (FOV illuminates ~5 cm spot). Emissivity 0.98 (human skin). Optional: average 5 consecutive readings and discard outliers > 2 °C from median.",
+  "rationale": "MLX90614 is factory-calibrated over 0–50 °C object range (±0.5 °C accuracy) — the most accurate non-contact sensor at hobbyist price (< £5). Single I²C connection, 3.3 V compatible. 90° FOV adequate for 3–5 cm working distance, giving 5 cm spot size.",
+  "alternatives": [
+    {
+      "approach": "MLX90640 thermal array (32×24 pixels)",
+      "reason_rejected": "MLX90640 provides a thermal image (useful for fault detection) but costs 10× more; single-point measurement sufficient for thermometer."
+    },
+    {
+      "approach": "DS18B20 contact probe",
+      "reason_rejected": "Requires skin contact; DS18B20 needs 750 ms conversion time; unsuitable for clinical-style non-contact thermometer."
+    }
+  ],
+  "verification_notes": "FACT: 'MLX90614 Non-Contact Infrared Temperature Sensor' confirms I²C 0x5A, 0.02 °C resolution, raw → °C formula, and emissivity settings.",
+  "supporting_fact_titles": [
+    "MLX90614 Non-Contact Infrared Temperature Sensor"
+  ]
+}

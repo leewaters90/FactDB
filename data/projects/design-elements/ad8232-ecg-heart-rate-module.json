@@ -1,0 +1,23 @@
+{
+  "title": "AD8232 ECG Heart-Rate Monitor Module",
+  "component_category": "sensing",
+  "design_question": "How to acquire a single-lead ECG waveform from surface electrodes and compute heart rate on a microcontroller?",
+  "selected_approach": "SparkFun AD8232 breakout (3 snap connectors: RA, LA, RL). OUTPUT pin to MCU ADC (sampling at 250 SPS on a hardware timer interrupt). SDN/LO+/LO- to GPIO for leads-off detection. 3.3 V supply. Pan-Tompkins R-peak detector in firmware: bandpass filter 5–15 Hz, derivative, squaring, moving-window integration, adaptive thresholding. HR = 60 / (average of last 8 RR intervals).",
+  "rationale": "The AD8232 integrates instrumentation amp, HPF (0.5 Hz), LPF (40 Hz), RLD, and leads-off detection in one IC. The SparkFun breakout adds snap connectors and decoupling. Pan-Tompkins is the standard real-time R-peak detector with known >99 % sensitivity on clean ECG. 250 SPS satisfies Nyquist at 40 Hz bandwidth.",
+  "alternatives": [
+    {
+      "approach": "MAX30102 pulse oximeter (SpO2 + PPG HR)",
+      "reason_rejected": "MAX30102 uses photoplethysmography (PPG) — not a true ECG. Accurate HR but cannot show P-QRS-T morphology."
+    },
+    {
+      "approach": "ADS1292R (2-channel, 24-bit medical ECG ADC)",
+      "reason_rejected": "ADS1292R provides medical-grade noise floor (< 8 µVpp) but costs 15× more and requires complex SPI register programming — AD8232 sufficient for research/wearable applications."
+    }
+  ],
+  "verification_notes": "FACT: 'AD8232 Single-Lead ECG Analog Front End' confirms CMRR, gain, HPF/LPF, leads-off detection, and Pan-Tompkins HR formula.",
+  "supporting_fact_titles": [
+    "AD8232 Single-Lead ECG Analog Front End",
+    "ADC Resolution and Measurement Precision",
+    "Nyquist–Shannon Sampling Theorem"
+  ]
+}

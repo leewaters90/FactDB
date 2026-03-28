@@ -1,0 +1,24 @@
+{
+  "title": "High-Altitude Balloon Flight Computer (Arduino + LoRa + GPS)",
+  "component_category": "control",
+  "design_question": "How to build a lightweight, cold-tolerant flight computer that records and transmits position + environmental data throughout a high-altitude balloon flight?",
+  "selected_approach": "Arduino Nano (3.3 V, 8 MHz, low power) + u-blox NEO-M8N GPS (airborne dynamic model) + BMP280 pressure/temperature + DS18B20 −55 °C rated external temp probe + SX1276 LoRa 433 MHz radio. All housed in a 100 mm³ polystyrene foam box. Logging to microSD at 1 Hz. LoRa transmits UKHAS sentence ($CALLSIGN,seq,lat,lon,alt,temp,batt*checksum) every 10 s. AA lithium batteries (Energizer Ultimate). Nichrome cutdown on GPIO trigger.",
+  "rationale": "u-blox NEO-M8N with UBX CFG-NAV5 airborne mode supports altitude to 50 km without firmware lock. LoRa 433 MHz gives 500+ km range at altitude with a simple dipole antenna. Polystyrene box maintains internal temperature > 0 °C during −50 °C external conditions. AA lithium cells operate to −40 °C, unlike alkaline.",
+  "alternatives": [
+    {
+      "approach": "APRS 144.800 MHz (Dorji DRA818V)",
+      "reason_rejected": "APRS provides real-time public tracking via APRS-IS network (no ground station needed) but requires ham radio licence; LoRa chosen for licence-free 433 MHz ISM operation."
+    },
+    {
+      "approach": "Raspberry Pi + SIM7600 4G module",
+      "reason_rejected": "4G coverage ends at ~3 km altitude — useless above the troposphere. RPi power consumption too high for battery budget."
+    }
+  ],
+  "verification_notes": "FACT: 'High-Altitude Balloon Telemetry — GPS, Pressure, and Radio Downlink' confirms u-blox airborne mode, LoRa range, cold temperature requirements, and UKHAS sentence format.",
+  "supporting_fact_titles": [
+    "High-Altitude Balloon Telemetry — GPS, Pressure, and Radio Downlink",
+    "GPS Module — NMEA Sentence Parsing and Fix Accuracy",
+    "LoRa / LoRaWAN — LPWAN for Remote Telemetry",
+    "MEMS Barometric Pressure Sensor"
+  ]
+}

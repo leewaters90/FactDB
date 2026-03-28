@@ -1,0 +1,27 @@
+{
+  "id": "0308b490-885d-5e41-8765-7f11db6f1bca",
+  "title": "DC-DC Boost Converter — Inductor-Based Step-Up Regulation",
+  "domain": "electrical",
+  "category": "power-conversion",
+  "subcategory": "DC-DC converters",
+  "detail_level": "intermediate",
+  "content": "A boost converter steps up a DC input voltage to a higher DC output using an inductor, switch (MOSFET), diode, and output capacitor. Output voltage V_out = V_in / (1 − D) where D is the duty cycle. Efficiency typically 85–95 % for integrated ICs (e.g., MT3608, XL6009). Common applications: 3.7 V Li-Po to 5 V USB, 5 V to 12 V for solenoids.",
+  "extended_content": "Operating principle: when the MOSFET switch closes, current ramps in the inductor storing energy. When the switch opens, the inductor's collapsing field drives current through the diode to the output capacitor, boosting the voltage. Continuous conduction mode (CCM) for I_load > I_critical. Duty cycle D = 1 − (V_in × η) / V_out. Key parameters: inductor value (larger = smaller current ripple); output capacitor (larger = smaller voltage ripple); switching frequency (higher = smaller passives but more switching loss). Popular ICs: MT3608 (2 A, fixed 1.2 MHz, SFB), XL6009 (4 A, 400 kHz), LM2577 (3 A, adjustable). For battery backup UPS applications, use a boost-converter with power-path management (BQ24650 or similar) to pass through mains and switch to battery seamlessly. Efficiency drops at low loads (skip-cycle / pulse-skip mode); use LDO post-regulator for noise-sensitive loads. Stability: loop compensation capacitor on FB pin prevents oscillation at light load.",
+  "formula": "V_out = V_in / (1 − D);  D = 1 − (V_in × η) / V_out",
+  "units": "V: volts, D: duty cycle (0–1), η: efficiency (0–1)",
+  "source": "Texas Instruments AN-1197 Boost Converter Design; MT3608 Datasheet Aerosemi; Erickson & Maksimović 'Fundamentals of Power Electronics' 3rd Ed.",
+  "source_url": null,
+  "confidence_score": 0.96,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "boost-converter",
+    "dc-dc",
+    "step-up",
+    "mt3608",
+    "xl6009",
+    "power-conversion",
+    "electrical"
+  ],
+  "created_by": "seed"
+}
