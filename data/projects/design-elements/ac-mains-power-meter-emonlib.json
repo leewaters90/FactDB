@@ -1,0 +1,23 @@
+{
+  "title": "AC Mains Power Meter (ZMPT101B + SCT-013 + EmonLib)",
+  "component_category": "sensing",
+  "design_question": "How to measure mains voltage, current, true power, and power factor non-invasively for an energy monitoring application?",
+  "selected_approach": "ZMPT101B mains voltage transformer module (AC output biased at 2.5 V into Arduino A0). SCT-013-030 split-core CT clamp (30 A range, with internal burden resistor, biased at 2.5 V via voltage divider into A1). EmonLib Arduino library: calibration constants VCAL=234.26, ICAL=111.1 for 5 V Arduino. Accumulate 20 cycles; compute V_rms, I_rms, apparent power S, real power P, PF.",
+  "rationale": "Non-invasive measurement (no break in circuit) is safe for retrofit monitoring. ZMPT101B is mains-isolated; SCT-013 clips onto existing wiring. EmonLib handles AC sampling, RMS computation, and cross-products for true power. Accuracy ±2 % V, ±3 % I after calibration — adequate for energy audit and billing estimates.",
+  "alternatives": [
+    {
+      "approach": "ADE7753 energy metering IC",
+      "reason_rejected": "ADE7753 provides better accuracy (±0.5 %) and hardware integration but requires a custom PCB; ZMPT101B+SCT013+EmonLib stack is breadboard-compatible for prototyping."
+    },
+    {
+      "approach": "Shelly 1PM (commercial module)",
+      "reason_rejected": "Commercial solution saves development time but provides no educational value and cannot be customised."
+    }
+  ],
+  "verification_notes": "FACT: 'AC Power Factor and True Power Measurement via Current and Voltage Sensing' confirms ZMPT101B + CT clamp topology, EmonLib sampling approach, and P = V_rms × I_rms × cos(φ) formula.",
+  "supporting_fact_titles": [
+    "AC Power Factor and True Power Measurement via Current and Voltage Sensing",
+    "CT Clamp Current Sensing and RMS Calculation",
+    "Kirchhoff's Voltage Law (KVL)"
+  ]
+}

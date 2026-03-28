@@ -1,0 +1,28 @@
+{
+  "id": "638ad328-d35a-5840-a2f1-a0679e4a8709",
+  "title": "HX711 24-Bit ADC for Load Cell and Wheatstone Bridge Amplification",
+  "domain": "electrical",
+  "category": "sensors",
+  "subcategory": "force and weight sensing",
+  "detail_level": "intermediate",
+  "content": "The HX711 is a 24-bit sigma-delta ADC designed for Wheatstone bridge / load cell applications. It provides a selectable gain (64 or 128 on channel A, 32 on channel B) and a 2-wire SPI-like interface (CLK + DOUT). At 80 SPS (channel A, gain 128), resolution is better than 0.1 g on a 5 kg load cell.",
+  "extended_content": "Load cells produce a differential voltage of typically 1–2 mV/V full-scale from a 5 V excitation. The HX711 amplifies and digitises this signal. Calibration: apply a known weight, record raw counts, then scale_factor = raw_count / known_weight_grams. Zero offset: tare (record raw at zero load). Weight = (raw − zero_offset) / scale_factor. Common load cells: TAL220B (5 kg), CZL616C (50 kg). The HX711 AVDD can be 5 V (from MCU 5 V rail) or a separate reference. Interface: DOUT goes LOW when data is ready; MCU clocks 24 bits out; 25th pulse sets gain for next read. Library: HX711 by bogde (Arduino) or hx711 (Python/RPi). Noise reduction: shield cables; avoid mechanical vibration during read; average 4–8 readings.",
+  "formula": "weight [g] = (raw_count − zero_offset) / scale_factor",
+  "units": "weight: g (or kg), raw_count: 24-bit signed integer",
+  "source": "Avia Semiconductor HX711 Data Sheet Rev C; bogde HX711 Arduino Library README",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "hx711",
+    "load-cell",
+    "wheatstone-bridge",
+    "weighing",
+    "adc",
+    "strain-gauge",
+    "electrical",
+    "measurement"
+  ],
+  "created_by": "seed"
+}

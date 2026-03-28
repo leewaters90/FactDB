@@ -1,0 +1,56 @@
+{
+  "title": "Smart Reflow Oven Controller",
+  "description": "Arduino-based reflow oven controller retrofitted into a household toaster oven. A MAX6675 K-type thermocouple reads the oven air temperature; a PID loop drives two SSRs (top and bottom elements); the controller follows a lead-free reflow profile (preheat → soak → reflow → cool). Rotary encoder and OLED provide profile selection and live temperature + phase display.",
+  "objective": "Follow IPC J-STD-020 lead-free reflow profile: preheat 25→150 °C in 60–90 s; soak 150–200 °C for 60–120 s; reflow 200→250 °C peak for 20–40 s; cool to < 100 °C. Temperature accuracy ±5 °C.",
+  "constraints": "230 V mains toaster oven (1200 W); 5 V USB logic supply; two 25 A SSRs; MAX6675 K-type probe; ≤ £30 controller BOM.",
+  "domain": "electrical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "MAX6675 K-Type Thermocouple-to-Digital SPI Converter",
+    "PID Controller — Transfer Function",
+    "Solid-State Relay (SSR) Mains Load Switching",
+    "Rotary Encoder — Incremental A/B Quadrature Pulse Counting",
+    "OLED SSD1306 Monochrome Display I²C Interface"
+  ],
+  "design_element_titles": [
+    "MAX6675 K-Type Thermocouple SPI Module",
+    "Solid-State Relay Mains Actuator Switching",
+    "Rotary Encoder User-Interface Navigation",
+    "SSD1306 OLED Display UI Module",
+    "Arduino Uno/Nano MCU Platform"
+  ],
+  "element_usage_notes": {
+    "MAX6675 K-Type Thermocouple SPI Module": "Ungrounded K-type probe inserted through oven side wall; SPI CS=D10; polled every 250 ms; 4-sample median filter removes thermal noise.",
+    "Solid-State Relay Mains Actuator Switching": "Two Fotek SSR-25DA — one for top element (D5), one for bottom element (D6); both zero-cross; 1-s window PID duty cycle; heatsinks mounted outside oven.",
+    "Rotary Encoder User-Interface Navigation": "KY-040; CLK D2 INT0; rotate to select reflow profile (lead-free / leaded / custom); press to start/abort cycle.",
+    "SSD1306 OLED Display UI Module": "128×64; top row: PHASE name; middle: setpoint vs actual °C (large); bottom: elapsed time + PID power %.",
+    "Arduino Uno/Nano MCU Platform": "Nano 3.0; SPI MAX6675 D10–D13; I²C OLED A4/A5; SSR1=D5, SSR2=D6; encoder CLK=D2, DT=D4, SW=D3; buzzer D8."
+  },
+  "element_interactions": [
+    {
+      "from": "MAX6675 K-Type Thermocouple SPI Module",
+      "to": "Arduino Uno/Nano MCU Platform",
+      "data": "temp_c (float, 0.25 °C resolution) via SPI every 250 ms",
+      "description": "4-sample median filter applied; temperature is process variable for active reflow phase PID. Reading > 300 °C aborts cycle and cuts SSRs immediately."
+    },
+    {
+      "from": "Rotary Encoder User-Interface Navigation",
+      "to": "Arduino Uno/Nano MCU Platform",
+      "data": "profile selection (CW/CCW rotate) + start/abort (press) via GPIO INT",
+      "description": "Before start: rotate selects profile; press starts cycle. During cycle: press aborts immediately (both SSRs off). Encoder direction ignored during active reflow."
+    },
+    {
+      "from": "Arduino Uno/Nano MCU Platform",
+      "to": "Solid-State Relay Mains Actuator Switching",
+      "data": "PWM duty cycle (1-s window, 0–100 %) on GPIO D5 and D6",
+      "description": "PID output split evenly between top and bottom elements. During COOL phase: both SSRs forced OFF; oven door slightly ajar (servo not included in v1)."
+    },
+    {
+      "from": "Arduino Uno/Nano MCU Platform",
+      "to": "SSD1306 OLED Display UI Module",
+      "data": "I²C framebuffer: phase_name, setpoint_c, actual_c, elapsed_s, pid_pct",
+      "description": "OLED updated at 2 Hz. Phase transitions shown with 1-second inversion flash. End-of-cycle buzzer 3× beeps then DONE screen."
+    }
+  ],
+  "integration_code": "/*\n * reflow_oven.ino — Smart Reflow Oven Controller\n *\n * Elements:\n *   1. MAX6675 K-type Thermocouple — SPI D10, temp at 4 Hz\n *   2. SSR × 2                    — D5 (top), D6 (bottom), 1-s window PID\n *   3. Rotary Encoder KY-040      — profile select + start/abort\n *   4. SSD1306 OLED               — phase / temp / time / PID\n *   5. Arduino Nano               — reflow state machine + PID\n *\n * Lead-free profile (IPC J-STD-020 D):\n *   PREHEAT : ramp 25  → 150 °C  (~90 s)\n *   SOAK    : hold 150 °C        (60 s)\n *   RAMP    : ramp 150 → 250 °C  (~45 s)\n *   REFLOW  : hold 250 °C        (30 s)\n *   COOL    : heaters OFF, wait T < 100 °C\n */\n\n#include <Wire.h>\n#include <SPI.h>\n#include <max6675.h>\n#include <Adafruit_SSD1306.h>\n\n// --- Pins ---\n#define TC_CS      10\n#define TC_CLK     13\n#define TC_MISO    12\n#define SSR_TOP     5\n#define SSR_BOT     6\n#define BUZZ_PIN    8\n#define ENC_CLK     2\n#define ENC_DT      4\n#define ENC_SW      3\n\n// --- PID ---\n#define KP 0.8f\n#define KI 0.05f\n#define KD 3.0f\n#define PERIOD_MS  250UL\n#define WINDOW_MS 1000UL\n\n// --- Reflow phases (lead-free) ---\nstruct Phase { const char* name; float target_c; uint32_t max_s; };\nconst Phase PROFILE[] = {\n  { \"PREHEAT\",  150.0f,  90 },\n  { \"SOAK\",     150.0f,  60 },\n  { \"RAMP\",     250.0f,  60 },\n  { \"REFLOW\",   250.0f,  35 },\n  { \"COOL\",       0.0f, 120 }\n};\nconst uint8_t N_PHASES = 5;\n\n// --- Objects ---\nMAX6675         tc(TC_CLK, TC_CS, TC_MISO);\nAdafruit_SSD1306 oled(128, 64, &Wire, -1);\n\n// --- State ---\nfloat   actual_c    = 20.0f;\nfloat   setpoint_c  = 25.0f;\nfloat   pid_out     = 0.0f;\nfloat   i_term      = 0.0f;\nfloat   prev_err    = 0.0f;\nbool    running     = false;\nuint8_t phase_idx   = 0;\nunsigned long phase_start = 0;\n\nvolatile int  enc_d = 0;\nvolatile bool enc_p = false;\nvoid ICACHE_RAM_ATTR isr_clk() { enc_d += digitalRead(ENC_DT) ? -1 : 1; }\nvoid ICACHE_RAM_ATTR isr_sw()  { enc_p = true; }\n\nfloat run_pid(float sp, float pv, float dt) {\n  float e = sp - pv;\n  i_term  = constrain(i_term + KI * e * dt, 0.0f, 100.0f);\n  float d = (e - prev_err) / dt;\n  prev_err = e;\n  return constrain(KP * e + i_term + KD * d, 0.0f, 100.0f);\n}\n\nvoid abort_cycle() {\n  running = false; phase_idx = 0; pid_out = 0; i_term = 0; prev_err = 0;\n  digitalWrite(SSR_TOP, LOW); digitalWrite(SSR_BOT, LOW);\n  Serial.println(F(\"ABORTED\"));\n}\n\nvoid draw_oled() {\n  oled.clearDisplay();\n  oled.setTextSize(1); oled.setTextColor(SSD1306_WHITE);\n  if (!running) {\n    oled.setCursor(0, 0); oled.print(\"REFLOW OVEN READY\");\n    oled.setCursor(0,16); oled.print(\"Press ENC to start\");\n    oled.setCursor(0,32); oled.printf(\"T = %.1f C\", actual_c);\n  } else {\n    uint32_t elapsed = (millis() - phase_start) / 1000;\n    oled.setCursor(0, 0); oled.print(PROFILE[phase_idx].name);\n    oled.setTextSize(2);\n    oled.setCursor(0,12); oled.printf(\"%.0f/%.0f\", actual_c, setpoint_c);\n    oled.setTextSize(1);\n    oled.setCursor(0,36); oled.printf(\"t=%lus  P=%.0f%%\", elapsed, pid_out);\n  }\n  oled.display();\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  Wire.begin();\n  oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);\n  oled.clearDisplay(); oled.display();\n\n  pinMode(SSR_TOP, OUTPUT); digitalWrite(SSR_TOP, LOW);\n  pinMode(SSR_BOT, OUTPUT); digitalWrite(SSR_BOT, LOW);\n  pinMode(BUZZ_PIN, OUTPUT); digitalWrite(BUZZ_PIN, LOW);\n  pinMode(ENC_CLK, INPUT_PULLUP); pinMode(ENC_DT, INPUT_PULLUP); pinMode(ENC_SW, INPUT_PULLUP);\n  attachInterrupt(digitalPinToInterrupt(ENC_CLK), isr_clk, FALLING);\n  attachInterrupt(digitalPinToInterrupt(ENC_SW),  isr_sw,  FALLING);\n\n  delay(500);  // MAX6675 power-up\n  Serial.println(F(\"Reflow oven ready.\"));\n}\n\nvoid loop() {\n  static unsigned long last_pid  = 0;\n  static unsigned long win_start = 0;\n\n  unsigned long now = millis();\n\n  // --- Encoder ---\n  noInterrupts(); bool p = enc_p; enc_p = false; int d = enc_d; enc_d = 0; interrupts();\n  if (p) {\n    if (!running) { running = true; phase_idx = 0; phase_start = now; i_term = 0; prev_err = 0; }\n    else          { abort_cycle(); }\n  }\n\n  // --- Phase management ---\n  if (running && phase_idx < N_PHASES) {\n    uint32_t elapsed = (now - phase_start) / 1000;\n    if (phase_idx < N_PHASES - 1) {\n      bool phase_done = (elapsed >= PROFILE[phase_idx].max_s) ||\n                        (phase_idx == 0 && actual_c >= 150.0f) ||\n                        (phase_idx == 2 && actual_c >= 245.0f) ||\n                        (phase_idx == 3 && elapsed >= PROFILE[3].max_s);\n      if (phase_done) { phase_idx++; phase_start = now; }\n    } else {\n      // COOL phase done\n      if (actual_c < 100.0f || elapsed >= PROFILE[4].max_s) {\n        abort_cycle();\n        for (int i = 0; i < 3; i++) { digitalWrite(BUZZ_PIN,HIGH); delay(300); digitalWrite(BUZZ_PIN,LOW); delay(300); }\n        Serial.println(F(\"REFLOW DONE\"));\n      }\n    }\n    setpoint_c = (phase_idx == N_PHASES - 1) ? actual_c * 0.8f : PROFILE[phase_idx].target_c;\n  }\n\n  // --- PID at 4 Hz ---\n  if (now - last_pid >= PERIOD_MS) {\n    float dt = (now - last_pid) / 1000.0f;\n    last_pid = now;\n    actual_c = tc.readCelsius();\n    if (actual_c > 300.0f) { abort_cycle(); return; }  // safety\n    if (running && phase_idx < N_PHASES - 1) pid_out = run_pid(setpoint_c, actual_c, dt);\n    else                                     pid_out = 0.0f;\n    draw_oled();\n    Serial.printf(\"PH=%s T=%.1f SP=%.0f OUT=%.0f\\n\", PROFILE[phase_idx].name, actual_c, setpoint_c, pid_out);\n  }\n\n  // --- SSR window ---\n  if (now - win_start >= WINDOW_MS) win_start = now;\n  bool heat_on = running && phase_idx < N_PHASES - 1 &&\n                 (now - win_start) < (unsigned long)(pid_out * WINDOW_MS / 100.0f);\n  digitalWrite(SSR_TOP, heat_on ? HIGH : LOW);\n  digitalWrite(SSR_BOT, heat_on ? HIGH : LOW);\n}\n"
+}

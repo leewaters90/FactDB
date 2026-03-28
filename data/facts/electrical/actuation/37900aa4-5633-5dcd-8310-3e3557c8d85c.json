@@ -1,0 +1,28 @@
+{
+  "id": "37900aa4-5633-5dcd-8310-3e3557c8d85c",
+  "title": "Stepper Motor Closed-Loop Control via Magnetic Encoder Feedback",
+  "domain": "electrical",
+  "category": "actuation",
+  "subcategory": "motion control",
+  "detail_level": "advanced",
+  "content": "Adding a magnetic rotary encoder (e.g., AS5600 12-bit I²C, 0.088°/LSB) to a stepper motor shaft creates a closed-loop system. The MCU compares the commanded step position against the encoder angle; a position error (stall or missed step) triggers a correction. This combines stepper simplicity with the stall-detection and accuracy of a servo system.",
+  "extended_content": "Implementation: AS5600 reads absolute angle 0–4095 counts for one revolution (0.088° resolution). Stepper commanded position tracked in software (step count × step_angle). Position error = encoder_angle − commanded_angle. If |error| > threshold (e.g., 5 counts = 0.44°), the MCU commands extra steps to correct. Stall detection: if |error| > stall_threshold for > 100 ms despite stepping commands, declare stall and stop (avoids grinding). The algorithm runs in a 1 kHz interrupt loop. Libraries: SimpleFOC (field-oriented control for BLDC and stepper), or custom PID step scheduler. AS5600 magnet: diametrically magnetised 6 mm × 2.5 mm cylinder glued to motor shaft centre; air gap 0.5–3 mm. Accuracy after calibration: ±0.1° (comparable to 1/32 microstepping). Current sensing (via TMC2209 UART diagnostics or INA219) can also detect stall via back-EMF signature without encoder.",
+  "formula": "error_deg = (encoder_count − commanded_count) × 0.088",
+  "units": "angle: degrees, encoder_count: integer (0–4095), step_angle: depends on motor (1.8° or 0.9°)",
+  "source": "ams AS5600 Programming Guide Rev 2.0; SimpleFOC Library Documentation; TMC2209 Datasheet TRINAMIC",
+  "source_url": null,
+  "confidence_score": 0.94,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "stepper",
+    "closed-loop",
+    "as5600",
+    "magnetic-encoder",
+    "position-control",
+    "stall-detection",
+    "motion-control",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

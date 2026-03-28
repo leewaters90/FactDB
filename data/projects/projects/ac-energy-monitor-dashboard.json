@@ -1,0 +1,50 @@
+{
+  "title": "AC Energy Monitor Dashboard",
+  "description": "ESP32-based whole-house AC energy monitor measuring mains voltage, current, real power, and power factor using a ZMPT101B voltage transformer and SCT-013-030 CT clamp, processed with EmonLib. Readings published to MQTT and a local web dashboard; daily energy (kWh) stored on microSD. OLED shows live V / I / W / PF.",
+  "objective": "Monitor mains voltage (±2 %), current (0–30 A, ±3 %), real power (W), power factor, and daily kWh accumulation; MQTT publish every 10 s; local web dashboard; OLED live display; 12-month data log on SD.",
+  "constraints": "230 V AC mains (single phase); ESP32 DevKit; 5 V USB power; safety isolation provided by ZMPT101B; ≤ £25 BOM.",
+  "domain": "electrical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "AC Power Factor and True Power Measurement via Current and Voltage Sensing",
+    "CT Clamp Current Sensing and RMS Calculation",
+    "MQTT Protocol for IoT Sensor Data",
+    "NTP Time Synchronisation for Data Logging",
+    "OLED SSD1306 Monochrome Display I²C Interface"
+  ],
+  "design_element_titles": [
+    "AC Mains Power Meter (ZMPT101B + SCT-013 + EmonLib)",
+    "ESP32 WiFi + MQTT IoT Telemetry",
+    "SSD1306 OLED Display UI Module",
+    "MicroSD 1 Hz Time-Series Data Logger",
+    "NTP UTC Timestamped Data Logging"
+  ],
+  "element_usage_notes": {
+    "AC Mains Power Meter (ZMPT101B + SCT-013 + EmonLib)": "ZMPT101B biased at 2.5 V into ADC1 GPIO 35 (VP); SCT-013-030 with 33 Ω burden + 2× 10 kΩ bias divider into GPIO 34. EmonLib VCAL=234.26, ICAL=111.1. 20-cycle sample window at 50 Hz.",
+    "ESP32 WiFi + MQTT IoT Telemetry": "Broker at home LAN; topic energy/monitor; retained status payload; 10-s publish interval. HTTP server on port 80 serves simple JSON API /api/now.",
+    "SSD1306 OLED Display UI Module": "128×64; 4-line layout: V_rms / I_rms / P_real (W) / PF; updates at 2 Hz.",
+    "MicroSD 1 Hz Time-Series Data Logger": "SD CS=GPIO 5; CSV: iso_ts, V_rms, I_rms, P_W, PF, kWh_today; one row per minute; daily kWh accumulated.",
+    "NTP UTC Timestamped Data Logging": "NTP synced on boot; ISO 8601 timestamp on each CSV row; fallback to millis() if NTP unavailable."
+  },
+  "element_interactions": [
+    {
+      "from": "AC Mains Power Meter (ZMPT101B + SCT-013 + EmonLib)",
+      "to": "ESP32 WiFi + MQTT IoT Telemetry",
+      "data": "v_rms (float), i_rms (float), real_power_w (float), pf (float) every 10 s",
+      "description": "EmonLib calcCalcIrms() and calcVI() called with 1480 samples; results averaged over 3 EmonLib cycles. kWh_today accumulated as P × Δt / 3600."
+    },
+    {
+      "from": "ESP32 WiFi + MQTT IoT Telemetry",
+      "to": "SSD1306 OLED Display UI Module",
+      "data": "I²C framebuffer (v_rms, i_rms, p_w, pf) at 2 Hz",
+      "description": "OLED shows live readings; PF displayed as 0.00–1.00; 'ALERT' flashed if PF < 0.7 (reactive load warning)."
+    },
+    {
+      "from": "ESP32 WiFi + MQTT IoT Telemetry",
+      "to": "MicroSD 1 Hz Time-Series Data Logger",
+      "data": "CSV row (iso_ts, V, I, P, PF, kWh_today) every 60 s",
+      "description": "Appended to POWER.CSV on SD. File rolls over at midnight (new date prefix). SD CS on GPIO 5."
+    }
+  ],
+  "integration_code": "/*\n * energy_monitor.ino — AC Energy Monitor Dashboard (ESP32)\n *\n * Elements:\n *   1. ZMPT101B (GPIO 35) + SCT-013 (GPIO 34) + EmonLib  — V/I/P/PF\n *   2. ESP32 WiFi + MQTT (10-s publish) + HTTP /api/now   — remote access\n *   3. SSD1306 OLED (I²C 0x3C)                           — live display\n *   4. MicroSD (SPI CS=GPIO 5)                            — CSV log\n *   5. NTP                                               — timestamps\n */\n\n#include <Wire.h>\n#include <WiFi.h>\n#include <PubSubClient.h>\n#include <WebServer.h>\n#include <Adafruit_SSD1306.h>\n#include <EmonLib.h>\n#include <SPI.h>\n#include <SD.h>\n#include <time.h>\n\n// --- Config ---\nconst char* SSID      = \"HomeNet\";\nconst char* WIFI_PASS = \"changeme\";\nconst char* MQTT_HOST = \"192.168.1.10\";\n#define SD_CS   5\n#define V_PIN  35\n#define I_PIN  34\n#define VCAL   234.26f\n#define ICAL   111.1f\n\n// --- Objects ---\nEnergyMonitor  emon;\nAdafruit_SSD1306 oled(128, 64, &Wire, -1);\nWiFiClient     wc;\nPubSubClient   mqtt(wc);\nWebServer      server(80);\n\n// --- Data ---\nfloat  v_rms = 0, i_rms = 0, real_p = 0, pf = 0;\ndouble kwh_today = 0.0;\nunsigned long last_measure = 0;\n\nvoid update_oled() {\n  oled.clearDisplay();\n  oled.setTextSize(1); oled.setTextColor(SSD1306_WHITE);\n  oled.setCursor(0,  0); oled.printf(\"V: %.1f V  I: %.2f A\", v_rms, i_rms);\n  oled.setCursor(0, 16); oled.printf(\"P: %.1f W\", real_p);\n  oled.setCursor(0, 28); oled.printf(\"PF: %.2f%s\", pf, pf < 0.7f ? \" ALERT\" : \"\");\n  oled.setCursor(0, 44); oled.printf(\"kWh today: %.3f\", kwh_today);\n  oled.display();\n}\n\nvoid log_sd(const char* ts) {\n  if (!SD.begin(SD_CS)) return;\n  File f = SD.open(\"/POWER.CSV\", FILE_WRITE);\n  if (f) {\n    f.printf(\"%s,%.1f,%.3f,%.1f,%.2f,%.4f\\n\", ts, v_rms, i_rms, real_p, pf, kwh_today);\n    f.close();\n  }\n  SD.end();\n}\n\nvoid mqtt_reconnect() {\n  while (!mqtt.connected()) {\n    if (mqtt.connect(\"EnergyMonitor\")) break;\n    delay(3000);\n  }\n}\n\nvoid handle_api() {\n  char buf[256];\n  snprintf(buf, sizeof(buf),\n    \"{\\\"v_rms\\\":%.1f,\\\"i_rms\\\":%.3f,\\\"real_p\\\":%.1f,\\\"pf\\\":%.2f,\\\"kwh_today\\\":%.4f}\",\n    v_rms, i_rms, real_p, pf, kwh_today);\n  server.send(200, \"application/json\", buf);\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  Wire.begin();\n\n  emon.voltage(V_PIN, VCAL, 1.7);  // pin, vcal, phase_shift\n  emon.current(I_PIN, ICAL);\n\n  oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);\n  oled.clearDisplay(); oled.display();\n\n  WiFi.begin(SSID, WIFI_PASS);\n  while (WiFi.status() != WL_CONNECTED) delay(500);\n  configTime(0, 0, \"pool.ntp.org\");  // UTC\n\n  mqtt.setServer(MQTT_HOST, 1883);\n  mqtt_reconnect();\n\n  server.on(\"/api/now\", handle_api);\n  server.begin();\n\n  SPI.begin();\n  Serial.println(F(\"Energy monitor ready. IP: \" ));\n  Serial.println(WiFi.localIP());\n}\n\nvoid loop() {\n  if (!mqtt.connected()) mqtt_reconnect();\n  mqtt.loop();\n  server.handleClient();\n\n  unsigned long now = millis();\n\n  if (now - last_measure >= 10000UL) {\n    float dt_h = (now - last_measure) / 3600000.0f;\n    last_measure = now;\n\n    emon.calcVI(20, 2000);  // 20 cycles, 2 s timeout\n    v_rms  = emon.Vrms;\n    i_rms  = emon.Irms;\n    real_p = emon.realPower;\n    pf     = emon.powerFactor;\n    kwh_today += real_p * dt_h / 1000.0;\n\n    update_oled();\n\n    // MQTT publish\n    char buf[256], ts_buf[32];\n    time_t t = time(nullptr);\n    strftime(ts_buf, sizeof(ts_buf), \"%Y-%m-%dT%H:%M:%SZ\", gmtime(&t));\n    snprintf(buf, sizeof(buf),\n      \"{\\\"ts\\\":\\\"%s\\\",\\\"v\\\":%.1f,\\\"i\\\":%.3f,\\\"p\\\":%.1f,\\\"pf\\\":%.2f,\\\"kwh\\\":%.4f}\",\n      ts_buf, v_rms, i_rms, real_p, pf, kwh_today);\n    mqtt.publish(\"energy/monitor\", buf, true);\n\n    // SD log every minute\n    static unsigned long last_sd = 0;\n    if (now - last_sd >= 60000UL) { last_sd = now; log_sd(ts_buf); }\n\n    Serial.printf(\"V=%.1f I=%.3f P=%.1f PF=%.2f kWh=%.4f\\n\",\n      v_rms, i_rms, real_p, pf, kwh_today);\n  }\n}\n"
+}

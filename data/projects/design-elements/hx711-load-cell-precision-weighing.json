@@ -1,0 +1,22 @@
+{
+  "title": "HX711 Load Cell Precision Weighing Interface",
+  "component_category": "sensing",
+  "design_question": "How to build a precision digital scale using a strain-gauge load cell with a resolution of < 1 g over a 5 kg range?",
+  "selected_approach": "TAL220B 5 kg load cell (1 mV/V sensitivity) wired to HX711 breakout (AVDD = 5 V, gain 128, channel A). HX711 DOUT on D3, CLK on D4. bogde HX711 Arduino library. Calibration: tare on power-up; apply 500 g known weight → compute scale_factor. Average 8 readings per display update. Mechanical: load cell mounted in an aluminium beam fixture; overload stop screws at 110 % capacity.",
+  "rationale": "HX711 with gain 128 provides 24-bit resolution from a 5 V reference, achieving < 0.1 g equivalent noise on a 5 kg cell. The bogde library handles the clocked read protocol and averaging. TAL220B is a cost-effective, temperature-stable single-point load cell suitable for 3D-printed platform scales.",
+  "alternatives": [
+    {
+      "approach": "NAU7802 I²C 24-bit ADC",
+      "reason_rejected": "NAU7802 is more modern (I²C, lower noise) but HX711 is ubiquitous and has mature Arduino library support at lower cost."
+    },
+    {
+      "approach": "MCU ADC (10-bit) with INA125 instrumentation amp",
+      "reason_rejected": "10-bit MCU ADC gives only ~4.8 mV resolution — insufficient for < 1 g weighing; dedicated 24-bit ADC required."
+    }
+  ],
+  "verification_notes": "FACT: 'HX711 24-Bit ADC for Load Cell and Wheatstone Bridge Amplification' confirms gain-128 provides < 0.1 g noise at 80 SPS and documents calibration procedure.",
+  "supporting_fact_titles": [
+    "HX711 24-Bit ADC for Load Cell and Wheatstone Bridge Amplification",
+    "Load Cell and Wheatstone Bridge"
+  ]
+}
