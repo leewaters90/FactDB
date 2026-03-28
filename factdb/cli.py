@@ -1289,6 +1289,276 @@ def software_requirements_cmd(ctx, project_id, output):
 # ---------------------------------------------------------------------------
 
 
+# ---------------------------------------------------------------------------
+# deps-chart  — standalone HTML dependency chart
+# ---------------------------------------------------------------------------
+
+
+@cli.command("deps-chart")
+@click.option(
+    "--output", "-o",
+    default="deps_chart.html",
+    show_default=True,
+    help="Output HTML file path.",
+)
+@click.pass_context
+def deps_chart_cmd(ctx, output):
+    """Generate a standalone interactive dependency chart (HTML/D3.js).
+
+    Writes a self-contained HTML file that visualises all facts, design
+    elements, and projects as a force-directed graph.  Open the file in any
+    modern browser — no server required.
+    """
+    db_url = ctx.obj.get("db")
+    session_factory = get_session_factory(db_url)
+    session = session_factory()
+
+    try:
+        from factdb.models import Fact, FactRelationship
+        from factdb.project_models import DesignElement, Project
+        from factdb.project_repository import ProjectRepository
+
+        facts = (
+            session.query(Fact)
+            .filter(Fact.is_active.is_(True))
+            .order_by(Fact.domain, Fact.title)
+            .all()
+        )
+        relationships = session.query(FactRelationship).all()
+        repo = ProjectRepository(session)
+        elements = repo.list_design_elements(limit=1000)
+        projects = repo.list_projects(limit=500)
+
+        fact_id_set: set[str] = set()
+        element_id_set: set[str] = set()
+        nodes: list[dict] = []
+        edges: list[dict] = []
+
+        for f in facts:
+            nodes.append({
+                "id": f.id, "label": f.title, "type": "fact",
+                "group": f.domain, "status": f.status,
+            })
+            fact_id_set.add(f.id)
+
+        for el in elements:
+            nodes.append({
+                "id": el.id, "label": el.title, "type": "element",
+                "group": el.component_category,
+            })
+            element_id_set.add(el.id)
+            for f in el.supporting_facts:
+                if f.id in fact_id_set:
+                    edges.append({"source": el.id, "target": f.id, "type": "uses_fact", "weight": 1.0})
+
+        for proj in projects:
+            nodes.append({
+                "id": proj.id, "label": proj.title, "type": "project",
+                "group": proj.domain, "status": proj.status,
+            })
+            for el in proj.elements:
+                if el.id in element_id_set:
+                    edges.append({"source": proj.id, "target": el.id, "type": "uses_element", "weight": 1.0})
+            for f in proj.supporting_facts:
+                if f.id in fact_id_set:
+                    edges.append({"source": proj.id, "target": f.id, "type": "uses_fact", "weight": 1.0})
+
+        for rel in relationships:
+            if rel.source_fact_id in fact_id_set and rel.target_fact_id in fact_id_set:
+                edges.append({
+                    "source": rel.source_fact_id,
+                    "target": rel.target_fact_id,
+                    "type": rel.relationship_type,
+                    "weight": rel.weight or 1.0,
+                })
+
+        graph_json = json.dumps({"nodes": nodes, "edges": edges})
+        stats = {
+            "facts": len(facts),
+            "elements": len(elements),
+            "projects": len(projects),
+            "edges": len(edges),
+        }
+
+    finally:
+        session.close()
+
+    # Build standalone HTML (D3.js loaded from CDN)
+    html = f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FactDB Dependency Chart</title>
+<style>
+*,*::before,*::after{{box-sizing:border-box}}
+body{{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:14px;background:#f5f7fa;color:#1a1f2e}}
+header{{background:#fff;border-bottom:1px solid #dde1e9;padding:0 24px;height:52px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,.08)}}
+header .brand{{font-weight:700;font-size:18px;color:#3b6ef0}}
+.toolbar{{background:#fff;border-bottom:1px solid #dde1e9;padding:10px 24px;display:flex;flex-wrap:wrap;align-items:center;gap:16px}}
+.toolbar label{{display:flex;align-items:center;gap:6px;cursor:pointer}}
+.toolbar input[type=text]{{border:1px solid #dde1e9;border-radius:6px;padding:5px 10px;font-size:13px;min-width:180px}}
+.btn{{background:#3b6ef0;color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:13px;cursor:pointer;font-weight:500}}
+.btn:hover{{background:#2a56d6}}
+.btn-outline{{background:transparent;border:1px solid #dde1e9;color:#1a1f2e}}
+.btn-outline:hover{{background:#f5f7fa}}
+.stats{{display:flex;gap:12px;flex-wrap:wrap;padding:12px 24px;background:#fff;border-bottom:1px solid #dde1e9}}
+.stat{{display:flex;align-items:center;gap:8px;font-size:13px}}
+#canvas-wrap{{position:relative;overflow:hidden;background:#fafbff;height:calc(100vh - 180px)}}
+#chart-svg{{width:100%;height:100%}}
+#tt{{position:absolute;pointer-events:none;display:none;background:rgba(26,31,46,.9);color:#fff;font-size:12px;padding:8px 12px;border-radius:6px;max-width:260px;line-height:1.5;box-shadow:0 4px 12px rgba(0,0,0,.25);z-index:10}}
+footer{{padding:10px 24px;font-size:12px;color:#6b7280;background:#fff;border-top:1px solid #dde1e9;display:flex;flex-wrap:wrap;gap:16px;align-items:center}}
+footer span{{display:flex;align-items:center;gap:6px}}
+</style>
+</head>
+<body>
+<header>
+  <span class="brand">FactDB</span>
+  <span style="color:#6b7280;font-size:13px;">Dependency Chart</span>
+</header>
+<div class="stats">
+  <div class="stat"><svg width="12" height="12"><circle cx="6" cy="6" r="5" fill="#3b6ef0"/></svg><strong>{stats["facts"]}</strong> Facts</div>
+  <div class="stat"><svg width="12" height="12"><polygon points="6,1 11,6 6,11 1,6" fill="#16a34a"/></svg><strong>{stats["elements"]}</strong> Design Elements</div>
+  <div class="stat"><svg width="12" height="12"><rect x="1" y="2" width="10" height="8" rx="2" fill="#d97706"/></svg><strong>{stats["projects"]}</strong> Projects</div>
+  <div class="stat" style="color:#6b7280"><strong>{stats["edges"]}</strong> Edges</div>
+</div>
+<div class="toolbar">
+  <label><input type="checkbox" id="tf" checked> Facts</label>
+  <label><input type="checkbox" id="te" checked> Design Elements</label>
+  <label><input type="checkbox" id="tp" checked> Projects</label>
+  <input type="text" id="search" placeholder="Highlight by name…">
+  <button class="btn btn-outline" id="reset">Reset view</button>
+</div>
+<div id="canvas-wrap">
+  <svg id="chart-svg"></svg>
+  <div id="tt"></div>
+</div>
+<footer>
+  <strong style="color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:.4px;">Legend</strong>
+  <span><svg width="16" height="16"><circle cx="8" cy="8" r="6" fill="#3b6ef0"/></svg>Fact</span>
+  <span><svg width="16" height="16"><polygon points="8,2 14,8 8,14 2,8" fill="#16a34a"/></svg>Design Element</span>
+  <span><svg width="16" height="16"><rect x="2" y="3" width="12" height="10" rx="2" fill="#d97706"/></svg>Project</span>
+  <span><svg width="24" height="12"><line x1="0" y1="6" x2="24" y2="6" stroke="#dc2626" stroke-width="1.5"/></svg>depends_on</span>
+  <span><svg width="24" height="12"><line x1="0" y1="6" x2="24" y2="6" stroke="#059669" stroke-width="1.5" stroke-dasharray="5,4"/></svg>supports</span>
+  <span><svg width="24" height="12"><line x1="0" y1="6" x2="24" y2="6" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="2,3"/></svg>uses element</span>
+  <span><svg width="24" height="12"><line x1="0" y1="6" x2="24" y2="6" stroke="#0891b2" stroke-width="1"/></svg>uses fact</span>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script>
+(function(){{
+const RAW={graph_json};
+const nodeMap=new Map(RAW.nodes.map(n=>[n.id,n]));
+const NODE_R={{fact:7,element:9,project:10}};
+const NODE_COLOR={{fact:"#3b6ef0",element:"#16a34a",project:"#d97706"}};
+const EDGE_COLOR={{depends_on:"#dc2626",supports:"#059669",uses_element:"#7c3aed",uses_fact:"#0891b2"}};
+const EDGE_DASH={{depends_on:null,supports:"5,4",uses_element:"2,3",uses_fact:null}};
+const EDGE_OP={{depends_on:.75,supports:.65,uses_element:.55,uses_fact:.4}};
+
+const wrap=document.getElementById("canvas-wrap");
+const W=wrap.clientWidth||900,H=wrap.clientHeight||600;
+const svg=d3.select("#chart-svg").attr("width",W).attr("height",H);
+const g=svg.append("g");
+const zoom=d3.zoom().scaleExtent([.05,4]).on("zoom",e=>g.attr("transform",e.transform));
+svg.call(zoom);
+
+const defs=svg.append("defs");
+Object.entries(EDGE_COLOR).forEach(([t,c])=>{{
+  defs.append("marker").attr("id","a-"+t).attr("viewBox","0 -4 8 8").attr("refX",14).attr("refY",0)
+    .attr("markerWidth",6).attr("markerHeight",6).attr("orient","auto")
+    .append("path").attr("d","M0,-4L8,0L0,4").attr("fill",c);
+}});
+
+const simNodes=RAW.nodes.map(n=>({{...n}}));
+const simEdges=RAW.edges.filter(e=>nodeMap.has(e.source)&&nodeMap.has(e.target)).map(e=>({{...e}}));
+const sim=d3.forceSimulation(simNodes)
+  .force("link",d3.forceLink(simEdges).id(d=>d.id).distance(d=>d.type==="uses_element"?80:d.type==="uses_fact"?70:60).strength(.3))
+  .force("charge",d3.forceManyBody().strength(-120).distanceMax(400))
+  .force("center",d3.forceCenter(W/2,H/2))
+  .force("collide",d3.forceCollide(d=>NODE_R[d.type]+6))
+  .alphaDecay(.025);
+
+const el=g.append("g").selectAll("line").data(simEdges).join("line")
+  .attr("stroke",d=>EDGE_COLOR[d.type]||"#aaa")
+  .attr("stroke-width",d=>d.type==="depends_on"?1.5:1)
+  .attr("stroke-dasharray",d=>EDGE_DASH[d.type]||null)
+  .attr("stroke-opacity",d=>EDGE_OP[d.type]||.5)
+  .attr("marker-end",d=>`url(#a-${{d.type}})`);
+
+const nd=g.append("g").selectAll("g").data(simNodes,d=>d.id).join(en=>{{
+  const ng=en.append("g").style("cursor","pointer");
+  ng.each(function(d){{
+    const s=d3.select(this),r=NODE_R[d.type];
+    if(d.type==="fact") s.append("circle").attr("r",r);
+    else if(d.type==="element"){{const q=r*1.4;s.append("polygon").attr("points",`0,${{-q}} ${{q}},0 0,${{q}} ${{-q}},0`);}}
+    else{{const w=r*2.6,h=r*2;s.append("rect").attr("x",-w/2).attr("y",-h/2).attr("width",w).attr("height",h).attr("rx",3);}}
+  }});
+  ng.select("circle,polygon,rect")
+    .attr("fill",d=>NODE_COLOR[d.type]).attr("fill-opacity",.85)
+    .attr("stroke",d=>d3.color(NODE_COLOR[d.type]).darker(.6)).attr("stroke-width",1.2);
+  ng.append("text").attr("dy",d=>NODE_R[d.type]+9).attr("text-anchor","middle")
+    .attr("font-size","9px").attr("fill","#1a1f2e").attr("pointer-events","none")
+    .text(d=>d.label.length>22?d.label.slice(0,21)+"…":d.label);
+  ng.call(d3.drag()
+    .on("start",(ev,d)=>{{if(!ev.active)sim.alphaTarget(.3).restart();d.fx=d.x;d.fy=d.y;}})
+    .on("drag", (ev,d)=>{{d.fx=ev.x;d.fy=ev.y;}})
+    .on("end",  (ev,d)=>{{if(!ev.active)sim.alphaTarget(0);d.fx=null;d.fy=null;}}));
+  const tt=document.getElementById("tt");
+  ng.on("mouseover",(ev,d)=>{{
+    tt.innerHTML=`<strong>${{d.label}}</strong><br>Type: ${{d.type}}${{d.group?"<br>Group: "+d.group:""}}${{d.status?"<br>Status: "+d.status:""}}`;
+    tt.style.display="block";mv(ev);
+  }}).on("mousemove",ev=>mv(ev)).on("mouseout",()=>tt.style.display="none");
+  ng.on("click",(ev,d)=>{{if(d.url)window.location.href=d.url;}});
+  return ng;
+}});
+
+function mv(ev){{
+  const tt=document.getElementById("tt"),r=wrap.getBoundingClientRect();
+  let x=ev.clientX-r.left+14,y=ev.clientY-r.top-28;
+  if(x+270>W)x=x-270;if(y<0)y=0;
+  tt.style.left=x+"px";tt.style.top=y+"px";
+}}
+
+sim.on("tick",()=>{{
+  el.attr("x1",d=>d.source.x).attr("y1",d=>d.source.y).attr("x2",d=>d.target.x).attr("y2",d=>d.target.y);
+  nd.attr("transform",d=>`translate(${{d.x}},${{d.y}})`);
+}});
+sim.on("end",()=>{{
+  const xs=simNodes.map(n=>n.x),ys=simNodes.map(n=>n.y);
+  const xm=Math.min(...xs),xM=Math.max(...xs),ym=Math.min(...ys),yM=Math.max(...ys);
+  const s=Math.min((W-80)/(xM-xm||1),(H-80)/(yM-ym||1),1);
+  svg.call(zoom.transform,d3.zoomIdentity.translate(W/2-s*(xm+xM)/2,H/2-s*(ym+yM)/2).scale(s));
+}});
+
+let sf=true,se=true,sp=true;
+function applyVis(){{
+  const shown=new Set(simNodes.filter(n=>(n.type==="fact"&&sf)||(n.type==="element"&&se)||(n.type==="project"&&sp)).map(n=>n.id));
+  nd.style("display",d=>shown.has(d.id)?null:"none");
+  el.style("display",d=>{{
+    const si=typeof d.source==="object"?d.source.id:d.source,ti=typeof d.target==="object"?d.target.id:d.target;
+    return(shown.has(si)&&shown.has(ti))?null:"none";
+  }});
+}}
+document.getElementById("tf").addEventListener("change",e=>{{sf=e.target.checked;applyVis();}});
+document.getElementById("te").addEventListener("change",e=>{{se=e.target.checked;applyVis();}});
+document.getElementById("tp").addEventListener("change",e=>{{sp=e.target.checked;applyVis();}});
+document.getElementById("search").addEventListener("input",e=>{{
+  const q=e.target.value.trim().toLowerCase();
+  nd.select("circle,polygon,rect").attr("fill-opacity",d=>!q ? .85 : d.label.toLowerCase().includes(q)?1:.12);
+  nd.select("text").attr("fill-opacity",d=>!q?1:d.label.toLowerCase().includes(q)?1:.15);
+}});
+document.getElementById("reset").addEventListener("click",()=>svg.transition().duration(500).call(zoom.transform,d3.zoomIdentity));
+}})();
+</script>
+</body>
+</html>"""
+
+    output_path = os.path.abspath(output)
+    with open(output_path, "w", encoding="utf-8") as fh:
+        fh.write(html)
+    click.echo(f"Dependency chart written to: {output_path}")
+    click.echo(f"  {stats['facts']} facts · {stats['elements']} elements · {stats['projects']} projects · {stats['edges']} edges")
+
+
 @cli.command("web")
 @click.option("--host", default="127.0.0.1", show_default=True, help="Host to bind to.")
 @click.option("--port", default=5000, show_default=True, type=int, help="Port to listen on.")

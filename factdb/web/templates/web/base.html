@@ -12,6 +12,7 @@
   <a href="{{ url_for('projects_list') }}" {% if request.endpoint and request.endpoint.startswith('project') %}class="active"{% endif %}>Projects</a>
   <a href="{{ url_for('elements_list') }}" {% if request.endpoint and request.endpoint.startswith('element') %}class="active"{% endif %}>Design Elements</a>
   <a href="{{ url_for('facts_list') }}" {% if request.endpoint and request.endpoint.startswith('fact') %}class="active"{% endif %}>Facts</a>
+  <a href="{{ url_for('dependency_chart') }}" {% if request.endpoint == 'dependency_chart' %}class="active"{% endif %}>Chart</a>
 </nav>
 
 <div class="page">
