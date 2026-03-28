@@ -1,0 +1,21 @@
+{
+  "title": "Rotary Encoder User-Interface Navigation",
+  "component_category": "control",
+  "design_question": "How to provide a compact, single-knob user interface for adjusting setpoints and navigating menus on an OLED-equipped embedded device?",
+  "selected_approach": "KY-040 rotary encoder module (EC11 mechanical, 20 detents/rev, integral push-button). CLK/DT connected to interrupt-capable MCU GPIO; SW (push) to a third GPIO. External 10 nF capacitors to GND on CLK and DT for hardware debounce. State-machine ISR: tracks prior_CLK state to determine direction per detent.",
+  "rationale": "Single-knob UI requires no display-keyboard matrix, fits in small enclosures, and is intuitive for numeric setpoint adjustment. EC11 with 20 detents gives satisfying tactile feedback. Push-to-confirm interaction eliminates need for separate OK button.",
+  "alternatives": [
+    {
+      "approach": "4×4 matrix keypad",
+      "reason_rejected": "16 keys occupy too much panel space for embedded instrument enclosures; requires 8 GPIO or I²C expander."
+    },
+    {
+      "approach": "Capacitive touch slider",
+      "reason_rejected": "Sensitive to moisture and gloves; more complex firmware; harder to implement detent steps."
+    }
+  ],
+  "verification_notes": "FACT: 'Rotary Encoder — Incremental A/B Quadrature Pulse Counting' confirms EC11 suitability, debounce requirement, and state-machine direction detection.",
+  "supporting_fact_titles": [
+    "Rotary Encoder — Incremental A/B Quadrature Pulse Counting"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "title": "INA219 I²C Current and Power Monitor",
+  "component_category": "sensing",
+  "design_question": "How to measure pack current and cell bus voltage for Coulomb-counting SoC estimation over I²C?",
+  "selected_approach": "INA219 breakout (Adafruit or similar) with 0.1 Ω / 1 % shunt resistor in series with battery negative rail. I²C address 0x40 (configurable via A0/A1 pads). 12-bit ADC; reads shunt voltage (±320 mV) and bus voltage (0–32 V); driver computes current = V_shunt / R_shunt. Polled at 10 Hz for Coulomb integration.",
+  "rationale": "INA219 provides simultaneous current and voltage measurement over I²C, enabling both Coulomb counting and voltage-based SoC cross-checks from a single IC. 12-bit resolution at 0.1 Ω shunt = 0.8 mA current resolution — sufficient for 0.1 % SoC accuracy on a 1 Ah cell. Arduino: Adafruit_INA219 library.",
+  "alternatives": [
+    {
+      "approach": "ACS712 Hall-effect current sensor",
+      "reason_rejected": "Requires MCU ADC; offset drift ±1.5 % over temperature; resolution ≈ 30 mA — coarser than INA219."
+    },
+    {
+      "approach": "INA3221 (3-channel)",
+      "reason_rejected": "Suitable for multi-cell packs but overkill for a single-pack BMS monitor; more complex calibration."
+    }
+  ],
+  "verification_notes": "FACT: 'State-of-Charge Estimation via Coulomb Counting' recommends INA219 as the current measurement IC for Arduino-based BMS monitors.",
+  "supporting_fact_titles": [
+    "State-of-Charge Estimation via Coulomb Counting",
+    "CT Clamp Current Sensing and RMS Calculation"
+  ]
+}

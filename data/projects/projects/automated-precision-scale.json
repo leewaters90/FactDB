@@ -1,0 +1,48 @@
+{
+  "title": "Automated Precision Scale",
+  "description": "Arduino-based digital scale using a 5 kg load cell and HX711 24-bit ADC. Measurements displayed on a 16×2 LCD or OLED with tare function (rotary encoder press). Records maximum weight and allows unit toggle (g / oz). Optionally logs readings to a serial host or microSD card.",
+  "objective": "Measure 0–5 kg with resolution ≤ 0.5 g and repeatability ±1 g; tare zeroing on button press; display in g and oz; auto-off after 5 minutes idle.",
+  "constraints": "5 V USB or 4 × AA batteries; TAL220B 5 kg load cell; ≤ £15 BOM; compact 3D-printed platform with overload protection.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "HX711 24-Bit ADC for Load Cell and Wheatstone Bridge Amplification",
+    "Load Cell and Wheatstone Bridge",
+    "ADC Resolution and Measurement Precision",
+    "OLED SSD1306 Monochrome Display I²C Interface",
+    "Rotary Encoder — Incremental A/B Quadrature Pulse Counting"
+  ],
+  "design_element_titles": [
+    "HX711 Load Cell Precision Weighing Interface",
+    "SSD1306 OLED Display UI Module",
+    "Rotary Encoder User-Interface Navigation",
+    "Arduino Uno/Nano MCU Platform"
+  ],
+  "element_usage_notes": {
+    "HX711 Load Cell Precision Weighing Interface": "TAL220B 5 kg; HX711 gain 128 channel A; DOUT=D3, CLK=D4; 8-sample average per display update; tare stored in EEPROM; scale_factor calibrated with 500 g known weight.",
+    "SSD1306 OLED Display UI Module": "128×64; large weight display in g (top 2/3) and oz (bottom row); MAX indicator; TARE label flashes 500 ms on tare press.",
+    "Rotary Encoder User-Interface Navigation": "KY-040; short press = TARE; long press (1 s) = toggle g/oz unit; rotate unused for scale function.",
+    "Arduino Uno/Nano MCU Platform": "Nano 3.0; HX711 D3/D4; I²C OLED A4/A5; encoder D2 (CLK INT0) / D4 / D3 (SW); auto-sleep via MCU power-down after 5 min idle."
+  },
+  "element_interactions": [
+    {
+      "from": "HX711 Load Cell Precision Weighing Interface",
+      "to": "Arduino Uno/Nano MCU Platform",
+      "data": "weight_g (float, ±0.5 g resolution) via HX711 clocked read every 12.5 ms (80 SPS)",
+      "description": "8 consecutive readings averaged; result stored in circular buffer; displayed at 5 Hz. Tare offset stored in EEPROM at address 0 (float, 4 bytes). MAX weight tracked and displayed."
+    },
+    {
+      "from": "Rotary Encoder User-Interface Navigation",
+      "to": "Arduino Uno/Nano MCU Platform",
+      "data": "short press = TARE event; long press = unit toggle via GPIO INT",
+      "description": "Short press: zero offset = current raw reading; EEPROM updated; TARE flash on OLED. Long press: toggle unit enum (g ↔ oz); conversion: oz = g × 0.035274."
+    },
+    {
+      "from": "Arduino Uno/Nano MCU Platform",
+      "to": "SSD1306 OLED Display UI Module",
+      "data": "I²C framebuffer (weight_str, unit_str, max_str, tare_flash)",
+      "description": "OLED refreshed at 5 Hz. Large font for main weight; small font for MAX/unit row. No weight change for 5 minutes → MCU enters sleep mode (wake on encoder press)."
+    }
+  ],
+  "integration_code": "/*\n * precision_scale.ino — Automated Precision Scale (0–5 kg)\n *\n * Elements:\n *   1. HX711 + TAL220B Load Cell    — DOUT D3, CLK D4; 80 SPS, gain 128\n *   2. SSD1306 OLED (I²C 0x3C)     — live weight, MAX, unit\n *   3. Rotary Encoder KY-040        — tare (short) / unit toggle (long)\n *   4. Arduino Nano 3.0             — 8-sample avg, EEPROM tare, auto-sleep\n */\n\n#include <Wire.h>\n#include <HX711.h>\n#include <Adafruit_SSD1306.h>\n#include <EEPROM.h>\n#include <avr/sleep.h>\n\n// --- Pins ---\n#define HX_DOUT  3\n#define HX_CLK   4\n#define ENC_CLK  2\n#define ENC_DT   6\n#define ENC_SW   5\n\n// --- EEPROM ---\n#define EE_TARE    0   // float (4 bytes)\n#define EE_SCALE   4   // float (4 bytes)\n\n// --- Constants ---\n#define SAMPLES     8\n#define IDLE_MS    (5UL * 60 * 1000)\n#define G_TO_OZ    0.035274f\n\n// --- Objects ---\nHX711           hx;\nAdafruit_SSD1306 oled(128, 64, &Wire, -1);\n\n// --- State ---\nbool   unit_oz    = false;\nfloat  max_weight = 0.0f;\nunsigned long last_activity = 0;\n\nvolatile bool enc_press  = false;\nvolatile bool enc_long   = false;\nunsigned long press_ts   = 0;\nvoid ICACHE_RAM_ATTR isr_sw() {\n  if (!digitalRead(ENC_SW)) press_ts = millis();\n  else {\n    if (millis() - press_ts > 1000) enc_long  = true;\n    else                            enc_press = true;\n  }\n}\n\nvoid draw_oled(float weight_g, bool tare_flash) {\n  float display = unit_oz ? weight_g * G_TO_OZ : weight_g;\n  const char* unit = unit_oz ? \"oz\" : \"g\";\n  char main_buf[16], max_buf[24];\n  dtostrf(display, 7, unit_oz ? 2 : 1, main_buf);\n  snprintf(max_buf, sizeof(max_buf), \"MAX:%s %s\", unit_oz ? \"--\" : \"--\", unit);\n  float max_d = unit_oz ? max_weight * G_TO_OZ : max_weight;\n  snprintf(max_buf, sizeof(max_buf), \"MAX:%.1f %s\", max_d, unit);\n\n  oled.clearDisplay();\n  oled.setTextColor(SSD1306_WHITE);\n  oled.setTextSize(3);\n  oled.setCursor(0, 4);\n  oled.print(main_buf);\n  oled.setTextSize(1);\n  oled.setCursor(0, 48);\n  oled.print(unit);\n  oled.setCursor(40, 48);\n  oled.print(max_buf);\n  if (tare_flash) {\n    oled.fillRect(90, 48, 38, 10, SSD1306_WHITE);\n    oled.setTextColor(SSD1306_BLACK);\n    oled.setCursor(92, 50);\n    oled.print(\"TARE\");\n    oled.setTextColor(SSD1306_WHITE);\n  }\n  oled.display();\n}\n\nvoid calibrate_scale() {\n  Serial.println(F(\"Remove all weight, press enter...\"));\n  while (!Serial.available()) delay(10); Serial.read();\n  hx.tare();\n  Serial.println(F(\"Place 500g, press enter...\"));\n  while (!Serial.available()) delay(10); Serial.read();\n  long raw = hx.get_value(20);\n  float sf = (float)raw / 500.0f;\n  EEPROM.put(EE_SCALE, sf);\n  hx.set_scale(sf);\n  Serial.printf(\"Scale factor: %.2f\\n\", sf);\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  Wire.begin();\n\n  hx.begin(HX_DOUT, HX_CLK);\n  float sf;\n  EEPROM.get(EE_SCALE, sf);\n  if (isnan(sf) || sf <= 0) sf = 2280.0f;  // default estimate\n  hx.set_scale(sf);\n\n  float tare;\n  EEPROM.get(EE_TARE, tare);\n  if (!isnan(tare)) hx.set_offset((long)tare);\n  else hx.tare();\n\n  oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);\n  oled.clearDisplay(); oled.display();\n\n  pinMode(ENC_CLK, INPUT_PULLUP); pinMode(ENC_DT, INPUT_PULLUP); pinMode(ENC_SW, INPUT_PULLUP);\n  attachInterrupt(digitalPinToInterrupt(ENC_SW), isr_sw, CHANGE);\n\n  last_activity = millis();\n  Serial.println(F(\"Scale ready (? for calibrate).\"));\n}\n\nvoid loop() {\n  static unsigned long last_disp = 0;\n  static bool tare_flash = false;\n  static unsigned long tare_flash_ts = 0;\n\n  unsigned long now = millis();\n\n  // --- Buttons ---\n  noInterrupts();\n  bool p = enc_press; enc_press = false;\n  bool lp = enc_long; enc_long = false;\n  interrupts();\n\n  if (p) {\n    // TARE\n    hx.tare();\n    EEPROM.put(EE_TARE, (float)hx.get_offset());\n    max_weight = 0;\n    tare_flash = true; tare_flash_ts = now;\n    last_activity = now;\n  }\n  if (lp) { unit_oz = !unit_oz; last_activity = now; }\n  if (tare_flash && now - tare_flash_ts > 500) tare_flash = false;\n\n  // --- Auto-sleep ---\n  if (now - last_activity > IDLE_MS) {\n    oled.ssd1306_command(SSD1306_DISPLAYOFF);\n    set_sleep_mode(SLEEP_MODE_PWR_DOWN);\n    sleep_enable(); sleep_cpu(); sleep_disable();\n    oled.ssd1306_command(SSD1306_DISPLAYON);\n    last_activity = millis();\n  }\n\n  // --- Read + display at 5 Hz ---\n  if (now - last_disp >= 200UL) {\n    last_disp = now;\n    float w = hx.get_units(SAMPLES);\n    if (w < 0) w = 0;\n    if (w > max_weight) { max_weight = w; last_activity = now; }\n    draw_oled(w, tare_flash);\n    Serial.printf(\"%.1f g\\n\", w);\n  }\n\n  // Serial calibrate trigger\n  if (Serial.available() && Serial.read() == '?') calibrate_scale();\n}\n"
+}

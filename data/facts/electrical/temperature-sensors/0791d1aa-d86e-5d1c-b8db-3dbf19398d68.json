@@ -1,0 +1,27 @@
+{
+  "id": "0791d1aa-d86e-5d1c-b8db-3dbf19398d68",
+  "title": "DS18B20 1-Wire Digital Temperature Sensing",
+  "domain": "electrical",
+  "category": "temperature-sensors",
+  "subcategory": "digital temperature",
+  "detail_level": "intermediate",
+  "content": "The DS18B20 is a 1-Wire digital temperature sensor providing 9–12 bit resolution over a single data line. Temperature range: −55 °C to +125 °C; accuracy ±0.5 °C from −10 °C to +85 °C. Multiple sensors share one MCU GPIO via unique 64-bit ROM addresses.",
+  "extended_content": "1-Wire protocol: master initiates reset pulse, then ROM commands (SEARCH_ROM, MATCH_ROM, SKIP_ROM) to address individual sensors on a bus. Parasite power mode draws operating current from the data line via an internal capacitor, eliminating the need for a separate supply wire. Conversion time: 9-bit = 93.75 ms; 12-bit = 750 ms. Typical wiring: 4.7 kΩ pull-up resistor on data line to VCC (3.3 V or 5 V). Available in waterproof stainless-steel probe form for liquid and soil measurements. Arduino: Dallas Temperature library simplifies multi-sensor enumeration and reading.",
+  "formula": "T_resolution = 0.0625 × 2^(12 - bits_reduction)  [°C per count]",
+  "units": "°C",
+  "source": "Maxim DS18B20 Programmable Resolution 1-Wire Digital Thermometer Datasheet, Rev 3",
+  "source_url": null,
+  "confidence_score": 0.99,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "ds18b20",
+    "1-wire",
+    "temperature",
+    "digital-sensor",
+    "waterproof",
+    "aquarium",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

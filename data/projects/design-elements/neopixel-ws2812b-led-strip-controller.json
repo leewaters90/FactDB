@@ -1,0 +1,21 @@
+{
+  "title": "NeoPixel WS2812B Addressable RGB LED Strip Controller",
+  "component_category": "actuation",
+  "design_question": "How to independently control the colour and brightness of an arbitrary number of RGB LEDs from a single MCU GPIO pin?",
+  "selected_approach": "WS2812B LED strip (60 LEDs/m density) driven from ESP32 or Arduino via FastLED library. Level shift (74AHCT125) on data line for 5 V compatibility. 5 V / 10 A PSU powers 300-LED strip. 470 Ω series resistor on data line prevents ringing. 1000 µF capacitor across power rails at strip input. Gamma-correction LUT applied in firmware for perceptually linear brightness.",
+  "rationale": "WS2812B allows full 24-bit colour control per pixel via a single GPIO pin. FastLED provides gamma correction, HSV colour model, and animation patterns. The single-wire protocol is timing-critical but well-solved on AVR (assembly) and ESP32 (RMT peripheral). Strip density of 60/m gives smooth continuous lighting.",
+  "alternatives": [
+    {
+      "approach": "SK6812 RGBW strip",
+      "reason_rejected": "SK6812 adds a white channel for warmer/cooler white light but increases cost; WS2812B sufficient for colour wash and indicator applications."
+    },
+    {
+      "approach": "APA102 (two-wire SPI)",
+      "reason_rejected": "APA102 is easier to drive (SPI, no timing constraints) and supports higher refresh rates (4 MHz), but costs more; WS2812B preferred for most applications."
+    }
+  ],
+  "verification_notes": "FACT: 'WS2812B Addressable RGB LED — Single-Wire Protocol and Timing' confirms 800 kbps NRZ protocol, 60 mA per pixel, and level-shift requirement for 3.3 V MCUs.",
+  "supporting_fact_titles": [
+    "WS2812B Addressable RGB LED — Single-Wire Protocol and Timing"
+  ]
+}

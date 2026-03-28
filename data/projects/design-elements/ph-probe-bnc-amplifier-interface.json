@@ -1,0 +1,22 @@
+{
+  "title": "pH Probe BNC Amplifier Interface",
+  "component_category": "sensing",
+  "design_question": "How to condition a high-impedance pH electrode output (50–500 MΩ) for reading by an Arduino ADC without loading the electrode?",
+  "selected_approach": "DFRobot SEN0161 pH meter module (or equivalent). BNC connector for standard pH probe; on-board AD8603 instrumentation amplifier with 100 TΩ input impedance. Output: 0–3.3 V linear, centred at 2.5 V for pH 7. MCU reads output on 10-bit ADC. 2-point calibration (pH 4 and pH 7 buffer powders dissolved in distilled water).",
+  "rationale": "pH electrode output impedance (50–500 MΩ) exceeds Arduino ADC input impedance (100 kΩ) by 1000×, causing severe loading error. Dedicated pH module with instrumentation amplifier eliminates this. DFRobot SEN0161 is widely supported, < £10, and provides a calibrated 0–3.3 V output.",
+  "alternatives": [
+    {
+      "approach": "Atlas Scientific EZO-pH (UART/I²C)",
+      "reason_rejected": "More accurate (±0.002 pH) and has serial interface, but costs £60 — overkill for educational or hobbyist water monitoring."
+    },
+    {
+      "approach": "Op-amp voltage follower + Arduino direct",
+      "reason_rejected": "DIY follower circuit still requires precision components; calibration more involved; no protection for electrode."
+    }
+  ],
+  "verification_notes": "FACT: 'pH Electrode — Calibration and Millivolt Measurement' confirms electrode impedance issue and 2-point calibration requirement.",
+  "supporting_fact_titles": [
+    "pH Electrode — Calibration and Millivolt Measurement",
+    "ADC Resolution and Measurement Precision"
+  ]
+}

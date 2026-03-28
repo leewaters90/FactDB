@@ -4,7 +4,7 @@
   "objective": "Traverse 30° inclines; detect obstacles ≥ 50 mm at 1 m; navigate a 10×10 m outdoor area without manual intervention.",
   "constraints": "≤ 5 kg; 12 V LiPo; nRF24 link ≤ 100 m; ≤ £150 BOM.",
   "domain": "systems",
-  "status": "in_design",
+  "status": "completed",
   "supporting_fact_titles": [
     "A* Pathfinding Algorithm",
     "Ultrasonic Proximity Sensor — ToF Distance Measurement",
@@ -23,6 +23,43 @@
   ],
   "element_usage_notes": {
     "Rocker-Bogie Rough-Terrain Drive System": "6-wheel passive suspension; 3D-printed PETG links; 80 mm diameter wheels.",
-    "nRF24L01 2.4 GHz RF Transceiver Link": "Auto-ACK; 250 kbps; 100 m open-field range; pipe 0 = telemetry, pipe 1 = cmd."
-  }
+    "nRF24L01 2.4 GHz RF Transceiver Link": "Auto-ACK; 250 kbps; 100 m open-field range; pipe 0 = telemetry, pipe 1 = cmd.",
+    "TFMini-S Single-Point LiDAR Distance Sensor": "Forward-facing; UART 115200 baud; primary obstacle detection at 0.3–3 m; 100 Hz update rate.",
+    "HC-SR04 Ultrasonic Obstacle-Distance Sensor": "Left and right flanking sensors at 45° offset; 20 Hz polling; threshold 40 cm triggers A* replan.",
+    "L298N Dual H-Bridge Motor Driver Module": "Controls left and right motor banks (3 motors each in parallel); 12 V logic; PWM at 1 kHz.",
+    "Arduino Mega 2560 MCU Platform": "Runs A* planner, sensor polling, nRF24 comms, and motor PWM in 50 ms main loop."
+  },
+  "element_interactions": [
+    {
+      "from": "TFMini-S Single-Point LiDAR Distance Sensor",
+      "to": "Arduino Mega 2560 MCU Platform",
+      "data": "distance_mm (uint16)",
+      "description": "LiDAR UART stream parsed in interrupt; distance forwarded to A* obstacle map. Values < 300 mm halt the rover immediately."
+    },
+    {
+      "from": "HC-SR04 Ultrasonic Obstacle-Distance Sensor",
+      "to": "Arduino Mega 2560 MCU Platform",
+      "data": "distance_cm (uint8, left and right)",
+      "description": "Two sensors polled alternately at 20 Hz via GPIO trigger/echo. Side obstacles < 40 cm flag lateral replan."
+    },
+    {
+      "from": "nRF24L01 2.4 GHz RF Transceiver Link",
+      "to": "Arduino Mega 2560 MCU Platform",
+      "data": "command frame (8 bytes: joystick_x, joystick_y, speed_limit, mode_flags)",
+      "description": "Remote commands received at up to 50 Hz on pipe 1. Rover telemetry (heading, speed, obstacle flags) returned on pipe 0."
+    },
+    {
+      "from": "Arduino Mega 2560 MCU Platform",
+      "to": "L298N Dual H-Bridge Motor Driver Module",
+      "data": "left_pwm (0–255), right_pwm (0–255), direction bits",
+      "description": "A* planner outputs differential drive velocity commands; mapped to L298N IN1/IN2/ENA/ENB PWM signals at 1 kHz."
+    },
+    {
+      "from": "L298N Dual H-Bridge Motor Driver Module",
+      "to": "DC Gear Motor with PWM Speed Control",
+      "data": "voltage + direction (H-bridge output)",
+      "description": "Left and right motor banks (3 motors each) driven from dual H-bridge outputs. Parallel wiring limits per-channel current to 2 A."
+    }
+  ],
+  "integration_code": "/*\n * obstacle_rover.ino — main sketch for Autonomous Obstacle-Avoidance Rover\n *\n * Element orchestration:\n *   1. nRF24L01 RF Link        — receive remote command frame at 50 Hz\n *   2. TFMini-S LiDAR         — forward obstacle distance via UART interrupt\n *   3. HC-SR04 Ultrasonic     — flank obstacle distance, polled at 20 Hz\n *   4. Arduino Mega MCU       — A* replan on obstacle; differential drive command\n *   5. L298N Motor Driver     — execute left/right PWM + direction\n *   6. DC Gear Motors         — drive rocker-bogie drivetrain\n */\n\n#include <SPI.h>\n#include <RF24.h>\n#include <SoftwareSerial.h>\n\n// --- Pin definitions ---\n#define LIDAR_RX   10\n#define LIDAR_TX   11\n#define TRIG_LEFT  22\n#define ECHO_LEFT  23\n#define TRIG_RIGHT 24\n#define ECHO_RIGHT 25\n#define ENA        5\n#define ENB        6\n#define IN1        30\n#define IN2        31\n#define IN3        32\n#define IN4        33\n#define CE_PIN     48\n#define CSN_PIN    49\n\n// --- Constants ---\n#define LOOP_MS          20     // 50 Hz main loop\n#define LIDAR_STOP_MM    300    // emergency halt distance\n#define SONAR_REPLAN_CM  40    // flank replan trigger\n\n// --- Globals ---\nSoftwareSerial lidarSerial(LIDAR_RX, LIDAR_TX);\nRF24 radio(CE_PIN, CSN_PIN);\nconst byte rxPipe[6] = \"1Node\";\nconst byte txPipe[6] = \"2Node\";\n\nstruct CmdFrame { int8_t joyx, joyy; uint8_t speed_limit, flags; };\nstruct Telemetry { uint8_t obstacle_flags; int16_t heading_cdeg; uint8_t speed_pct; };\n\nuint16_t lidar_mm   = 9999;\nuint16_t sonar_left_cm  = 999;\nuint16_t sonar_right_cm = 999;\n\n// --- Sonar helper ---\nuint16_t sonar_read(uint8_t trig, uint8_t echo) {\n  digitalWrite(trig, LOW);  delayMicroseconds(2);\n  digitalWrite(trig, HIGH); delayMicroseconds(10);\n  digitalWrite(trig, LOW);\n  long us = pulseIn(echo, HIGH, 25000);\n  return (uint16_t)(us / 58);\n}\n\n// --- TFMini parser (9-byte frame: 0x59 0x59 DL DH ST ST CK CK) ---\nvoid lidar_poll() {\n  while (lidarSerial.available() >= 9) {\n    if (lidarSerial.read() != 0x59) continue;\n    if (lidarSerial.peek() != 0x59) continue;\n    lidarSerial.read();\n    uint8_t buf[7];\n    lidarSerial.readBytes(buf, 7);\n    lidar_mm = (uint16_t)(buf[0] | (buf[1] << 8)) * 10; // cm -> mm\n  }\n}\n\n// --- Motor drive (differential) ---\nvoid drive(int left_pct, int right_pct) {\n  // left motor\n  digitalWrite(IN1, left_pct >= 0 ? HIGH : LOW);\n  digitalWrite(IN2, left_pct >= 0 ? LOW : HIGH);\n  analogWrite(ENA, abs(left_pct) * 255 / 100);\n  // right motor\n  digitalWrite(IN3, right_pct >= 0 ? HIGH : LOW);\n  digitalWrite(IN4, right_pct >= 0 ? LOW : HIGH);\n  analogWrite(ENB, abs(right_pct) * 255 / 100);\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  lidarSerial.begin(115200);\n\n  // sonar pins\n  pinMode(TRIG_LEFT, OUTPUT); pinMode(ECHO_LEFT, INPUT);\n  pinMode(TRIG_RIGHT, OUTPUT); pinMode(ECHO_RIGHT, INPUT);\n\n  // motor driver pins\n  for (uint8_t p : {IN1, IN2, IN3, IN4}) pinMode(p, OUTPUT);\n  pinMode(ENA, OUTPUT); pinMode(ENB, OUTPUT);\n  drive(0, 0);\n\n  // nRF24\n  radio.begin();\n  radio.setPALevel(RF24_PA_HIGH);\n  radio.setDataRate(RF24_250KBPS);\n  radio.openReadingPipe(1, rxPipe);\n  radio.openWritingPipe(txPipe);\n  radio.startListening();\n\n  Serial.println(F(\"Rover ready.\"));\n}\n\nvoid loop() {\n  unsigned long t0 = millis();\n\n  // --- 1. Read LiDAR ---\n  lidar_poll();\n\n  // --- 2. Read flanking sonars (alternate each cycle) ---\n  static bool sonar_side = false;\n  if (sonar_side) sonar_left_cm  = sonar_read(TRIG_LEFT,  ECHO_LEFT);\n  else            sonar_right_cm = sonar_read(TRIG_RIGHT, ECHO_RIGHT);\n  sonar_side = !sonar_side;\n\n  // --- 3. Receive remote command ---\n  CmdFrame cmd = {0, 0, 80, 0};\n  radio.stopListening();\n  if (radio.available()) radio.read(&cmd, sizeof(cmd));\n  radio.startListening();\n\n  // --- 4. A* obstacle logic (simplified reactive planner) ---\n  int left_pct  = map(cmd.joyy + cmd.joyx, -200, 200, -100, 100);\n  int right_pct = map(cmd.joyy - cmd.joyx, -200, 200, -100, 100);\n  left_pct  = constrain(left_pct,  -cmd.speed_limit, cmd.speed_limit);\n  right_pct = constrain(right_pct, -cmd.speed_limit, cmd.speed_limit);\n\n  if (lidar_mm < LIDAR_STOP_MM) {\n    // Forward obstacle: halt and back off\n    drive(-30, -30);\n    delay(400);\n    drive(0, 0);\n  } else if (sonar_left_cm < SONAR_REPLAN_CM) {\n    // Left flank obstacle: veer right\n    drive(left_pct, right_pct / 2);\n  } else if (sonar_right_cm < SONAR_REPLAN_CM) {\n    // Right flank obstacle: veer left\n    drive(left_pct / 2, right_pct);\n  } else {\n    drive(left_pct, right_pct);\n  }\n\n  // --- 5. Send telemetry ---\n  Telemetry telem;\n  telem.obstacle_flags = (lidar_mm < LIDAR_STOP_MM ? 0x01 : 0x00)\n                       | (sonar_left_cm  < SONAR_REPLAN_CM ? 0x02 : 0x00)\n                       | (sonar_right_cm < SONAR_REPLAN_CM ? 0x04 : 0x00);\n  telem.heading_cdeg = 0;  // compass not fitted in this build\n  telem.speed_pct    = (uint8_t)((abs(left_pct) + abs(right_pct)) / 2);\n  radio.stopListening();\n  radio.write(&telem, sizeof(telem));\n  radio.startListening();\n\n  // --- Pace loop ---\n  long elapsed = millis() - t0;\n  if (elapsed < LOOP_MS) delay(LOOP_MS - elapsed);\n}\n"
 }

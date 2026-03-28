@@ -1,0 +1,58 @@
+{
+  "title": "RFID Access Control Logger",
+  "description": "ESP32-based RFID door access system using an MFRC522 reader. Registered card UIDs are stored in EEPROM; entry attempts are logged to MQTT and a local microSD with timestamps. An electric door strike solenoid is triggered via MOSFET on valid access. OLED shows last-access info and armed/disarmed status. OTA firmware update capability.",
+  "objective": "Read ISO 14443A RFID cards; authorise against up to 20 stored UIDs; log all access attempts (allow/deny) with UTC timestamp to MQTT and SD; trigger 5-second door strike pulse on valid access; OTA updates.",
+  "constraints": "12 V electric strike solenoid; 5 V ESP32 logic; MFRC522 SPI; ≤ £20 BOM; wall-mount IP54 enclosure.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "RFID/NFC Reader — ISO 14443 / 15693 Interface",
+    "N-Channel MOSFET as a Low-Side Power Switch",
+    "MQTT Protocol for IoT Sensor Data",
+    "NTP Time Synchronisation for Data Logging",
+    "OTA Firmware Update for Embedded Devices"
+  ],
+  "design_element_titles": [
+    "MFRC522 RFID Card Reader NTAG216",
+    "N-Channel MOSFET Low-Side Load Switch",
+    "SSD1306 OLED Display UI Module",
+    "MicroSD 1 Hz Time-Series Data Logger",
+    "OTA HTTPS Dual-Bank Firmware Update",
+    "ESP32 WiFi + MQTT IoT Telemetry"
+  ],
+  "element_usage_notes": {
+    "MFRC522 RFID Card Reader NTAG216": "SPI on VSPI (CLK=18, MISO=19, MOSI=23, SS=5, RST=4); 13.56 MHz; reads UID of ISO 14443A cards/fobs; RFID_IRQ not used (polling mode).",
+    "N-Channel MOSFET Low-Side Load Switch": "IRLZ44N driving 12 V door strike solenoid on GPIO 26; 1N4007 fly-back diode; 5-second pulse on valid access.",
+    "SSD1306 OLED Display UI Module": "128×64; top: ARMED/DISARMED status; middle: last card UID + result (GRANTED/DENIED); bottom: last access time.",
+    "MicroSD 1 Hz Time-Series Data Logger": "SPI on HSPI (CLK=14, MISO=12, MOSI=13, CS=15); CSV: ts, uid, result, name; one row per access attempt.",
+    "OTA HTTPS Dual-Bank Firmware Update": "ESP32 OTA via ArduinoOTA; accessible only when DISARMED; password-protected.",
+    "ESP32 WiFi + MQTT IoT Telemetry": "MQTT topic access/events (each attempt) and access/status (retained, armed state). Master admin card toggles armed/disarmed."
+  },
+  "element_interactions": [
+    {
+      "from": "MFRC522 RFID Card Reader NTAG216",
+      "to": "ESP32 WiFi + MQTT IoT Telemetry",
+      "data": "uid_hex (string, 8–14 hex chars) on card present",
+      "description": "Polling loop detects new card every 50 ms; reads UID; checks against EEPROM-stored authorised UIDs. Admin card UID triggers armed/disarmed toggle."
+    },
+    {
+      "from": "ESP32 WiFi + MQTT IoT Telemetry",
+      "to": "N-Channel MOSFET Low-Side Load Switch",
+      "data": "GPIO 26 HIGH (5 s pulse) on GRANTED access",
+      "description": "Valid UID: GPIO 26 HIGH → solenoid energises → door strike releases. After 5 s: GPIO 26 LOW. Invalid UID: no pulse; denied event published."
+    },
+    {
+      "from": "ESP32 WiFi + MQTT IoT Telemetry",
+      "to": "SSD1306 OLED Display UI Module",
+      "data": "I²C update: armed_state, last_uid, last_result, last_ts",
+      "description": "OLED refreshed on each card read and every 5 s idle. GRANTED shown in normal text; DENIED shown with inverted background. Idle shows clock."
+    },
+    {
+      "from": "ESP32 WiFi + MQTT IoT Telemetry",
+      "to": "MicroSD 1 Hz Time-Series Data Logger",
+      "data": "CSV row (iso_ts, uid, GRANTED|DENIED, label) appended to ACCESS.CSV",
+      "description": "Written immediately after each access attempt. SD on HSPI to avoid conflict with MFRC522 on VSPI."
+    }
+  ],
+  "integration_code": "/*\n * rfid_access.ino — RFID Access Control Logger (ESP32)\n *\n * Elements:\n *   1. MFRC522 RFID (VSPI SS=5, RST=4)            — card detection\n *   2. N-MOSFET door strike (GPIO 26, 5-s pulse)   — door release\n *   3. SSD1306 OLED (I²C 0x3C)                     — status display\n *   4. MicroSD (HSPI CS=15)                         — CSV access log\n *   5. OTA ArduinoOTA (disarmed only)               — firmware update\n *   6. ESP32 WiFi + MQTT                            — remote events\n */\n\n#include <Wire.h>\n#include <SPI.h>\n#include <MFRC522.h>\n#include <Adafruit_SSD1306.h>\n#include <WiFi.h>\n#include <PubSubClient.h>\n#include <ArduinoOTA.h>\n#include <SD.h>\n#include <EEPROM.h>\n#include <time.h>\n\n// --- Credentials ---\nconst char* SSID      = \"HomeNet\";\nconst char* WIFI_PASS = \"changeme\";\nconst char* MQTT_HOST = \"192.168.1.10\";\n\n// --- Pins ---\n#define RFID_SS    5\n#define RFID_RST   4\n#define STRIKE_PIN 26\n#define SD_CS      15\n\n// --- Authorised UIDs stored in EEPROM ---\n// Format: EEPROM[0] = count; then count × 7 bytes (1 size byte + up to 6 UID bytes)\n#define EEPROM_SIZE 256\n#define UID_SIZE     7\n#define MAX_CARDS   20\n// Special admin UID (first stored card = admin)\n#define ADMIN_SLOT   0\n\n// --- Constants ---\n#define STRIKE_MS  5000UL\n\n// --- Objects ---\nMFRC522          rfid(RFID_SS, RFID_RST);\nAdafruit_SSD1306  oled(128, 64, &Wire, -1);\nWiFiClient        wc;\nPubSubClient      mqtt(wc);\n\nbool     armed      = true;\nString   last_uid   = \"\";\nString   last_result = \"IDLE\";\nchar     ts_buf[32];\n\nvoid get_ts() {\n  time_t t = time(nullptr);\n  strftime(ts_buf, sizeof(ts_buf), \"%Y-%m-%dT%H:%M:%SZ\", gmtime(&t));\n}\n\nbool uid_authorised(MFRC522::Uid& uid) {\n  uint8_t count = EEPROM.read(0);\n  for (uint8_t i = 0; i < count && i < MAX_CARDS; i++) {\n    uint8_t base = 1 + i * UID_SIZE;\n    uint8_t sz   = EEPROM.read(base);\n    if (sz != uid.size) continue;\n    bool match = true;\n    for (uint8_t b = 0; b < sz; b++)\n      if (EEPROM.read(base + 1 + b) != uid.uidByte[b]) { match = false; break; }\n    if (match) return true;\n  }\n  return false;\n}\n\nbool uid_is_admin(MFRC522::Uid& uid) {\n  uint8_t count = EEPROM.read(0);\n  if (count == 0) return false;\n  uint8_t sz = EEPROM.read(1);\n  if (sz != uid.size) return false;\n  for (uint8_t b = 0; b < sz; b++)\n    if (EEPROM.read(2 + b) != uid.uidByte[b]) return false;\n  return true;\n}\n\nString uid_to_hex(MFRC522::Uid& uid) {\n  String s;\n  for (uint8_t i = 0; i < uid.size; i++) {\n    if (uid.uidByte[i] < 0x10) s += \"0\";\n    s += String(uid.uidByte[i], HEX);\n  }\n  s.toUpperCase();\n  return s;\n}\n\nvoid log_sd(const char* uid, const char* result) {\n  if (!SD.begin(SD_CS)) return;\n  File f = SD.open(\"/ACCESS.CSV\", FILE_WRITE);\n  if (f) { f.printf(\"%s,%s,%s\\n\", ts_buf, uid, result); f.close(); }\n  SD.end();\n}\n\nvoid mqtt_reconnect() {\n  while (!mqtt.connected()) {\n    if (mqtt.connect(\"RFIDAccess\")) break;\n    delay(3000);\n  }\n}\n\nvoid update_oled() {\n  oled.clearDisplay();\n  oled.setTextSize(1); oled.setTextColor(SSD1306_WHITE);\n  oled.setCursor(0, 0);\n  oled.printf(armed ? \"[ARMED]\" : \"[DISARMED]\");\n  oled.setCursor(0, 16);\n  oled.print(last_uid.length() ? last_uid.c_str() : \"---\");\n  oled.setCursor(0, 28);\n  bool granted = (last_result == \"GRANTED\");\n  if (!granted && last_result != \"IDLE\") {\n    oled.fillRect(0, 26, 128, 12, SSD1306_WHITE);\n    oled.setTextColor(SSD1306_BLACK);\n  }\n  oled.print(last_result.c_str());\n  oled.setTextColor(SSD1306_WHITE);\n  oled.setCursor(0, 44); oled.print(ts_buf);\n  oled.display();\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  EEPROM.begin(EEPROM_SIZE);\n  Wire.begin();\n  SPI.begin();\n\n  rfid.PCD_Init();\n  oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);\n  oled.clearDisplay(); oled.display();\n\n  pinMode(STRIKE_PIN, OUTPUT); digitalWrite(STRIKE_PIN, LOW);\n\n  WiFi.begin(SSID, WIFI_PASS);\n  while (WiFi.status() != WL_CONNECTED) delay(500);\n  configTime(0, 0, \"pool.ntp.org\");\n\n  mqtt.setServer(MQTT_HOST, 1883);\n  mqtt_reconnect();\n\n  ArduinoOTA.setPassword(\"factdb-ota\");\n  ArduinoOTA.begin();\n\n  Serial.println(F(\"RFID access system ready.\"));\n}\n\nvoid loop() {\n  if (!mqtt.connected()) mqtt_reconnect();\n  mqtt.loop();\n  if (!armed) ArduinoOTA.handle();  // OTA only when disarmed\n\n  if (!rfid.PICC_IsNewCardPresent() || !rfid.PICC_ReadCardSerial()) {\n    delay(50);\n    return;\n  }\n\n  get_ts();\n  String uid_hex = uid_to_hex(rfid.uid);\n  last_uid = uid_hex;\n\n  if (uid_is_admin(rfid.uid)) {\n    armed = !armed;\n    last_result = armed ? \"ARMED\" : \"DISARMED\";\n    char buf[64];\n    snprintf(buf, sizeof(buf), \"{\\\"event\\\":\\\"%s\\\",\\\"ts\\\":\\\"%s\\\"}\", last_result.c_str(), ts_buf);\n    mqtt.publish(\"access/status\", buf, true);\n  } else if (uid_authorised(rfid.uid)) {\n    last_result = \"GRANTED\";\n    digitalWrite(STRIKE_PIN, HIGH);\n    delay(STRIKE_MS);\n    digitalWrite(STRIKE_PIN, LOW);\n  } else {\n    last_result = \"DENIED\";\n  }\n\n  log_sd(uid_hex.c_str(), last_result.c_str());\n\n  char buf[128];\n  snprintf(buf, sizeof(buf), \"{\\\"uid\\\":\\\"%s\\\",\\\"result\\\":\\\"%s\\\",\\\"ts\\\":\\\"%s\\\"}\",\n           uid_hex.c_str(), last_result.c_str(), ts_buf);\n  mqtt.publish(\"access/events\", buf);\n\n  update_oled();\n  rfid.PICC_HaltA();\n  rfid.PCD_StopCrypto1();\n}\n"
+}

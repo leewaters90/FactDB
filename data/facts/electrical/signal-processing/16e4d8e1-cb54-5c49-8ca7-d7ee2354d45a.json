@@ -1,0 +1,27 @@
+{
+  "id": "16e4d8e1-cb54-5c49-8ca7-d7ee2354d45a",
+  "title": "Frequency Counter — Gate-Time Pulse Counting Method",
+  "domain": "electrical",
+  "category": "signal-processing",
+  "subcategory": "frequency measurement",
+  "detail_level": "intermediate",
+  "content": "A frequency counter measures the number of input pulses (N) that occur during a precise gate time window (T_gate). Frequency f = N / T_gate. Resolution improves with longer gate times: at T_gate = 1 s, resolution = 1 Hz; at T_gate = 10 s, resolution = 0.1 Hz. Reciprocal counting (measure period for low frequencies) improves accuracy for f < 1 kHz.",
+  "extended_content": "Hardware implementation: MCU hardware timer (e.g., Arduino Timer1 in counter mode) counts rising edges on an external pin while a software or Timer0 gate controls the count window. Gate time accuracy depends on MCU crystal accuracy (typically ±20–50 ppm for ceramic resonators, ±10 ppm for crystals). For precision > 1 ppm, use a GPS-disciplined oscillator or TCXO reference. Maximum countable frequency: limited by MCU GPIO response and timer prescaler — typically 5–10 MHz on an Arduino Uno, up to 80 MHz on ESP32 PCNT peripheral. Reciprocal method: measure the period T of each pulse using a high-resolution timer; f = 1/T. Better for low frequencies (< 1 kHz) where gate-time method has poor resolution. Applications: RPM measurement from encoder pulses, audio frequency tuner, crystal frequency testing, flow meter pulse counting.",
+  "formula": "f [Hz] = N_pulses / T_gate [s];  resolution = 1 / T_gate",
+  "units": "f: Hz, N: integer, T_gate: s",
+  "source": "Hewlett-Packard Application Note 200; Atmel AVR135: Frequency Counter using Input Capture Unit",
+  "source_url": null,
+  "confidence_score": 0.96,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "frequency-counter",
+    "pulse-counting",
+    "gate-time",
+    "timer",
+    "measurement",
+    "signal-processing",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

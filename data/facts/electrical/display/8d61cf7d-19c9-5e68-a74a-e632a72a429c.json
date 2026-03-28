@@ -1,0 +1,28 @@
+{
+  "id": "8d61cf7d-19c9-5e68-a74a-e632a72a429c",
+  "title": "OLED SSD1306 Monochrome Display I²C Interface",
+  "domain": "electrical",
+  "category": "display",
+  "subcategory": "oled displays",
+  "detail_level": "fundamental",
+  "content": "The SSD1306 drives a 128×64 (or 128×32) pixel monochrome OLED panel via I²C (address 0x3C or 0x3D) or SPI. No backlight required; each pixel emits light independently, yielding high contrast (>2000:1) and wide viewing angle (>160°). Supply: 3.3–5 V; typical panel current 20 mA at full brightness.",
+  "extended_content": "Initialisation sequence: write 21 configuration bytes to enable charge pump, set display clock, multiplex ratio, COM pin configuration, and turn on display. The entire 128×64 framebuffer = 1024 bytes sent over I²C using page addressing or horizontal addressing mode. Adafruit SSD1306 + GFX libraries provide text, shape, and bitmap drawing. Pixel coordinate origin: top-left (0,0). Partial updates (single-page refresh) reduce flicker for animations. Operating temperature: −40 °C to +85 °C. OLED lifespan: ~50 000–100 000 hours at half-brightness; screen-burn in if static content for >1000 h. Common module: 0.96\" 128×64 I²C OLED (£1–2), widely available.",
+  "formula": null,
+  "units": null,
+  "source": "Solomon Systech SSD1306 Advance Information Rev 1.1; Adafruit SSD1306 Library Documentation",
+  "source_url": null,
+  "confidence_score": 0.98,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "ssd1306",
+    "oled",
+    "display",
+    "i2c",
+    "128x64",
+    "monochrome",
+    "electrical",
+    "embedded"
+  ],
+  "created_by": "seed"
+}

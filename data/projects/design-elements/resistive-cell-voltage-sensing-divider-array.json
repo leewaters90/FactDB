@@ -1,0 +1,22 @@
+{
+  "title": "Resistive Cell Voltage Sensing Divider Array",
+  "component_category": "sensing",
+  "design_question": "How to measure individual cell voltages (up to 4.2 V per cell) safely with a 3.3 V ADC?",
+  "selected_approach": "Two-resistor voltage divider per cell: R1 = 47 kΩ, R2 = 100 kΩ (ratio 0.68), scaling 4.2 V cell → 2.86 V ADC input. 1 % tolerance resistors; 0.1 µF ceramic bypass capacitor at ADC pin to filter switching noise. Arduino Nano (10-bit ADC, VREF = 3.3 V): resolution = 3.3 V / 1024 = 3.22 mV; cell resolution = 3.22 / 0.68 ≈ 4.7 mV — sufficient for ±10 mV cell balance monitoring.",
+  "rationale": "Passive resistor dividers are the simplest and lowest-cost approach for cell voltage monitoring in a single-pack 1S–4S BMS. High R values (47–100 kΩ) limit quiescent drain to < 30 µA per cell channel. Isolation: for packs < 60 V, simple dividers meet IEC 61010 CAT I requirements; for higher voltages, isolated ADC ICs (e.g., AMC1301) are needed.",
+  "alternatives": [
+    {
+      "approach": "BQ76920 battery monitor IC",
+      "reason_rejected": "Integrated cell-voltage ADC with protection, but adds SMBus complexity — overkill for a single-pack display monitor."
+    },
+    {
+      "approach": "Direct MCU ADC without divider",
+      "reason_rejected": "4.2 V cell exceeds 3.3 V ADC input; would damage the MCU pin."
+    }
+  ],
+  "verification_notes": "FACT: 'Kirchhoff's Voltage Law (KVL)' and 'ADC Resolution and Measurement Precision' underpin the divider ratio and resolution calculations.",
+  "supporting_fact_titles": [
+    "Kirchhoff's Voltage Law (KVL)",
+    "ADC Resolution and Measurement Precision"
+  ]
+}

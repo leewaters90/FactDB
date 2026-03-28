@@ -1,0 +1,28 @@
+{
+  "id": "edec61cc-29f3-580b-986e-5901d17a6870",
+  "title": "Color Sensing by Reflectance — TCS3200 Frequency-Mode Operation",
+  "domain": "electrical",
+  "category": "sensors",
+  "subcategory": "optical sensing",
+  "detail_level": "intermediate",
+  "content": "The TCS3200 colour sensor contains an 8×8 array of photodiodes with selectable R/G/B/clear filters. Each filter set is selected via S2/S3 pins; the output is a square wave whose frequency is proportional to the light intensity of that colour component. Scaling via S0/S1 pins: 100 %, 20 %, or 2 % of full-scale output frequency.",
+  "extended_content": "Measurement principle: select filter (e.g., R: S2=LOW, S3=LOW), measure output pulse frequency for 20–100 ms window using MCU timer/interrupt. Repeat for G, B, and Clear. RGB values normalised by clear channel to compensate ambient light variation. White-balance calibration: measure white reference and black reference, then apply linear scaling per channel: R_norm = (R_raw − R_black) / (R_white − R_black) × 255. Full-scale frequency at 100 % scaling: ~600 kHz under 1000 lux white light. Practical reading distance: 10–15 mm with diffuse white LED illumination. TCS34725 (I²C) is the newer alternative with RGB+clear 16-bit ADC and interrupt support; preferred for new designs. Common application: object colour classification on a conveyor (RED/GREEN/BLUE sorting bins).",
+  "formula": "R_norm = (R_raw − R_black) / (R_white − R_black) × 255",
+  "units": "frequency: Hz, normalised value: 0–255",
+  "source": "ams TCS3200 Programmable Color Light-to-Frequency Converter Data Sheet; TCS34725 Application Note",
+  "source_url": null,
+  "confidence_score": 0.96,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "tcs3200",
+    "color-sensor",
+    "reflectance",
+    "rgb",
+    "optical",
+    "sorting",
+    "conveyor",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

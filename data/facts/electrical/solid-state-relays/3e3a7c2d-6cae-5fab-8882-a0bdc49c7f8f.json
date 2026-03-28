@@ -1,0 +1,28 @@
+{
+  "id": "3e3a7c2d-6cae-5fab-8882-a0bdc49c7f8f",
+  "title": "Solid-State Relay (SSR) Mains Load Switching",
+  "domain": "electrical",
+  "category": "solid-state relays",
+  "subcategory": "ac load control",
+  "detail_level": "intermediate",
+  "content": "A solid-state relay uses an internal opto-isolator and TRIAC (AC) or MOSFET (DC) to switch mains-voltage loads from a low-voltage control signal (3–32 V DC). Zero-crossing circuitry fires the TRIAC only when the AC waveform crosses 0 V, minimising inrush current and EMI.",
+  "extended_content": "SSR advantages over mechanical relays: no moving parts, silent operation, ≥ 500 000 switching cycles, ≤ 1 ms turn-on time, and zero-crossing turn-on reduces harmonics. Typical AC SSR (Fotek SSR-40DA): 24–380 V AC output, 40 A peak, 3–32 V DC control input (LED-current-limited opto). Heat generation: P_heat ≈ 1.5 × I_load (W); a heatsink is mandatory above ~5 A. For inductive loads (motors, contactors) derate by 30 % and add an RC snubber across the output. Failure mode: SSRs can fail closed (shorted TRIAC) — always include a mechanical disconnect or circuit breaker upstream for safety.",
+  "formula": "P_dissipated ≈ 1.5 × I_load  [W, for Fotek-type TRIAC SSR]",
+  "units": "P: W, I_load: A",
+  "source": "Fotek SSR-40DA Datasheet; IEC 60950-1 Mains Isolation Requirements",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "ssr",
+    "solid-state-relay",
+    "triac",
+    "mains",
+    "ac-switching",
+    "opto-isolator",
+    "electrical",
+    "home-automation"
+  ],
+  "created_by": "seed"
+}

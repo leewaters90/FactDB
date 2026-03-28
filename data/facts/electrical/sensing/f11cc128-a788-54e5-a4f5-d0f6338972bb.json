@@ -1,0 +1,27 @@
+{
+  "id": "f11cc128-a788-54e5-a4f5-d0f6338972bb",
+  "title": "MLX90614 Non-Contact Infrared Temperature Sensor",
+  "domain": "electrical",
+  "category": "sensing",
+  "subcategory": "infrared temperature",
+  "detail_level": "intermediate",
+  "content": "The MLX90614 is a factory-calibrated infrared thermometer IC that measures object (Ta) and ambient (Tamb) temperatures without contact. It uses a thermopile sensor and onboard DSP, outputs temperature via I²C (SMBus) or PWM at 0.02 °C resolution. Object temperature range: −70 to +380 °C; accuracy ±0.5 °C (0–50 °C object).",
+  "extended_content": "The MLX90614 combines a silicon thermopile detector with an infrared lens (90° half-angle by default; 35° with MLX90614xCC). The IC reads two channels internally: Ta (ambient) and To1 (object); dual-zone variants also provide To2. I²C address default 0x5A (configurable via EEPROM). Data register 0x07 = To1 (object), 0x06 = Ta, raw 15-bit value. Temperature = (raw × 0.02) − 273.15 °C. 3.3 V or 5 V supply; 4.7 kΩ pull-ups on SDA/SCL. Emissivity default 1.0 (appropriate for human skin, matte surfaces); adjustable in EEPROM (0x04) for metallic surfaces (e.g., 0.95 for oxidised steel). Measurement time: 100 ms for single conversion. Applications: non-contact body temperature, oven monitoring, HVAC duct sensing. Field-of-view: 90° cone; for a 10 cm target diameter, place sensor ≤ 6 cm away. Libraries: Adafruit MLX90614, SparkFun MLX90614. Note: sensor requires >50 ms warm-up after power-on.",
+  "formula": "T_celsius = (raw_15bit × 0.02) − 273.15",
+  "units": "T: °C, raw: 15-bit unsigned",
+  "source": "Melexis MLX90614 Datasheet Rev 003; Melexis Application Note ANA90615",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "mlx90614",
+    "infrared",
+    "non-contact",
+    "temperature",
+    "thermopile",
+    "i2c",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

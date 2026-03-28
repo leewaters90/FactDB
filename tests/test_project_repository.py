@@ -372,7 +372,7 @@ class TestProjectSeeder:
         result = seed_projects(db_session)
 
         assert result["elements_created"] > 0
-        assert result["projects_created"] == 50
+        assert result["projects_created"] >= 50
         assert result["links_created"] > 0
 
     def test_seeder_is_idempotent(self, db_session):
@@ -388,7 +388,7 @@ class TestProjectSeeder:
         assert r2["elements_created"] == 0
         assert r2["elements_skipped"] == r1["elements_created"]
         assert r2["projects_created"] == 0
-        assert r2["projects_skipped"] == 50
+        assert r2["projects_skipped"] >= 50
 
     def test_seeder_elements_are_shared(self, db_session):
         """Verify that at least one DesignElement is used by multiple projects."""

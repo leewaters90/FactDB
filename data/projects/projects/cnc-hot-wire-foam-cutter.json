@@ -1,0 +1,57 @@
+{
+  "title": "CNC Hot Wire Foam Cutter",
+  "description": "Two-axis (X-Y) GRBL-based CNC foam cutter using a tensioned nichrome hot wire on a CoreXY gantry. Cuts EPS and EPP foam sheets up to 500 mm × 400 mm × 100 mm thickness at 3–5 mm/s. Wire temperature controlled via MOSFET PWM on a 12 V supply.",
+  "objective": "Cut 2D profiles from EPS foam with ≤ 1 mm positional accuracy; 0–100 % wire power control; G-code input via USB serial (GRBL); cutting area ≥ 400 mm × 300 mm.",
+  "constraints": "12 V / 5 A power supply; desktop footprint ≤ 600 mm × 500 mm; GRBL-compatible G-code; ≤ £60 BOM.",
+  "domain": "mechanical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "G-code and CNC Motion Control",
+    "Stepper Motor Drive — Full Step and Microstepping",
+    "Nichrome Resistance Heating Wire Power Calculation",
+    "N-Channel MOSFET as a Low-Side Power Switch",
+    "Ohm's Law"
+  ],
+  "design_element_titles": [
+    "CoreXY Belt Drive Gantry Architecture",
+    "NEMA17 Stepper DRV8825 Microstepping Drive",
+    "Nichrome Hot Wire Foam Cutter Drive",
+    "N-Channel MOSFET Low-Side Load Switch",
+    "GRBL G-code CNC Firmware Controller",
+    "Arduino Uno/Nano MCU Platform"
+  ],
+  "element_usage_notes": {
+    "CoreXY Belt Drive Gantry Architecture": "GT2 belt, 16-tooth pulleys; 80 mm/step @ 1/16 microstepping; 500 mm × 400 mm travel.",
+    "NEMA17 Stepper DRV8825 Microstepping Drive": "1/16 microstepping; 1.5 A current limit; X and Y axes; 3D-printed carriage mounts.",
+    "Nichrome Hot Wire Foam Cutter Drive": "200 mm span of 28 AWG NiCr wire; 12 V supply via IRLZ44N; GRBL spindle PWM (pin 11) maps 0–100 % to wire power.",
+    "GRBL G-code CNC Firmware Controller": "GRBL 1.1h flashed to Arduino Uno; spindle-enable maps to wire MOSFET gate; $130=500 and $131=400 (work area mm).",
+    "Arduino Uno/Nano MCU Platform": "Arduino Uno R3; GRBL firmware; USB-B connector to PC; CNC Shield v3 for DRV8825 drivers."
+  },
+  "element_interactions": [
+    {
+      "from": "GRBL G-code CNC Firmware Controller",
+      "to": "NEMA17 Stepper DRV8825 Microstepping Drive",
+      "data": "STEP/DIR pulses at up to 30 kHz per axis",
+      "description": "GRBL generates step/direction pulses for X and Y axes. DRV8825 drivers on CNC Shield receive STEP and DIR; MS0/MS1/MS2 set to 1/16 microstepping."
+    },
+    {
+      "from": "GRBL G-code CNC Firmware Controller",
+      "to": "N-Channel MOSFET Low-Side Load Switch",
+      "data": "PWM signal 0–100 % on Arduino pin 11 (spindle)",
+      "description": "GRBL spindle-speed output (0–255 PWM) drives IRLZ44N gate via 100 Ω series resistor. M3 Sxxx sets wire power %; M5 turns wire off."
+    },
+    {
+      "from": "N-Channel MOSFET Low-Side Load Switch",
+      "to": "Nichrome Hot Wire Foam Cutter Drive",
+      "data": "Switched 12 V current (0–3 A) to nichrome wire",
+      "description": "MOSFET drain switches the 12 V return of the nichrome wire. PWM duty cycle modulates mean power and thus wire temperature."
+    },
+    {
+      "from": "CoreXY Belt Drive Gantry Architecture",
+      "to": "Nichrome Hot Wire Foam Cutter Drive",
+      "data": "Physical X-Y carriage position (mm)",
+      "description": "Gantry carries the tensioned nichrome wire across the foam blank. CoreXY kinematics allow diagonal cuts without speed variations that would cause uneven cuts."
+    }
+  ],
+  "integration_code": "# cnc_foam_cutter.py — PC-side G-code sender for the CNC Hot Wire Foam Cutter\n# Connects to GRBL on the Arduino Uno over USB serial.\n# Usage: python cnc_foam_cutter.py --port COM3 --file shape.nc --wire-power 70\n\nimport argparse\nimport time\nimport serial\n\n\ndef grbl_send(ser: serial.Serial, line: str) -> str:\n    \"\"\"Send one G-code line to GRBL and wait for 'ok' or 'error'.\"\"\"\n    cmd = (line.strip() + '\\n').encode()\n    ser.write(cmd)\n    while True:\n        resp = ser.readline().decode().strip()\n        if resp in ('ok', '') or resp.startswith('error'):\n            return resp\n\n\ndef main() -> None:\n    parser = argparse.ArgumentParser(description='CNC Hot Wire Foam Cutter sender')\n    parser.add_argument('--port',        required=True, help='Serial port (e.g. COM3 or /dev/ttyUSB0)')\n    parser.add_argument('--baud',        type=int, default=115200)\n    parser.add_argument('--file',        required=True, help='G-code file path')\n    parser.add_argument('--wire-power',  type=int, default=70, help='Wire power 0-100 %%')\n    parser.add_argument('--feed-rate',   type=int, default=200, help='Feed rate mm/min')\n    args = parser.parse_args()\n\n    with serial.Serial(args.port, args.baud, timeout=5) as ser:\n        time.sleep(2)  # wait for GRBL to initialise\n        ser.flushInput()\n\n        # GRBL soft reset + unlock\n        ser.write(b'\\x18')  # Ctrl-X reset\n        time.sleep(1)\n        grbl_send(ser, '$X')   # kill alarm lock\n        grbl_send(ser, 'G21')  # metric mode\n        grbl_send(ser, 'G90')  # absolute positioning\n        grbl_send(ser, f'F{args.feed_rate}')  # default feed rate\n\n        # Enable hot wire at requested power\n        spindle_s = int(args.wire_power * 255 / 100)\n        grbl_send(ser, f'M3 S{spindle_s}')   # spindle on = wire on\n        print(f'Wire power set to {args.wire_power} % (S={spindle_s})')\n        time.sleep(3)  # allow wire to reach temperature\n\n        # Stream G-code file\n        with open(args.file) as f:\n            lines = [ln.strip() for ln in f if ln.strip() and not ln.startswith(';')]\n\n        for i, line in enumerate(lines, 1):\n            resp = grbl_send(ser, line)\n            if resp.startswith('error'):\n                print(f'GRBL error on line {i}: {line!r} → {resp}')\n                break\n            if i % 20 == 0:\n                print(f'  {i}/{len(lines)} lines sent...')\n\n        # Wire off and return to home\n        grbl_send(ser, 'M5')       # wire off\n        grbl_send(ser, 'G0 X0 Y0') # return home\n        print('Cut complete. Wire off, at home position.')\n\n\nif __name__ == '__main__':\n    main()\n"
+}

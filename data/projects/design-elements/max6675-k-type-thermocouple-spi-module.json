@@ -1,0 +1,21 @@
+{
+  "title": "MAX6675 K-Type Thermocouple SPI Module",
+  "component_category": "sensing",
+  "design_question": "How to measure high temperatures (0–1000 °C) with a K-type thermocouple and deliver a digital reading to an Arduino via SPI?",
+  "selected_approach": "MAX6675 breakout module with K-type thermocouple probe (SS316 sheath, 1 m lead). 3-wire SPI (CS, CLK, MISO); CS on D10. Adafruit MAX6675 library. Read every 250 ms minimum. Returns temperature in 0.25 °C steps. Companion probe: ungrounded junction probe avoids electrical interference from heater elements.",
+  "rationale": "MAX6675 provides integrated cold-junction compensation eliminating a separate reference thermistor. 12-bit (0.25 °C) resolution is adequate for reflow oven and barbecue monitor applications. Breakout modules cost < £3 and include decoupling capacitors. Ungrounded probe prevents ground-loop issues when heater element shares system ground.",
+  "alternatives": [
+    {
+      "approach": "MAX31855 + K-type thermocouple",
+      "reason_rejected": "MAX31855 is the newer successor with 14-bit resolution and fault diagnostics but costs 2× more; MAX6675 adequate for 0–1000 °C applications."
+    },
+    {
+      "approach": "NTC thermistor (10k)",
+      "reason_rejected": "NTC maximum operating temperature typically 125 °C — cannot be used for reflow oven (target 250 °C) or forge applications."
+    }
+  ],
+  "verification_notes": "FACT: 'MAX6675 K-Type Thermocouple-to-Digital SPI Converter' confirms 0–1024 °C range, 0.25 °C resolution, and 250 ms minimum read interval.",
+  "supporting_fact_titles": [
+    "MAX6675 K-Type Thermocouple-to-Digital SPI Converter"
+  ]
+}

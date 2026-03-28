@@ -1,0 +1,65 @@
+{
+  "title": "Smart Sous-Vide Cooker",
+  "description": "Arduino-based immersion circulator for precise water-bath cooking. A PT100 RTD probe measures water temperature; a cascaded PID loop drives a mains SSR to control a 1200 W heating element; a water pump circulates the bath. Rotary encoder and OLED provide a setpoint UI; DS3231 RTC enables cook-time countdown.",
+  "objective": "Hold bath temperature within ±0.1 °C of setpoint (range 20–95 °C); UI setpoint adjustment in 0.1 °C steps via rotary encoder; cook timer 0–24 h; audible alarm at cook-end.",
+  "constraints": "230 V mains; 1200 W immersion heater; 5 V USB logic supply; safe IP44 splash-proof enclosure; ≤ £35 BOM.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "RTD (PT100/PT1000) Temperature Measurement",
+    "PID Controller — Transfer Function",
+    "Solid-State Relay (SSR) Mains Load Switching",
+    "Rotary Encoder — Incremental A/B Quadrature Pulse Counting",
+    "OLED SSD1306 Monochrome Display I²C Interface",
+    "I²C Real-Time Clock — DS3231 Timekeeping and Alarms"
+  ],
+  "design_element_titles": [
+    "MAX31865 PT100 RTD Amplifier",
+    "Solid-State Relay Mains Actuator Switching",
+    "Rotary Encoder User-Interface Navigation",
+    "SSD1306 OLED Display UI Module",
+    "DS3231 RTC Alarm Scheduling Module",
+    "Arduino Uno/Nano MCU Platform"
+  ],
+  "element_usage_notes": {
+    "MAX31865 PT100 RTD Amplifier": "PT100 probe epoxied into 316 SS immersion sleeve; 2-wire connection; SPI on D10–D13; polled at 5 Hz.",
+    "Solid-State Relay Mains Actuator Switching": "Fotek SSR-25DA; GPIO 5; 230 V / 25 A rated; heatsink required (1.5 W at 1 A average); zero-cross reduces EMI.",
+    "Rotary Encoder User-Interface Navigation": "KY-040; CLK on D2 (INT0), DT on D4, SW on D3; 0.1 °C per detent; hold push for 1 s to start/stop cook timer.",
+    "SSD1306 OLED Display UI Module": "128×64; 3-line layout: setpoint + actual temp / cook timer countdown / PID output % + heat indicator.",
+    "DS3231 RTC Alarm Scheduling Module": "Cook timer: delta-seconds tracked via RTC; alarm fires at cook-end; buzzer on D8.",
+    "Arduino Uno/Nano MCU Platform": "Nano 3.0; SPI for MAX31865 (D10–D13); I²C for OLED + DS3231 (A4/A5); D5 = SSR gate."
+  },
+  "element_interactions": [
+    {
+      "from": "MAX31865 PT100 RTD Amplifier",
+      "to": "Arduino Uno/Nano MCU Platform",
+      "data": "temp_c (float, ±0.05 °C) via SPI at 5 Hz",
+      "description": "MAX31865 SPI read every 200 ms; 4-sample rolling average applied; temperature fed as process variable into PID loop."
+    },
+    {
+      "from": "Rotary Encoder User-Interface Navigation",
+      "to": "Arduino Uno/Nano MCU Platform",
+      "data": "direction (±1 per detent), button events (short/long press) via GPIO interrupts",
+      "description": "CW detent increments setpoint by 0.1 °C; CCW decrements; short press navigates menu; long press starts/stops cook timer."
+    },
+    {
+      "from": "DS3231 RTC Alarm Scheduling Module",
+      "to": "Arduino Uno/Nano MCU Platform",
+      "data": "INT falling edge at cook-end time",
+      "description": "RTC alarm fires when cook timer reaches zero; ISR halts SSR output and triggers 5-second buzzer sequence."
+    },
+    {
+      "from": "Arduino Uno/Nano MCU Platform",
+      "to": "Solid-State Relay Mains Actuator Switching",
+      "data": "GPIO 5 duty-cycle (1 s period, 0–100 % on-time)",
+      "description": "PID output (0–100) maps to 1-second window: PID=60 → 600 ms GPIO 5 HIGH per second. SSR switches heater at zero-crossing each cycle."
+    },
+    {
+      "from": "Arduino Uno/Nano MCU Platform",
+      "to": "SSD1306 OLED Display UI Module",
+      "data": "I²C framebuffer (setpoint, actual_temp, timer_str, pid_output_pct)",
+      "description": "OLED refreshed at 2 Hz; blinks 'DONE' when timer expires; bar graph shows PID output level."
+    }
+  ],
+  "integration_code": "/*\n * sous_vide.ino — Smart Sous-Vide Cooker\n *\n * Elements:\n *   1. MAX31865 PT100 RTD Amplifier  — SPI, water temperature at 5 Hz\n *   2. Solid-State Relay             — GPIO 5, 1-s window PID duty-cycle\n *   3. Rotary Encoder KY-040         — setpoint ±0.1 °C per detent, UI navigation\n *   4. SSD1306 OLED                  — setpoint / actual / timer / PID bar\n *   5. DS3231 RTC                    — cook timer countdown + end alarm\n *   6. Arduino Nano                  — PID loop at 5 Hz\n */\n\n#include <Wire.h>\n#include <SPI.h>\n#include <Adafruit_MAX31865.h>\n#include <Adafruit_SSD1306.h>\n#include <RTClib.h>\n\n// --- Pins ---\n#define CS_RTD     10\n#define SSR_PIN     5\n#define ENC_CLK     2   // INT0\n#define ENC_DT      4\n#define ENC_SW      3\n#define BUZZ_PIN    8\n\n// --- Constants ---\n#define RNOM       100.0f   // PT100\n#define RREF       430.0f   // reference resistor on MAX31865 board\n#define KP         10.0f\n#define KI          0.5f\n#define KD          1.5f\n#define PID_PERIOD_MS 200UL   // 5 Hz\n#define WINDOW_MS  1000UL     // 1-s SSR duty window\n\n// --- Objects ---\nAdafruit_MAX31865 rtd(CS_RTD);\nAdafruit_SSD1306  oled(128, 64, &Wire, -1);\nRTC_DS3231        rtclock;\n\n// --- State ---\nfloat setpoint    = 60.0f;\nfloat actual_temp = 20.0f;\nfloat pid_integral = 0.0f;\nfloat pid_prev_err = 0.0f;\nfloat pid_output   = 0.0f;\n\nvolatile int  enc_delta = 0;\nvolatile bool enc_press = false;\nunsigned long cook_end_epoch = 0;\nbool  cooking   = false;\nbool  cook_done = false;\n\nvoid ICACHE_RAM_ATTR on_enc_clk() {\n  enc_delta += digitalRead(ENC_DT) ? -1 : 1;\n}\nvoid ICACHE_RAM_ATTR on_enc_sw() { enc_press = true; }\n\nfloat run_pid(float sp, float pv, float dt_s) {\n  float err = sp - pv;\n  pid_integral  += err * dt_s;\n  pid_integral   = constrain(pid_integral, 0.0f, 100.0f / KI);\n  float deriv    = (err - pid_prev_err) / dt_s;\n  pid_prev_err   = err;\n  return constrain(KP * err + KI * pid_integral + KD * deriv, 0.0f, 100.0f);\n}\n\nvoid update_oled() {\n  char timer_buf[16];\n  if (cooking && !cook_done) {\n    long rem = (long)cook_end_epoch - (long)(millis() / 1000);\n    if (rem < 0) rem = 0;\n    snprintf(timer_buf, sizeof(timer_buf), \"%02ld:%02ld\", rem / 60, rem % 60);\n  } else {\n    snprintf(timer_buf, sizeof(timer_buf), cook_done ? \"DONE!\" : \"--:--\");\n  }\n  oled.clearDisplay();\n  oled.setTextSize(1); oled.setTextColor(SSD1306_WHITE);\n  oled.setCursor(0,  0); oled.printf(\"Set: %.1f  Act: %.1f\", setpoint, actual_temp);\n  oled.setCursor(0, 16); oled.printf(\"Timer: %s\", timer_buf);\n  oled.setCursor(0, 32);\n  oled.printf(\"PID: %.0f %%\", pid_output);\n  // Simple bar\n  int bar = (int)(pid_output / 100.0f * 100);\n  oled.fillRect(0, 44, bar, 8, SSD1306_WHITE);\n  oled.display();\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  Wire.begin();\n  SPI.begin();\n\n  rtd.begin(MAX31865_2WIRE);\n  oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);\n  oled.clearDisplay(); oled.display();\n  rtclock.begin();\n\n  pinMode(SSR_PIN, OUTPUT); digitalWrite(SSR_PIN, LOW);\n  pinMode(BUZZ_PIN, OUTPUT); digitalWrite(BUZZ_PIN, LOW);\n  pinMode(ENC_CLK, INPUT_PULLUP);\n  pinMode(ENC_DT,  INPUT_PULLUP);\n  pinMode(ENC_SW,  INPUT_PULLUP);\n  attachInterrupt(digitalPinToInterrupt(ENC_CLK), on_enc_clk, FALLING);\n  attachInterrupt(digitalPinToInterrupt(ENC_SW),  on_enc_sw,  FALLING);\n\n  Serial.println(F(\"Sous-vide ready.\"));\n}\n\nvoid loop() {\n  static unsigned long last_pid    = 0;\n  static unsigned long window_start = 0;\n\n  unsigned long now = millis();\n\n  // --- 1. Encoder: adjust setpoint ---\n  noInterrupts();\n  int delta = enc_delta; enc_delta = 0;\n  bool press = enc_press; enc_press = false;\n  interrupts();\n\n  setpoint = constrain(setpoint + delta * 0.1f, 20.0f, 95.0f);\n\n  if (press) {\n    // Toggle cook timer (simple: 60-min default for demo)\n    if (!cooking) {\n      cook_end_epoch = now / 1000 + 3600;\n      cooking  = true;\n      cook_done = false;\n    } else {\n      cooking = false;\n      digitalWrite(SSR_PIN, LOW);\n    }\n  }\n\n  // --- Cook timer check ---\n  if (cooking && !cook_done && (now / 1000 >= cook_end_epoch)) {\n    cook_done = true;\n    cooking   = false;\n    digitalWrite(SSR_PIN, LOW);\n    // Buzzer 5 × beep\n    for (int i = 0; i < 5; i++) {\n      digitalWrite(BUZZ_PIN, HIGH); delay(200);\n      digitalWrite(BUZZ_PIN, LOW);  delay(200);\n    }\n  }\n\n  // --- 2. PID at 5 Hz ---\n  if (now - last_pid >= PID_PERIOD_MS) {\n    float dt = (now - last_pid) / 1000.0f;\n    last_pid = now;\n    actual_temp = rtd.temperature(RNOM, RREF);\n    if (cooking) pid_output = run_pid(setpoint, actual_temp, dt);\n    else         pid_output = 0.0f;\n\n    Serial.printf(\"T=%.2f SP=%.1f PID=%.1f\\n\", actual_temp, setpoint, pid_output);\n  }\n\n  // --- 3. SSR window (1 s) ---\n  if (cooking) {\n    if (now - window_start >= WINDOW_MS) window_start = now;\n    bool ssr_on = (now - window_start) < (unsigned long)(pid_output * WINDOW_MS / 100.0f);\n    digitalWrite(SSR_PIN, ssr_on ? HIGH : LOW);\n  } else {\n    digitalWrite(SSR_PIN, LOW);\n  }\n\n  // --- 4. OLED ---\n  static unsigned long last_oled = 0;\n  if (now - last_oled >= 500UL) {\n    last_oled = now;\n    update_oled();\n  }\n}\n"
+}

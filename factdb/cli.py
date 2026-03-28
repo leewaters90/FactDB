@@ -1312,5 +1312,117 @@ def web_cmd(ctx, host, port, debug):
     app.run(host=host, port=port, debug=debug)
 
 
+# ---------------------------------------------------------------------------
+# seed-copilot
+# ---------------------------------------------------------------------------
+
+
+@cli.command("seed-copilot")
+@click.option(
+    "--count", "-n",
+    default=0,
+    show_default=True,
+    help="Number of projects to generate (0 = infinite).",
+)
+@click.option(
+    "--pause",
+    default=5,
+    show_default=True,
+    help="Seconds to wait between iterations.",
+)
+@click.option(
+    "--model", "-m",
+    default="",
+    show_default=True,
+    help="Copilot model override (e.g. gpt-5.2). Empty = Copilot default.",
+)
+@click.option(
+    "--seed-every",
+    default=1,
+    show_default=True,
+    help="Re-seed the SQLite DB every N successful project additions.",
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    default=False,
+    help="Preview prompt without invoking Copilot or writing files.",
+)
+@click.option(
+    "--verbose", "-v",
+    is_flag=True,
+    default=False,
+    help="Show extra diagnostic output.",
+)
+@click.option(
+    "--timeout",
+    default=300,
+    show_default=True,
+    help="Seconds before a single Copilot call is aborted.",
+)
+@click.option(
+    "--convergence-only",
+    is_flag=True,
+    default=False,
+    help="Print historical convergence report and exit (no seeding).",
+)
+@click.pass_context
+def seed_copilot_cmd(ctx, count, pause, model, seed_every, dry_run, verbose,
+                     timeout, convergence_only):
+    """
+    Continuously prompt GitHub Copilot CLI to design new FactDB projects.
+
+    Provides Copilot with the FULL knowledge map (facts grouped by domain,
+    element capability index, relationship graph, coverage gaps) so it can
+    reuse existing building blocks and target knowledge gaps intelligently.
+
+    Tracks convergence metrics per iteration in data/convergence.jsonl.
+    The convergence score measures DB saturation on a 0–1 scale:
+    reuse rate, novelty decay, domain/category coverage, graph density.
+
+    Requires: ``gh copilot`` CLI installed and authenticated.
+
+    Examples::
+
+        factdb seed-copilot                    # run forever
+        factdb seed-copilot --count 5          # generate 5 projects then stop
+        factdb seed-copilot --dry-run          # preview prompts only
+        factdb seed-copilot --model gpt-5.2 --count 10
+        factdb seed-copilot --convergence-only # show convergence report
+    """
+    import importlib.util
+    import pathlib
+    import sys as _sys
+
+    seeder_path = (
+        pathlib.Path(__file__).parent.parent / "scripts" / "copilot_seeder.py"
+    )
+    spec = importlib.util.spec_from_file_location("copilot_seeder", seeder_path)
+    mod = importlib.util.module_from_spec(spec)
+    # Register in sys.modules BEFORE exec so @dataclass resolves __module__
+    _sys.modules.setdefault("copilot_seeder", mod)
+    spec.loader.exec_module(mod)
+
+    args = []
+    if count:
+        args += ["--count", str(count)]
+    if pause != 5:
+        args += ["--pause", str(pause)]
+    if model:
+        args += ["--model", model]
+    if seed_every != 1:
+        args += ["--seed-every", str(seed_every)]
+    if timeout != 300:
+        args += ["--timeout", str(timeout)]
+    if dry_run:
+        args.append("--dry-run")
+    if verbose:
+        args.append("--verbose")
+    if convergence_only:
+        args.append("--convergence-only")
+
+    mod.main.main(args, standalone_mode=False)
+
+
 if __name__ == "__main__":
     cli()

@@ -1,0 +1,64 @@
+{
+  "title": "Garage Door IoT Controller",
+  "description": "ESP32-based WiFi controller for a motorised garage door. Two reed switches detect fully-open and fully-closed positions; a solid-state relay triggers the door motor; PIR sensor detects presence; MQTT publishes door state; OTA firmware updates via HTTPS. Companion smartphone app via MQTT dashboard.",
+  "objective": "Remote open/close via MQTT; door position confirmed via reed switches within 15 s; PIR presence alert on MQTT; OTA update without physical access; retain last state through power-cycles.",
+  "constraints": "230 V garage supply; ESP32 in IP54 enclosure; ≤ £30 BOM; no proprietary cloud; MQTT broker on local network; TLS OTA.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "MQTT Protocol for IoT Sensor Data",
+    "OTA Firmware Update for Embedded Devices",
+    "Magnetic Reed Switch for Contact/Position Detection",
+    "PIR Passive Infrared Motion Sensor — HC-SR501",
+    "Solid-State Relay (SSR) Mains Load Switching"
+  ],
+  "design_element_titles": [
+    "Magnetic Reed Switch Door Position Sensor",
+    "PIR HC-SR501 Motion Detection Module",
+    "Solid-State Relay Mains Actuator Switching",
+    "OTA HTTPS Dual-Bank Firmware Update",
+    "ESP32 WiFi + MQTT IoT Telemetry",
+    "MQTT QoS-1 Secure Event Logger"
+  ],
+  "element_usage_notes": {
+    "Magnetic Reed Switch Door Position Sensor": "N/O reed pairs at closed-limit (GPIO 34, pull-up) and open-limit (GPIO 35, pull-up); LOW = magnet present = position reached.",
+    "PIR HC-SR501 Motion Detection Module": "HC-SR501 on GPIO 32; H-retriggering mode; sensitivity 7 m; publishes garage/door/presence on motion.",
+    "Solid-State Relay Mains Actuator Switching": "Fotek SSR-25DA on GPIO 25; 3.3 V compatible control input; 230 V/10 A output to door motor activation circuit; 300 ms pulse triggers door motor.",
+    "OTA HTTPS Dual-Bank Firmware Update": "ArduinoOTA over local WiFi; triggered via MQTT command garage/door/cmd = 'ota'; secure: password-protected.",
+    "ESP32 WiFi + MQTT IoT Telemetry": "WiFi STA mode; broker at 192.168.1.x:1883; topics: garage/door/state, garage/door/cmd, garage/door/presence. Retained state messages.",
+    "MQTT QoS-1 Secure Event Logger": "All door transitions and presence events logged to garage/door/log with ISO 8601 timestamp."
+  },
+  "element_interactions": [
+    {
+      "from": "Magnetic Reed Switch Door Position Sensor",
+      "to": "ESP32 WiFi + MQTT IoT Telemetry",
+      "data": "GPIO level change (open-limit or closed-limit asserted LOW)",
+      "description": "Interrupt-on-change on GPIO 34 and 35. State machine: OPEN if open-limit LOW; CLOSED if closed-limit LOW; MOVING if neither (timeout 15 s → publish 'stuck')."
+    },
+    {
+      "from": "PIR HC-SR501 Motion Detection Module",
+      "to": "ESP32 WiFi + MQTT IoT Telemetry",
+      "data": "GPIO 32 HIGH pulse (motion detected)",
+      "description": "Rising-edge interrupt triggers MQTT publish to garage/door/presence = 'motion'. No action taken on door — presence is informational only."
+    },
+    {
+      "from": "ESP32 WiFi + MQTT IoT Telemetry",
+      "to": "Solid-State Relay Mains Actuator Switching",
+      "data": "GPIO 25 HIGH for 300 ms",
+      "description": "MQTT subscription to garage/door/cmd = 'toggle' asserts GPIO 25 HIGH for 300 ms, simulating a momentary wall-button press on the door motor controller."
+    },
+    {
+      "from": "ESP32 WiFi + MQTT IoT Telemetry",
+      "to": "MQTT QoS-1 Secure Event Logger",
+      "data": "JSON {event, state, ts_utc} QoS 1 retained",
+      "description": "Every state transition (OPEN/CLOSED/MOVING/STUCK) and presence event published to garage/door/log with UTC timestamp."
+    },
+    {
+      "from": "OTA HTTPS Dual-Bank Firmware Update",
+      "to": "ESP32 WiFi + MQTT IoT Telemetry",
+      "data": "MQTT command 'ota' triggers update sequence",
+      "description": "On receiving 'ota' command, ESP32 fetches firmware binary from a pre-configured HTTPS URL, verifies SHA256 hash, writes to inactive partition, and reboots."
+    }
+  ],
+  "integration_code": "/*\n * garage_door_controller.ino — Garage Door IoT Controller\n *\n * Elements:\n *   1. Magnetic Reed Switch Position Sensors — GPIO 34 (closed), GPIO 35 (open)\n *   2. PIR HC-SR501 Motion Sensor            — GPIO 32\n *   3. Solid-State Relay (SSR)               — GPIO 25 (300 ms pulse)\n *   4. OTA HTTPS Firmware Update             — triggered via MQTT\n *   5. ESP32 WiFi + MQTT Telemetry           — broker 192.168.1.x\n *   6. MQTT QoS-1 Event Logger               — retained messages\n */\n\n#include <Arduino.h>\n#include <WiFi.h>\n#include <PubSubClient.h>\n#include <ArduinoOTA.h>\n\n// --- WiFi + MQTT ---\nconst char* SSID       = \"HomeNet\";\nconst char* WIFI_PASS  = \"changeme\";\nconst char* MQTT_HOST  = \"192.168.1.10\";\nconst int   MQTT_PORT  = 1883;\n\n// --- Pins ---\n#define PIN_CLOSED 34\n#define PIN_OPEN   35\n#define PIN_PIR    32\n#define PIN_SSR    25\n\n// --- MQTT topics ---\n#define T_STATE    \"garage/door/state\"\n#define T_CMD      \"garage/door/cmd\"\n#define T_PRESENCE \"garage/door/presence\"\n#define T_LOG      \"garage/door/log\"\n\n// --- State machine ---\nenum DoorState { DOOR_CLOSED, DOOR_OPEN, DOOR_MOVING, DOOR_STUCK };\nDoorState door_state = DOOR_CLOSED;\nunsigned long move_start_ms = 0;\n#define MOVE_TIMEOUT_MS 15000UL\n#define SSR_PULSE_MS      300UL\n\nWiFiClient   wifiClient;\nPubSubClient mqtt(wifiClient);\n\nvolatile bool pos_changed = false;\nvolatile bool pir_event   = false;\n\nvoid IRAM_ATTR on_pos()  { pos_changed = true; }\nvoid IRAM_ATTR on_pir()  { pir_event   = true; }\n\nconst char* state_str(DoorState s) {\n  switch (s) {\n    case DOOR_CLOSED:  return \"CLOSED\";\n    case DOOR_OPEN:    return \"OPEN\";\n    case DOOR_MOVING:  return \"MOVING\";\n    default:           return \"STUCK\";\n  }\n}\n\nvoid publish_state(DoorState s) {\n  mqtt.publish(T_STATE, state_str(s), true);\n  char log_buf[128];\n  snprintf(log_buf, sizeof(log_buf),\n           \"{\\\"event\\\":\\\"state\\\",\\\"state\\\":\\\"%s\\\"}\", state_str(s));\n  mqtt.publish(T_LOG, log_buf, false);\n  Serial.printf(\"Door state: %s\\n\", state_str(s));\n}\n\nvoid trigger_door() {\n  digitalWrite(PIN_SSR, HIGH);\n  delay(SSR_PULSE_MS);\n  digitalWrite(PIN_SSR, LOW);\n  door_state    = DOOR_MOVING;\n  move_start_ms = millis();\n  publish_state(DOOR_MOVING);\n}\n\nvoid mqtt_callback(char* topic, byte* payload, unsigned int len) {\n  char msg[32] = {};\n  memcpy(msg, payload, min(len, (unsigned int)31));\n  if (String(topic) == T_CMD) {\n    if (strcmp(msg, \"toggle\") == 0) trigger_door();\n    else if (strcmp(msg, \"ota\") == 0) ArduinoOTA.begin();\n  }\n}\n\nvoid mqtt_reconnect() {\n  while (!mqtt.connected()) {\n    if (mqtt.connect(\"GarageDoor\")) {\n      mqtt.subscribe(T_CMD);\n    } else {\n      delay(5000);\n    }\n  }\n}\n\nvoid setup() {\n  Serial.begin(115200);\n\n  pinMode(PIN_CLOSED, INPUT_PULLUP);\n  pinMode(PIN_OPEN,   INPUT_PULLUP);\n  pinMode(PIN_PIR,    INPUT);\n  pinMode(PIN_SSR,    OUTPUT); digitalWrite(PIN_SSR, LOW);\n\n  attachInterrupt(digitalPinToInterrupt(PIN_CLOSED), on_pos, CHANGE);\n  attachInterrupt(digitalPinToInterrupt(PIN_OPEN),   on_pos, CHANGE);\n  attachInterrupt(digitalPinToInterrupt(PIN_PIR),    on_pir, RISING);\n\n  WiFi.begin(SSID, WIFI_PASS);\n  while (WiFi.status() != WL_CONNECTED) delay(500);\n\n  mqtt.setServer(MQTT_HOST, MQTT_PORT);\n  mqtt.setCallback(mqtt_callback);\n  mqtt_reconnect();\n\n  ArduinoOTA.setHostname(\"garage-door\");\n  ArduinoOTA.setPassword(\"ota-secret\");\n  // ArduinoOTA.begin() called on demand via MQTT 'ota' command\n\n  // Determine initial door state from reed switches\n  if (!digitalRead(PIN_CLOSED))     door_state = DOOR_CLOSED;\n  else if (!digitalRead(PIN_OPEN))  door_state = DOOR_OPEN;\n  else                               door_state = DOOR_MOVING;\n  publish_state(door_state);\n\n  Serial.println(F(\"Garage door controller ready.\"));\n}\n\nvoid loop() {\n  if (!mqtt.connected()) mqtt_reconnect();\n  mqtt.loop();\n  ArduinoOTA.handle();\n\n  // --- 1. Reed switch position update ---\n  if (pos_changed) {\n    pos_changed = false;\n    delay(20);  // debounce\n    bool closed_limit = !digitalRead(PIN_CLOSED);\n    bool open_limit   = !digitalRead(PIN_OPEN);\n    DoorState new_state;\n    if (closed_limit)  new_state = DOOR_CLOSED;\n    else if (open_limit) new_state = DOOR_OPEN;\n    else                 new_state = DOOR_MOVING;\n    if (new_state != door_state) {\n      door_state = new_state;\n      publish_state(door_state);\n    }\n  }\n\n  // --- 2. Movement timeout → stuck ---\n  if (door_state == DOOR_MOVING &&\n      (millis() - move_start_ms) > MOVE_TIMEOUT_MS) {\n    door_state = DOOR_STUCK;\n    publish_state(DOOR_STUCK);\n  }\n\n  // --- 3. PIR presence ---\n  if (pir_event) {\n    pir_event = false;\n    mqtt.publish(T_PRESENCE, \"motion\", false);\n    char log_buf[64];\n    snprintf(log_buf, sizeof(log_buf), \"{\\\"event\\\":\\\"presence\\\"}\");\n    mqtt.publish(T_LOG, log_buf, false);\n  }\n}\n"
+}

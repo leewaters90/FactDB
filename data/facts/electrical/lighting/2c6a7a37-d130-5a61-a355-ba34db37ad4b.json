@@ -1,0 +1,28 @@
+{
+  "id": "2c6a7a37-d130-5a61-a355-ba34db37ad4b",
+  "title": "WS2812B Addressable RGB LED — Single-Wire Protocol and Timing",
+  "domain": "electrical",
+  "category": "lighting",
+  "subcategory": "addressable LEDs",
+  "detail_level": "intermediate",
+  "content": "The WS2812B integrates an RGB LED and a control IC in one 5 mm × 5 mm package. Each pixel is addressed by a single-wire 800 kbps NRZ protocol: a logical 1 is a 700 ns HIGH / 600 ns LOW pulse; a logical 0 is a 350 ns HIGH / 800 ns LOW pulse. A > 50 µs LOW reset latches the entire chain. Data cascades from pixel to pixel (each passes its 24 bits then forwards remaining data).",
+  "extended_content": "Each WS2812B pixel receives 24 bits of colour data in GRB order (not RGB): 8-bit green, 8-bit red, 8-bit blue. At 800 kbps, 1 pixel takes 30 µs; 60 pixels take 1.8 ms; 300 pixels take 9 ms. Power: 5 V supply; each pixel draws up to 60 mA at full white (20 mA per colour channel). A 300-LED strip at full white draws 18 A — a 5 V / 20 A PSU is required. Practical brightness for indoor ambient: 30–60 % PWM to limit current to 100–200 mA for short strips. Level shifting: WS2812B data input typically requires 5 V logic; a 74AHCT125 level shifter converts 3.3 V MCU output. Libraries: FastLED (all platforms) and Adafruit NeoPixel. Timing is implemented in AVR assembly (Arduino) or RMT peripheral (ESP32) for precision. Gamma-correction table recommended for perceptually linear brightness.",
+  "formula": "P_max [W] = N_pixels × 0.3   (all channels at full brightness, 5 V supply)",
+  "units": "P: W, current per pixel: 60 mA max",
+  "source": "Worldsemi WS2812B Data Sheet v5; FastLED Library Wiki; Adafruit NeoPixel Überguide",
+  "source_url": null,
+  "confidence_score": 0.98,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "ws2812b",
+    "neopixel",
+    "addressable-led",
+    "rgb",
+    "single-wire",
+    "fastled",
+    "lighting",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

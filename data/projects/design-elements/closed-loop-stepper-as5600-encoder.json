@@ -1,0 +1,22 @@
+{
+  "title": "Closed-Loop Stepper Motor with AS5600 Magnetic Encoder",
+  "component_category": "actuation",
+  "design_question": "How to detect and correct missed steps on a stepper motor without switching to a full servo drive system?",
+  "selected_approach": "NEMA17 stepper motor (1.8°/step) + A4988 driver + AS5600 absolute magnetic encoder (I²C 0x36, 12-bit, 0.088°/LSB) mounted to shaft rear. Neodymium diametrically magnetised disc magnet (6 × 2.5 mm) on shaft. MCU interrupt-driven step scheduler at 1 kHz; encoder polled at same rate; error > 5 counts triggers catch-up steps; error > 40 counts (3.5°) declares stall.",
+  "rationale": "Standard open-loop steppers skip steps under overload without any feedback. AS5600 adds absolute position tracking with 0.088° resolution — finer than 1/16 microstepping. The feedback loop costs only £2 (AS5600 chip) and a magnet. Eliminates home-cycle requirements if AS5600 is set to ZERO on startup.",
+  "alternatives": [
+    {
+      "approach": "Full servo motor + driver (e.g., NEMA17 servo with encoder)",
+      "reason_rejected": "Servo drives are 10–30× more expensive for comparable torque; closed-loop stepper sufficient for low-speed, moderate-accuracy applications like CNC pen plotters."
+    },
+    {
+      "approach": "TMC2209 StallGuard (sensorless)",
+      "reason_rejected": "Sensorless stall detection works only at medium–high speeds; AS5600 encoder provides reliable feedback at zero speed and during slow moves."
+    }
+  ],
+  "verification_notes": "FACT: 'Stepper Motor Closed-Loop Control via Magnetic Encoder Feedback' confirms AS5600 0.088°/LSB resolution and describes stall-threshold correction loop.",
+  "supporting_fact_titles": [
+    "Stepper Motor Closed-Loop Control via Magnetic Encoder Feedback",
+    "Stepper Motor Drive — Full Step and Microstepping"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "id": "57e2ae3d-847a-5141-9de7-8380dc256083",
+  "title": "Nichrome Resistance Heating Wire Power Calculation",
+  "domain": "electrical",
+  "category": "heating-elements",
+  "subcategory": "resistive heating",
+  "detail_level": "intermediate",
+  "content": "Nichrome (NiCr 80/20) resistance wire converts electrical energy to heat via Joule heating: P = V²/R = I²R. Resistivity ρ ≈ 1.10 × 10⁻⁶ Ω·m at 20 °C; resistance R = ρ·L / A, where L is wire length and A cross-sectional area.",
+  "extended_content": "Nichrome 80/20 withstands continuous temperatures up to 1200 °C without significant oxidation. For hot-wire foam cutters: wire temperature 200–400 °C is sufficient to melt EPS/EPP foam cleanly. Practical design: 28–32 AWG nichrome wire, 12–24 V supply, 0.5–2 A current gives a wire temperature of 250–450 °C depending on tension and air exposure. Wire resistance drifts +10 % from 20 °C to 300 °C (positive temperature coefficient); this self-limiting effect provides moderate thermal stability. Tensioning the wire (using a spring or weight) maintains straightness as it expands thermally. Safety: nichrome at operating temperature can ignite flammable materials on contact — always de-energise before touching.",
+  "formula": "P = V² / R = I² × R;  R = ρ × L / (π × (d/2)²)",
+  "units": "P: W, R: Ω, L: m, d: m",
+  "source": "Hoskins Manufacturing NiCr 80/20 Technical Data Sheet; Joule's Law",
+  "source_url": null,
+  "confidence_score": 0.97,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "nichrome",
+    "resistance-wire",
+    "joule-heating",
+    "hot-wire",
+    "foam-cutter",
+    "cnc",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

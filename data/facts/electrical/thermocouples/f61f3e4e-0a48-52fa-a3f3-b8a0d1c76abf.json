@@ -1,0 +1,28 @@
+{
+  "id": "f61f3e4e-0a48-52fa-a3f3-b8a0d1c76abf",
+  "title": "MAX6675 K-Type Thermocouple-to-Digital SPI Converter",
+  "domain": "electrical",
+  "category": "thermocouples",
+  "subcategory": "temperature measurement",
+  "detail_level": "intermediate",
+  "content": "The MAX6675 converts a Type K thermocouple voltage to a 12-bit digital value via a 3-wire SPI interface. Range: 0–1024 °C, resolution 0.25 °C per LSB, accuracy ±3 °C. Supply 3.0–5.5 V. The IC includes cold-junction compensation and an open-thermocouple fault detection bit.",
+  "extended_content": "The MAX6675 reads its output register with three SPI bytes (CS active LOW, SCLK rising edges, data on MISO). Bit 15 is a dummy sign bit; bits 14–3 are the 12-bit temperature value; bit 2 is the device ID (always 0); bit 1 is reserved; bit 0 is the open thermocouple flag (1 = fault). Temperature = raw_12bit × 0.25 °C. Sample rate limited to 4 conversions per second (250 ms minimum between reads). Cold-junction compensation is internal, accurate to ±2 °C. Common issues: (1) Do not read faster than every 250 ms — partial conversions return stale data. (2) Thermocouple leads must be isolated from mains ground. Arduino library: 'max6675' (Adafruit) or bare SPI with CS toggling. Successor MAX31855 offers wider range (−200 to 1350 °C, 0.0625 °C resolution) and fault diagnostics. Typical use: reflow oven, barbecue pit monitor, forge temperature read-back.",
+  "formula": "T_celsius = (raw_bits[14:3]) × 0.25",
+  "units": "T: °C, raw: 12-bit unsigned integer",
+  "source": "Maxim Integrated MAX6675 Data Sheet Rev 2; Adafruit MAX6675 Library Documentation",
+  "source_url": null,
+  "confidence_score": 0.98,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "max6675",
+    "thermocouple",
+    "type-k",
+    "spi",
+    "temperature",
+    "cold-junction",
+    "reflow",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

@@ -1,0 +1,21 @@
+{
+  "title": "Magnetic Reed Switch Door Position Sensor",
+  "component_category": "sensing",
+  "design_question": "How to detect whether a garage door or cabinet lid is fully open or fully closed using two discrete position states?",
+  "selected_approach": "Two reed switch pairs (surface-mount, N/O): one at the fully-closed position, one at the fully-open position. Magnets on moving door panel; sensors on door frame. Each sensor connected to ESP32 GPIO with 10 kΩ pull-up to 3.3 V; LOW = magnet present = position reached. Interrupt-on-change detects transition < 5 ms.",
+  "rationale": "Reed switches require no power when static and survive ≥ 10⁷ operations — adequate for 10 open/close cycles per day for 27+ years. N/O contacts make wiring failures (open circuit) detectable as 'door not at limit', the safer default. No alignment sensitivity beyond ±5 mm operating distance.",
+  "alternatives": [
+    {
+      "approach": "Hall-effect latching sensor (US1881)",
+      "reason_rejected": "Requires power; more complex than a passive reed switch for a simple open/closed application."
+    },
+    {
+      "approach": "IR reflective sensor",
+      "reason_rejected": "Sensitive to ambient light and surface reflectivity; fails in dusty garage environment."
+    }
+  ],
+  "verification_notes": "FACT: 'Magnetic Reed Switch for Contact/Position Detection' confirms N/O contact, 10⁷–10⁸ cycle rating, and 10–20 mm operating distance.",
+  "supporting_fact_titles": [
+    "Magnetic Reed Switch for Contact/Position Detection"
+  ]
+}

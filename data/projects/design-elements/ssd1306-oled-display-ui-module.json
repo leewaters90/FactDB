@@ -1,0 +1,22 @@
+{
+  "title": "SSD1306 OLED Display UI Module",
+  "component_category": "processing",
+  "design_question": "How to show real-time readings (speed, SoC, time, dose count) on a compact low-power display?",
+  "selected_approach": "0.96\" 128×64 monochrome OLED on I²C (addr 0x3C). Adafruit SSD1306 + GFX library. Display refreshed at 2 Hz; partial-update of changed lines only. Driven directly from 3.3 V GPIO; OLED supply via on-board charge pump.",
+  "rationale": "SSD1306 is the most widely supported embedded display: ≥2000:1 contrast is readable in sunlight when enclosed; no backlight power; 1024-byte framebuffer fits in Arduino Nano SRAM. 2 Hz refresh is adequate for slowly-changing sensor readings and avoids OLED burn-in.",
+  "alternatives": [
+    {
+      "approach": "16×2 LCD (HD44780)",
+      "reason_rejected": "Requires 6+ GPIO lines or I²C expander; backlight draws 40 mA; poor sunlight contrast."
+    },
+    {
+      "approach": "0.91\" 128×32 OLED",
+      "reason_rejected": "Only 32 rows — insufficient for multi-line layouts (speed + distance + trip + battery on one screen)."
+    }
+  ],
+  "verification_notes": "FACT: 'OLED SSD1306 Monochrome Display I²C Interface' confirms 128×64 resolution, I²C address 0x3C/0x3D, and Adafruit library compatibility.",
+  "supporting_fact_titles": [
+    "OLED SSD1306 Monochrome Display I²C Interface",
+    "I²C Serial Communication Protocol"
+  ]
+}

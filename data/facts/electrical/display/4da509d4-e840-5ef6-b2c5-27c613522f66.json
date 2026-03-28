@@ -1,0 +1,28 @@
+{
+  "id": "4da509d4-e840-5ef6-b2c5-27c613522f66",
+  "title": "ILI9341 2.4-inch TFT LCD — SPI Display Interface",
+  "domain": "electrical",
+  "category": "display",
+  "subcategory": "colour TFT LCD",
+  "detail_level": "intermediate",
+  "content": "The ILI9341 is a 240×320 pixel 16-bit colour TFT LCD controller used in 2.4–3.2 inch displays. It communicates via 4-wire SPI at up to 80 MHz. The display supports 262K colours (18-bit) but most Arduino libraries use 65K (16-bit RGB565). A touchscreen (XPT2046 resistive controller) is often integrated on the same breakout.",
+  "extended_content": "Wiring: CS, DC (data/command), RST, MOSI (SDA), SCK — MISO optional (read-back). Typical library: Adafruit ILI9341 + Adafruit GFX; TFT_eSPI (ESP32, configurable SPI clock to 80 MHz). Pixel format RGB565: 5 bits red, 6 bits green, 5 bits blue packed into uint16_t. Filling a 320×240 screen requires sending 153,600 bytes; at 40 MHz SPI (3.2 µs per byte) takes ~0.5 s — partial-screen updates and double buffering are essential for animation. Backlight on PWM pin (BL); 10–30 mA at 3.3 V, controlled for brightness. Touch: XPT2046 on a separate SPI CS pin; 12-bit ADC reports stylus X/Y in raw units (calibration: map raw to pixel coords with two-point linear fit). VCC: 3.3 V for LCD and touch (use level shifter for 5 V MCU SPI). Applications: oscilloscope display, GUI for data loggers, game display (Arduino GFX), graphical instrument cluster. Faster alternative: ST7789 (no CS pin, but 240×240 / 240×320 and faster SPI).",
+  "formula": "fill_time [s] ≈ (width × height × 2) / (SPI_clock_Hz / 8)",
+  "units": "time: s, SPI_clock: Hz, pixels: count",
+  "source": "ILI Technology ILI9341 Datasheet V1.11; Adafruit ILI9341 Library Documentation; TFT_eSPI Library Wiki",
+  "source_url": null,
+  "confidence_score": 0.96,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "ili9341",
+    "tft-lcd",
+    "spi",
+    "display",
+    "colour",
+    "rgb565",
+    "touchscreen",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

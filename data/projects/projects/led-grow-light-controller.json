@@ -1,0 +1,56 @@
+{
+  "title": "LED Grow Light Controller",
+  "description": "ESP32-based smart grow light controller driving WS2812B addressable LEDs configured for plant growth spectra (blue/red ratio tuning). Timer-controlled daily photoperiod; manual override; OLED displays photoperiod status and spectrum settings. WiFi MQTT integration for remote monitoring and scheduling.",
+  "objective": "Programmable 16-hour photoperiod; adjustable blue (450 nm) / red (660 nm) LED ratio for seedling vs. flowering stages; MQTT-controlled schedule; OLED status display; < 30 W LED load.",
+  "constraints": "12 V / 5 A LED PSU; ESP32 DevKit; 60-LED WS2812B strip (or 2× strips for dual-channel simulation); ≤ £20 controller BOM.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "WS2812B Addressable RGB LED — Single-Wire Protocol and Timing",
+    "MQTT Protocol for IoT Sensor Data",
+    "I²C Real-Time Clock — DS3231 Timekeeping and Alarms",
+    "NTP Time Synchronisation for Data Logging",
+    "OLED SSD1306 Monochrome Display I²C Interface"
+  ],
+  "design_element_titles": [
+    "NeoPixel WS2812B Addressable RGB LED Strip Controller",
+    "ESP32 WiFi + MQTT IoT Telemetry",
+    "DS3231 RTC Alarm Scheduling Module",
+    "SSD1306 OLED Display UI Module",
+    "MQTT QoS-1 Secure Event Logger"
+  ],
+  "element_usage_notes": {
+    "NeoPixel WS2812B Addressable RGB LED Strip Controller": "60-LED 5 V strip driven from GPIO 13 via 74AHCT125 level shifter; FastLED library; spectrum: blue=CRGB(0,0,255), red=CRGB(255,0,0); ratio set per growth stage via MQTT.",
+    "ESP32 WiFi + MQTT IoT Telemetry": "Broker at home LAN; subscribes to growlight/cmd (on/off/schedule/spectrum); publishes growlight/status every 60 s.",
+    "DS3231 RTC Alarm Scheduling Module": "I²C 0x68; two alarms: LIGHTS_ON and LIGHTS_OFF; interrupt on GPIO 34 (active LOW); RTC used as fallback when WiFi/NTP unavailable.",
+    "SSD1306 OLED Display UI Module": "128×64; line 1: LIGHTS ON/OFF; line 2: photoperiod hh:mm–hh:mm; line 3: stage (SEEDLING/VEG/FLOWER); line 4: next event countdown.",
+    "MQTT QoS-1 Secure Event Logger": "Publishes on/off events with ISO timestamp to growlight/events for HA automation history."
+  },
+  "element_interactions": [
+    {
+      "from": "DS3231 RTC Alarm Scheduling Module",
+      "to": "ESP32 WiFi + MQTT IoT Telemetry",
+      "data": "INT falling edge on GPIO 34 at scheduled on/off times",
+      "description": "RTC Alarm 1 fires at lights-on time; Alarm 2 at lights-off time. ESP32 ISR reads alarm flag, toggles LED strip, re-arms alarm for next day."
+    },
+    {
+      "from": "ESP32 WiFi + MQTT IoT Telemetry",
+      "to": "NeoPixel WS2812B Addressable RGB LED Strip Controller",
+      "data": "FastLED.show() calls with per-pixel CRGB values from spectrum profile",
+      "description": "On lights-on: fill strip with growth spectrum (blue:red ratio from MQTT setting). Seedling: 70 % blue / 30 % red. Flowering: 20 % blue / 80 % red. Brightness: 60 % (36 LEDs × 20 mA = 720 mA)."
+    },
+    {
+      "from": "ESP32 WiFi + MQTT IoT Telemetry",
+      "to": "SSD1306 OLED Display UI Module",
+      "data": "I²C framebuffer (lights_state, on_time, off_time, stage, countdown)",
+      "description": "OLED updated every 30 s. Stage set by MQTT growlight/cmd with payload {stage:'SEEDLING'|'VEG'|'FLOWER'}."
+    },
+    {
+      "from": "ESP32 WiFi + MQTT IoT Telemetry",
+      "to": "MQTT QoS-1 Secure Event Logger",
+      "data": "JSON event {event:'ON'|'OFF', ts:ISO, stage, bright_pct}",
+      "description": "Published at each lights-on and lights-off event; retained=false for HA automation log."
+    }
+  ],
+  "integration_code": "/*\n * grow_light.ino — LED Grow Light Controller (ESP32 + WS2812B)\n *\n * Elements:\n *   1. WS2812B 60-LED strip (GPIO 13, via level-shift) — FastLED\n *   2. ESP32 WiFi + MQTT                               — broker on LAN\n *   3. DS3231 RTC (I²C 0x68, INT GPIO 34)             — schedule alarms\n *   4. SSD1306 OLED (I²C 0x3C)                        — status display\n *   5. MQTT Logger                                     — event log\n *\n * MQTT topics:\n *   growlight/cmd    — JSON {cmd:\"on\"|\"off\"|\"spectrum\", stage:\"SEEDLING\"}\n *   growlight/status — JSON {state, stage, bright_pct, next_event}\n *   growlight/events — JSON event log (retained=false)\n */\n\n#include <Wire.h>\n#include <WiFi.h>\n#include <PubSubClient.h>\n#include <FastLED.h>\n#include <RTClib.h>\n#include <Adafruit_SSD1306.h>\n#include <ArduinoJson.h>\n\n// --- Config ---\nconst char* SSID      = \"HomeNet\";\nconst char* WIFI_PASS = \"changeme\";\nconst char* MQTT_HOST = \"192.168.1.10\";\n#define NUM_LEDS   60\n#define LED_PIN    13\n#define RTC_INT    34\n\n// --- Photoperiod (24-h format) ---\nint lights_on_hour  = 6;\nint lights_off_hour = 22;   // 16-hour photoperiod\n\n// --- Spectrum presets: {blue_pct, red_pct} ---\nstruct Spectrum { uint8_t r, g, b; };\nconst Spectrum SEEDLING  = { 50,  0, 200 };\nconst Spectrum VEG       = {120,  0, 180 };\nconst Spectrum FLOWERING = { 220, 0,  80 };\n\n// --- State ---\nbool     lights_on  = false;\nSpectrum spectrum   = SEEDLING;\nString   stage_name = \"SEEDLING\";\n\n// --- Objects ---\nCRGB            leds[NUM_LEDS];\nRTC_DS3231      rtc;\nAdafruit_SSD1306 oled(128, 64, &Wire, -1);\nWiFiClient       wc;\nPubSubClient     mqtt(wc);\n\nvolatile bool rtc_alarm = false;\nvoid ICACHE_RAM_ATTR isr_rtc() { rtc_alarm = true; }\n\nvoid set_strip(bool on) {\n  lights_on = on;\n  if (on) {\n    for (int i = 0; i < NUM_LEDS; i++)\n      leds[i] = CRGB(spectrum.r, spectrum.g, spectrum.b);\n    FastLED.setBrightness(150);\n  } else {\n    FastLED.clear();\n  }\n  FastLED.show();\n}\n\nvoid update_oled() {\n  oled.clearDisplay();\n  oled.setTextSize(1); oled.setTextColor(SSD1306_WHITE);\n  oled.setCursor(0,  0); oled.printf(\"LIGHTS: %s\", lights_on ? \"ON\" : \"OFF\");\n  oled.setCursor(0, 12); oled.printf(\"Period: %02d:00-%02d:00\", lights_on_hour, lights_off_hour);\n  oled.setCursor(0, 24); oled.printf(\"Stage: %s\", stage_name.c_str());\n  DateTime now = rtc.now();\n  oled.setCursor(0, 36); oled.printf(\"Time: %02d:%02d:%02d\", now.hour(), now.minute(), now.second());\n  oled.display();\n}\n\nvoid on_mqtt(char* topic, byte* payload, unsigned int length) {\n  StaticJsonDocument<128> doc;\n  if (deserializeJson(doc, payload, length)) return;\n  const char* cmd = doc[\"cmd\"];\n  if (!cmd) return;\n  if      (strcmp(cmd, \"on\")  == 0) set_strip(true);\n  else if (strcmp(cmd, \"off\") == 0) set_strip(false);\n  else if (strcmp(cmd, \"spectrum\") == 0) {\n    const char* s = doc[\"stage\"];\n    if      (s && strcmp(s, \"VEG\")      == 0) { spectrum = VEG;      stage_name = \"VEG\"; }\n    else if (s && strcmp(s, \"FLOWER\")   == 0) { spectrum = FLOWERING; stage_name = \"FLOWER\"; }\n    else                                       { spectrum = SEEDLING;  stage_name = \"SEEDLING\"; }\n    if (lights_on) set_strip(true);  // reapply\n  }\n}\n\nvoid mqtt_reconnect() {\n  while (!mqtt.connected()) {\n    if (mqtt.connect(\"GrowLight\")) mqtt.subscribe(\"growlight/cmd\");\n    else delay(3000);\n  }\n}\n\nvoid arm_rtc_alarms() {\n  rtc.clearAlarm(1); rtc.clearAlarm(2);\n  rtc.setAlarm1(DateTime(2000,1,1, lights_on_hour,  0, 0), DS3231_A1_Hour);\n  rtc.setAlarm2(DateTime(2000,1,1, lights_off_hour, 0, 0), DS3231_A2_Hour);\n  rtc.writeSqwPinMode(DS3231_OFF);  // INT/SQW = alarm interrupt\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  Wire.begin();\n\n  FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);\n  FastLED.clear(); FastLED.show();\n\n  rtc.begin();\n  oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);\n  oled.clearDisplay(); oled.display();\n\n  arm_rtc_alarms();\n  pinMode(RTC_INT, INPUT_PULLUP);\n  attachInterrupt(digitalPinToInterrupt(RTC_INT), isr_rtc, FALLING);\n\n  WiFi.begin(SSID, WIFI_PASS);\n  while (WiFi.status() != WL_CONNECTED) delay(500);\n  mqtt.setServer(MQTT_HOST, 1883);\n  mqtt.setCallback(on_mqtt);\n  mqtt_reconnect();\n\n  // Determine initial light state from RTC\n  DateTime now = rtc.now();\n  bool should_be_on = (now.hour() >= lights_on_hour && now.hour() < lights_off_hour);\n  set_strip(should_be_on);\n\n  Serial.println(F(\"Grow light ready.\"));\n}\n\nvoid loop() {\n  if (!mqtt.connected()) mqtt_reconnect();\n  mqtt.loop();\n\n  if (rtc_alarm) {\n    rtc_alarm = false;\n    // Determine which alarm fired\n    DateTime now = rtc.now();\n    bool should_be_on = (now.hour() >= lights_on_hour && now.hour() < lights_off_hour);\n    set_strip(should_be_on);\n    rtc.clearAlarm(1); rtc.clearAlarm(2);\n    arm_rtc_alarms();\n\n    // Publish event\n    char buf[128];\n    snprintf(buf, sizeof(buf), \"{\\\"event\\\":\\\"%s\\\",\\\"stage\\\":\\\"%s\\\",\\\"hour\\\":%d}\",\n             lights_on ? \"ON\" : \"OFF\", stage_name.c_str(), now.hour());\n    mqtt.publish(\"growlight/events\", buf);\n  }\n\n  static unsigned long last_status = 0;\n  if (millis() - last_status >= 60000UL) {\n    last_status = millis();\n    char buf[128];\n    snprintf(buf, sizeof(buf), \"{\\\"state\\\":\\\"%s\\\",\\\"stage\\\":\\\"%s\\\"}\",\n             lights_on ? \"on\" : \"off\", stage_name.c_str());\n    mqtt.publish(\"growlight/status\", buf, true);\n    update_oled();\n  }\n\n  delay(50);\n}\n"
+}

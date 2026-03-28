@@ -1,0 +1,64 @@
+{
+  "title": "Portable Water Quality Monitor",
+  "description": "Handheld Arduino-based water quality meter measuring pH, turbidity (NTU), and TDS (total dissolved solids) from a submersible probe assembly. Readings displayed on OLED; stored to microSD with timestamp; battery-powered with USB-C charging.",
+  "objective": "Measure pH ±0.1, turbidity 0–1000 NTU ±5 %, TDS 0–2000 ppm ±5 %; store 1000 readings on SD; battery life ≥ 8 hours continuous use.",
+  "constraints": "3.7 V LiPo 1000 mAh with TP4056 charging; 3D-printed ABS enclosure IP54; ≤ £40 BOM; single Arduino Nano 3.3 V or 5 V with voltage divider for 3.3 V probes.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Water Quality Multi-Parameter Sensing (pH, TDS, DO)",
+    "pH Electrode — Calibration and Millivolt Measurement",
+    "Turbidity Sensing — NTU Optical Measurement",
+    "ADC Resolution and Measurement Precision",
+    "OLED SSD1306 Monochrome Display I²C Interface"
+  ],
+  "design_element_titles": [
+    "pH Probe BNC Amplifier Interface",
+    "Turbidity NTU Optical Sensor Module",
+    "SSD1306 OLED Display UI Module",
+    "MicroSD 1 Hz Time-Series Data Logger",
+    "Rotary Encoder User-Interface Navigation",
+    "Arduino Uno/Nano MCU Platform"
+  ],
+  "element_usage_notes": {
+    "pH Probe BNC Amplifier Interface": "DFRobot SEN0161 module; analog output on A0; 2-point calibration (pH 4.01 + pH 7.00 buffer) stored in EEPROM; temperature-compensated using DS18B20 probe tip temperature.",
+    "Turbidity NTU Optical Sensor Module": "DFRobot SEN0189; analog output on A1; polynomial calibration curve; sensor dipped in sample jar; LED off between readings to prevent self-heating artefacts.",
+    "SSD1306 OLED Display UI Module": "128×64; 3-line layout: pH / NTU / TDS; blinking * when reading; press encoder to save reading to SD.",
+    "MicroSD 1 Hz Time-Series Data Logger": "CSV log: seq, timestamp, pH, NTU, TDS, temp_c; encoder press triggers manual save; auto-save every 60 s.",
+    "Rotary Encoder User-Interface Navigation": "KY-040; rotate to select parameter to calibrate; press to confirm; hold 2 s to trigger calibration mode.",
+    "Arduino Uno/Nano MCU Platform": "Nano 5 V; A0 = pH, A1 = turbidity, A2 = TDS; I²C (A4/A5) for OLED; D10 = SD CS; D2/D4/D3 = encoder CLK/DT/SW."
+  },
+  "element_interactions": [
+    {
+      "from": "pH Probe BNC Amplifier Interface",
+      "to": "Arduino Uno/Nano MCU Platform",
+      "data": "Analog voltage on A0 (0–5 V representing pH 0–14)",
+      "description": "MCU samples A0 32× and averages; converts to pH via calibration formula: pH = 7 + (2.5 − V_avg) / 0.18. EEPROM-stored calibration offsets applied."
+    },
+    {
+      "from": "Turbidity NTU Optical Sensor Module",
+      "to": "Arduino Uno/Nano MCU Platform",
+      "data": "Analog voltage on A1 (0–4.5 V representing 0–3000 NTU)",
+      "description": "MCU samples A1 16×, averages, then applies polynomial: NTU = −1120.4×V² + 5742.3×V − 4353.8. Values clamped to 0–3000 NTU."
+    },
+    {
+      "from": "Rotary Encoder User-Interface Navigation",
+      "to": "Arduino Uno/Nano MCU Platform",
+      "data": "Direction delta (±1) and press events via GPIO interrupts",
+      "description": "Short press triggers manual SD save of current readings with timestamp; hold 2 s enters calibration menu for pH two-point procedure."
+    },
+    {
+      "from": "Arduino Uno/Nano MCU Platform",
+      "to": "SSD1306 OLED Display UI Module",
+      "data": "I²C framebuffer (ph, ntu, tds, temp_c, save_indicator)",
+      "description": "OLED updated at 1 Hz. pH displayed as XX.X with ±0.1 resolution; NTU as integer; TDS in ppm. Blinks save icon after SD write."
+    },
+    {
+      "from": "Arduino Uno/Nano MCU Platform",
+      "to": "MicroSD 1 Hz Time-Series Data Logger",
+      "data": "CSV row (seq, elapsed_s, pH, NTU, TDS, temp_c)",
+      "description": "Auto-save every 60 s plus manual save on encoder press. Filename WQLOG.CSV; appends to existing file on power-cycle."
+    }
+  ],
+  "integration_code": "/*\n * water_quality_monitor.ino — Portable Water Quality Monitor\n *\n * Elements:\n *   1. pH Probe BNC Module    — A0; 2-point cal from EEPROM\n *   2. Turbidity Sensor       — A1; polynomial NTU curve\n *   3. SSD1306 OLED           — live 3-param display at 1 Hz\n *   4. MicroSD Logger         — auto-save every 60 s\n *   5. Rotary Encoder         — manual save + calibration menu\n *   6. Arduino Nano 5 V       — orchestrator\n */\n\n#include <Wire.h>\n#include <Adafruit_SSD1306.h>\n#include <SPI.h>\n#include <SD.h>\n#include <EEPROM.h>\n\n// --- Pins ---\n#define PH_PIN    A0\n#define TURB_PIN  A1\n#define TDS_PIN   A2\n#define SD_CS     10\n#define ENC_CLK    2\n#define ENC_DT     4\n#define ENC_SW     3\n\n// --- EEPROM offsets for pH calibration ---\n#define EE_PH_MID   0    // float: mid-point voltage (pH 7 buffer)\n#define EE_PH_SLP   4    // float: slope (mV per pH unit)\n\n// --- Globals ---\nAdafruit_SSD1306 oled(128, 64, &Wire, -1);\n\nfloat ph_mid  = 2.50f;   // default: 2.5 V = pH 7\nfloat ph_slope = 0.18f;  // default: 0.18 V per pH unit\n\nvolatile int  enc_delta = 0;\nvolatile bool enc_press = false;\n\nvoid ICACHE_RAM_ATTR on_clk() { enc_delta += digitalRead(ENC_DT) ? -1 : 1; }\nvoid ICACHE_RAM_ATTR on_sw()  { enc_press  = true; }\n\nfloat read_ph() {\n  long sum = 0;\n  for (int i = 0; i < 32; i++) { sum += analogRead(PH_PIN); delay(5); }\n  float v = sum / 32.0f * 5.0f / 1023.0f;\n  return 7.0f + (ph_mid - v) / ph_slope;\n}\n\nfloat read_ntu() {\n  long sum = 0;\n  for (int i = 0; i < 16; i++) { sum += analogRead(TURB_PIN); delay(3); }\n  float v = sum / 16.0f * 5.0f / 1023.0f;\n  float ntu = -1120.4f * v * v + 5742.3f * v - 4353.8f;\n  return constrain(ntu, 0.0f, 3000.0f);\n}\n\nfloat read_tds() {\n  long sum = 0;\n  for (int i = 0; i < 16; i++) { sum += analogRead(TDS_PIN); delay(3); }\n  float v = sum / 16.0f * 5.0f / 1023.0f;\n  // TDS probe: 133.42 × v³ − 255.86 × v² + 857.39 × v (DFRobot SEN0244 formula)\n  return 133.42f*v*v*v - 255.86f*v*v + 857.39f*v;\n}\n\nvoid save_to_sd(float ph, float ntu, float tds, uint32_t seq) {\n  if (!SD.begin(SD_CS)) return;\n  File f = SD.open(\"WQLOG.CSV\", FILE_WRITE);\n  if (f) {\n    f.printf(\"%lu,%lu,%.2f,%.0f,%.0f\\n\", seq, millis()/1000, ph, ntu, tds);\n    f.close();\n  }\n  SD.end();\n}\n\nvoid draw_oled(float ph, float ntu, float tds, bool saved) {\n  oled.clearDisplay();\n  oled.setTextSize(1); oled.setTextColor(SSD1306_WHITE);\n  oled.setCursor(0,  0); oled.printf(\"pH:  %.2f %s\", ph,  saved ? \"[S]\" : \"   \");\n  oled.setCursor(0, 20); oled.printf(\"NTU: %.0f\", ntu);\n  oled.setCursor(0, 36); oled.printf(\"TDS: %.0f ppm\", tds);\n  oled.display();\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  Wire.begin();\n  SPI.begin();\n\n  oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);\n  oled.clearDisplay(); oled.display();\n\n  EEPROM.get(EE_PH_MID,  ph_mid);\n  EEPROM.get(EE_PH_SLP,  ph_slope);\n  if (isnan(ph_mid) || isnan(ph_slope)) { ph_mid = 2.50f; ph_slope = 0.18f; }\n\n  pinMode(ENC_CLK, INPUT_PULLUP);\n  pinMode(ENC_DT,  INPUT_PULLUP);\n  pinMode(ENC_SW,  INPUT_PULLUP);\n  attachInterrupt(digitalPinToInterrupt(ENC_CLK), on_clk, FALLING);\n  attachInterrupt(digitalPinToInterrupt(ENC_SW),  on_sw,  FALLING);\n\n  Serial.println(F(\"Water quality monitor ready.\"));\n}\n\nvoid loop() {\n  static unsigned long last_read  = 0;\n  static unsigned long last_save  = 0;\n  static uint32_t seq             = 0;\n  static bool saved_flash         = false;\n\n  unsigned long now = millis();\n\n  noInterrupts(); int d = enc_delta; enc_delta = 0; bool p = enc_press; enc_press = false; interrupts();\n\n  // --- 1. Read sensors ---\n  float ph  = read_ph();\n  float ntu = read_ntu();\n  float tds = read_tds();\n\n  // --- 2. Manual save on press ---\n  if (p) { save_to_sd(ph, ntu, tds, seq++); saved_flash = true; last_save = now; }\n\n  // --- 3. Auto-save every 60 s ---\n  if (now - last_save >= 60000UL) {\n    save_to_sd(ph, ntu, tds, seq++);\n    saved_flash = true; last_save = now;\n  } else {\n    if (now - last_save > 500UL) saved_flash = false;\n  }\n\n  // --- 4. OLED update at 1 Hz ---\n  if (now - last_read >= 1000UL) {\n    last_read = now;\n    draw_oled(ph, ntu, tds, saved_flash);\n    Serial.printf(\"pH=%.2f NTU=%.0f TDS=%.0f\\n\", ph, ntu, tds);\n  }\n}\n"
+}

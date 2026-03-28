@@ -1,0 +1,23 @@
+{
+  "title": "BME280 Environmental Sensor Module (I²C)",
+  "component_category": "sensing",
+  "design_question": "How to measure ambient temperature, humidity, and barometric pressure simultaneously with a single low-power I²C device?",
+  "selected_approach": "Bosch BME280 breakout module (Adafruit #2652 or equivalent). I²C address 0x76; SDO tied to GND. Weather-station sampling mode: osrs_T=1, osrs_P=1, osrs_H=1, filter=4, t_standby=1000 ms. Polled at 0.5 Hz. Adafruit BME280 Arduino library handles register reads and compensation formulas.",
+  "rationale": "BME280 provides all three environmental parameters from one IC, minimising I²C address space usage and wiring complexity. 3.6 µA at 1 Hz sampling suits battery-powered field stations. ±1 hPa pressure accuracy enables altitude estimation to ±8 m.",
+  "alternatives": [
+    {
+      "approach": "SHT41 + BMP388 (separate ICs)",
+      "reason_rejected": "Two ICs, two I²C addresses, higher cost; SHT41 is more accurate for humidity but unnecessary for outdoor environmental logging."
+    },
+    {
+      "approach": "DHT22 + BMP180",
+      "reason_rejected": "DHT22 uses single-wire protocol (timing-sensitive), BMP180 is discontinued; combined accuracy and reliability inferior to BME280."
+    }
+  ],
+  "verification_notes": "FACT: 'BME280 Combined Pressure, Humidity, and Temperature Sensor' confirms ±1 hPa, ±3 % RH, ±1 °C accuracy and 3.6 µA sleep current.",
+  "supporting_fact_titles": [
+    "BME280 Combined Pressure, Humidity, and Temperature Sensor",
+    "Capacitive Relative Humidity Sensing",
+    "MEMS Barometric Pressure Sensor"
+  ]
+}

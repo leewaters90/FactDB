@@ -1,0 +1,56 @@
+{
+  "title": "Smart Aquarium Controller",
+  "description": "Arduino-based aquarium automation system controlling water temperature, lighting schedule, and top-off pump via a DS18B20 temperature probe, RTC-triggered relay, and MOSFET-driven DC pump. Displays live readings on an OLED and alerts on temperature excursions.",
+  "objective": "Maintain water temperature within ±0.5 °C of setpoint (25 °C); automate 8 h/16 h lighting cycle; top off evaporation daily; alert if temperature deviates > 2 °C for > 5 min.",
+  "constraints": "5 V USB power; ≤ £25 BOM; single Arduino Nano; I²C bus for all peripherals; no cloud or WiFi dependency.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "DS18B20 1-Wire Digital Temperature Sensing",
+    "I²C Real-Time Clock — DS3231 Timekeeping and Alarms",
+    "Solenoid Valve for Pneumatic and Fluid Control",
+    "N-Channel MOSFET as a Low-Side Power Switch",
+    "PID Controller — Transfer Function"
+  ],
+  "design_element_titles": [
+    "DS18B20 1-Wire Temperature Probe Array",
+    "DS3231 RTC Alarm Scheduling Module",
+    "N-Channel MOSFET Low-Side Load Switch",
+    "SSD1306 OLED Display UI Module",
+    "Arduino Uno/Nano MCU Platform"
+  ],
+  "element_usage_notes": {
+    "DS18B20 1-Wire Temperature Probe Array": "Single waterproof probe; 12-bit mode; polled every 5 s; on-chip alarm registers set to 23 °C / 27 °C trigger interrupt for buzzer.",
+    "DS3231 RTC Alarm Scheduling Module": "Alarm 1 fires at 08:00 daily (lights on); Alarm 2 fires at 22:00 (lights + pump off). INT pin on Arduino INT0.",
+    "N-Channel MOSFET Low-Side Load Switch": "IRLZ44N gate driven by Arduino D5 (lights relay coil) and D6 (top-off pump, 12 V DC submersible). Flyback diodes on both.",
+    "SSD1306 OLED Display UI Module": "Two-line layout: line 1 = water temp + setpoint; line 2 = lights status + pump status. Refreshed every 2 s.",
+    "Arduino Uno/Nano MCU Platform": "Nano 3.0; I²C on A4/A5; DS18B20 on D2; buzzer on D7; 5 V USB from mains adapter."
+  },
+  "element_interactions": [
+    {
+      "from": "DS18B20 1-Wire Temperature Probe Array",
+      "to": "Arduino Uno/Nano MCU Platform",
+      "data": "temp_c (float, 12-bit resolution)",
+      "description": "Temperature read every 5 s. If |temp_c − setpoint| > 2 °C for three consecutive readings, Nano drives D7 HIGH (buzzer alarm) and logs event to Serial."
+    },
+    {
+      "from": "DS3231 RTC Alarm Scheduling Module",
+      "to": "Arduino Uno/Nano MCU Platform",
+      "data": "INT falling edge (hardware interrupt)",
+      "description": "DS3231 INT asserts LOW at 08:00 and 22:00. ISR reads RTC time, determines which alarm fired, and toggles lights/pump MOSFET accordingly."
+    },
+    {
+      "from": "Arduino Uno/Nano MCU Platform",
+      "to": "N-Channel MOSFET Low-Side Load Switch",
+      "data": "GPIO D5 (lights), D6 (pump) HIGH/LOW",
+      "description": "MOSFET gates driven directly from Nano digital pins. Lights MOSFET switches 12 V relay coil; pump MOSFET switches 12 V DC submersible pump directly (≤ 0.5 A)."
+    },
+    {
+      "from": "Arduino Uno/Nano MCU Platform",
+      "to": "SSD1306 OLED Display UI Module",
+      "data": "I²C framebuffer update (temp, lights_on, pump_on)",
+      "description": "OLED refreshed every 2 s over I²C. Shows temperature with ±0.5 °C tolerance band indicator and relay state icons."
+    }
+  ],
+  "integration_code": "/*\n * aquarium_controller.ino — Smart Aquarium Controller\n *\n * Elements:\n *   1. DS18B20 1-Wire Temperature Probe — water temperature every 5 s\n *   2. DS3231 RTC Alarm Scheduling     — lights on 08:00, off 22:00\n *   3. N-Channel MOSFET load switch    — D5 lights, D6 pump\n *   4. SSD1306 OLED Display            — live temp + status\n *   5. Arduino Nano MCU                — orchestrator\n */\n\n#include <OneWire.h>\n#include <DallasTemperature.h>\n#include <RTClib.h>\n#include <Wire.h>\n#include <Adafruit_SSD1306.h>\n\n// --- Pin assignments ---\n#define ONE_WIRE_BUS  2\n#define LIGHTS_PIN    5\n#define PUMP_PIN      6\n#define BUZZER_PIN    7\n#define RTC_INT_PIN   3   // INT0\n\n// --- Constants ---\n#define SETPOINT_C     25.0f\n#define ALARM_DELTA_C   2.0f\n#define POLL_MS      5000UL\n#define DISPLAY_MS   2000UL\n\n// --- Objects ---\nOneWire ow(ONE_WIRE_BUS);\nDallasTemperature sensors(&ow);\nRTC_DS3231 rtc;\nAdafruit_SSD1306 oled(128, 64, &Wire, -1);\n\nfloat last_temp   = SETPOINT_C;\nbool  lights_on   = false;\nbool  pump_on     = false;\n\nvolatile bool rtc_alarm = false;\nvoid on_rtc_int() { rtc_alarm = true; }\n\nvoid update_oled() {\n  oled.clearDisplay();\n  oled.setTextSize(1);\n  oled.setTextColor(SSD1306_WHITE);\n  oled.setCursor(0, 0);\n  oled.printf(\"Temp: %.1f/%.0f C\", last_temp, SETPOINT_C);\n  oled.setCursor(0, 20);\n  oled.printf(\"Lights: %s\", lights_on ? \"ON \" : \"OFF\");\n  oled.setCursor(0, 36);\n  oled.printf(\"Pump:   %s\", pump_on   ? \"ON \" : \"OFF\");\n  oled.display();\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  Wire.begin();\n\n  // Peripherals\n  sensors.begin();\n  sensors.setResolution(12);\n  rtc.begin();\n\n  // OLED\n  oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);\n  oled.clearDisplay();\n  oled.display();\n\n  // Output pins\n  pinMode(LIGHTS_PIN, OUTPUT); digitalWrite(LIGHTS_PIN, LOW);\n  pinMode(PUMP_PIN,   OUTPUT); digitalWrite(PUMP_PIN,   LOW);\n  pinMode(BUZZER_PIN, OUTPUT); digitalWrite(BUZZER_PIN, LOW);\n\n  // RTC alarms\n  rtc.clearAlarm(1); rtc.clearAlarm(2);\n  rtc.setAlarm1(DateTime(0,0,0,8,0,0),  DS3231_A1_Hour); // 08:00 lights on\n  rtc.setAlarm2(DateTime(0,0,0,22,0,0), DS3231_A2_Hour); // 22:00 lights off\n  rtc.writeSqwPinMode(DS3231_OFF);\n  rtc.disableAlarm(1); rtc.disableAlarm(2);\n  rtc.clearAlarm(1); rtc.clearAlarm(2);\n  // Re-enable alarms so INT fires\n  Wire.beginTransmission(0x68);\n  Wire.write(0x0E); Wire.write(0x05); // INTCN=1, A1IE=1, A2IE=0 for alarm 1\n  Wire.endTransmission();\n\n  pinMode(RTC_INT_PIN, INPUT_PULLUP);\n  attachInterrupt(digitalPinToInterrupt(RTC_INT_PIN), on_rtc_int, FALLING);\n\n  Serial.println(F(\"Aquarium controller ready.\"));\n}\n\nstatic uint8_t alarm_miss_count = 0;\n\nvoid loop() {\n  static unsigned long last_poll    = 0;\n  static unsigned long last_display = 0;\n  static uint8_t alarm_consec       = 0;\n\n  unsigned long now = millis();\n\n  // --- 1. Temperature poll ---\n  if (now - last_poll >= POLL_MS) {\n    last_poll = now;\n    sensors.requestTemperatures();\n    last_temp = sensors.getTempCByIndex(0);\n    if (fabsf(last_temp - SETPOINT_C) > ALARM_DELTA_C) {\n      alarm_consec++;\n      if (alarm_consec >= 3) {\n        digitalWrite(BUZZER_PIN, HIGH);\n        Serial.printf(\"ALARM: %.1f C  (setpoint %.0f)\\n\", last_temp, SETPOINT_C);\n      }\n    } else {\n      alarm_consec = 0;\n      digitalWrite(BUZZER_PIN, LOW);\n    }\n  }\n\n  // --- 2. RTC alarm handling ---\n  if (rtc_alarm) {\n    rtc_alarm = false;\n    DateTime now_dt = rtc.now();\n    if (rtc.alarmFired(1)) {\n      lights_on = true;\n      pump_on   = true;  // brief top-off: timed below\n      digitalWrite(LIGHTS_PIN, HIGH);\n      digitalWrite(PUMP_PIN, HIGH);\n      delay(30000);          // run top-off pump for 30 s\n      pump_on = false;\n      digitalWrite(PUMP_PIN, LOW);\n      rtc.clearAlarm(1);\n    }\n    if (rtc.alarmFired(2)) {\n      lights_on = false;\n      digitalWrite(LIGHTS_PIN, LOW);\n      rtc.clearAlarm(2);\n    }\n    Serial.printf(\"RTC alarm at %02d:%02d\\n\", now_dt.hour(), now_dt.minute());\n  }\n\n  // --- 3. OLED refresh ---\n  if (now - last_display >= DISPLAY_MS) {\n    last_display = now;\n    update_oled();\n  }\n}\n"
+}

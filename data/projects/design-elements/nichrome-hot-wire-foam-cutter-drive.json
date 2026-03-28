@@ -1,0 +1,22 @@
+{
+  "title": "Nichrome Hot Wire Foam Cutter Drive",
+  "component_category": "actuation",
+  "design_question": "How to heat a cutting wire to the correct temperature for clean EPS/EPP foam cutting without burning?",
+  "selected_approach": "28 AWG Nichrome 80/20 wire (R ≈ 2.15 Ω/m) tensioned between two 3D-printed PETG end brackets with a stainless-steel spring at one end. 12 V / 3 A bench supply (or MOSFET PWM at 10 kHz from 12 V) gives 5.6–8 W dissipation depending on wire length, reaching 280–350 °C — ideal for 3 mm/s cutting speed in 50 mm EPS foam.",
+  "rationale": "Nichrome is the standard resistance heating alloy for this application: stable resistance, oxidation-resistant to 1200 °C, inexpensive. Spring tensioning compensates thermal expansion (wire lengthens ~0.3 mm per metre per 100 °C increase). PWM power control via N-MOSFET enables temperature regulation without a variable power supply.",
+  "alternatives": [
+    {
+      "approach": "Kanthal A1 wire",
+      "reason_rejected": "Higher resistivity suitable for 230 V applications; unnecessarily high R for 12 V low-power cutters."
+    },
+    {
+      "approach": "Laser cutter",
+      "reason_rejected": "Complex, expensive, safety enclosure required; overkill for low-volume foam shaping."
+    }
+  ],
+  "verification_notes": "FACT: 'Nichrome Resistance Heating Wire Power Calculation' confirms P = V²/R formula and recommended 200–400 °C operating range for foam cutting.",
+  "supporting_fact_titles": [
+    "Nichrome Resistance Heating Wire Power Calculation",
+    "N-Channel MOSFET as a Low-Side Power Switch"
+  ]
+}

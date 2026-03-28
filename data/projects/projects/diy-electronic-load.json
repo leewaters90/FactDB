@@ -1,0 +1,57 @@
+{
+  "title": "DIY Electronic Load (Constant Current)",
+  "description": "Bench-top programmable electronic load using an IRFP250N MOSFET in linear mode, controlled by an LM358 op-amp feedback loop. An MCP4725 I²C 12-bit DAC sets the target current; an INA219 measures actual current and voltage; an OLED displays set/actual current, voltage, and power. Rotary encoder adjusts current setpoint.",
+  "objective": "Constant-current load 0–5 A, 0–30 V; current accuracy ±50 mA; dissipate up to 50 W (with heatsink + fan); display I, V, P in real time; setpoint adjustable in 50 mA steps via rotary encoder.",
+  "constraints": "12 V fan power from same supply; MOSFET on aluminium heatsink; protection: reverse polarity diode, 6 A fuse; ≤ £30 BOM.",
+  "domain": "electrical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "MOSFET Linear-Mode Constant-Current Electronic Load",
+    "N-Channel MOSFET as a Low-Side Power Switch",
+    "State-of-Charge Estimation via Coulomb Counting",
+    "OLED SSD1306 Monochrome Display I²C Interface",
+    "Rotary Encoder — Incremental A/B Quadrature Pulse Counting",
+    "Ohm's Law"
+  ],
+  "design_element_titles": [
+    "MOSFET Constant-Current Load Stage",
+    "INA219 I²C Current and Power Monitor",
+    "SSD1306 OLED Display UI Module",
+    "Rotary Encoder User-Interface Navigation",
+    "Arduino Uno/Nano MCU Platform"
+  ],
+  "element_usage_notes": {
+    "MOSFET Constant-Current Load Stage": "IRFP250N on 200 mm × 150 mm heatsink; 0.1 Ω / 5 W sense resistor; LM358 op-amp; MCP4725 12-bit DAC (I²C 0x60) sets gate voltage target; fan on D7 above 40 °C.",
+    "INA219 I²C Current and Power Monitor": "I²C address 0x40; 0.1 Ω shunt on DUT negative rail; polled at 20 Hz; provides current_mA and bus_v for display and coulomb-counting energy measurement.",
+    "SSD1306 OLED Display UI Module": "128×64; 4-line layout: Set I / Actual I / Voltage / Power (W). Flashes 'OTP!' if NTC thermistor on heatsink > 80 °C.",
+    "Rotary Encoder User-Interface Navigation": "KY-040; CLK D2, DT D4, SW D3; 50 mA per detent; hold push = coarse 500 mA steps; full push = toggle load ON/OFF.",
+    "Arduino Uno/Nano MCU Platform": "Nano 3.0; I²C A4/A5 (INA219 + OLED + MCP4725); ENC CLK D2 INT0; fan D7; NTC A0."
+  },
+  "element_interactions": [
+    {
+      "from": "Rotary Encoder User-Interface Navigation",
+      "to": "Arduino Uno/Nano MCU Platform",
+      "data": "direction delta (±1 per detent, ±10 held) + toggle press via GPIO INT",
+      "description": "Short rotation: ±50 mA per detent. Hold-press toggles load active (DAC output vs 0). Setpoint clamped 0–5000 mA."
+    },
+    {
+      "from": "Arduino Uno/Nano MCU Platform",
+      "to": "MOSFET Constant-Current Load Stage",
+      "data": "12-bit DAC value (0–4095) via I²C to MCP4725 (0x60)",
+      "description": "Setpoint_mA × 0.1 Ω / 3300 mV × 4095 = DAC code. DAC output drives op-amp non-inverting input; op-amp output controls MOSFET gate."
+    },
+    {
+      "from": "INA219 I²C Current and Power Monitor",
+      "to": "Arduino Uno/Nano MCU Platform",
+      "data": "current_mA (float), bus_v (float), power_mW (float) via I²C at 20 Hz",
+      "description": "Actual current and voltage read at 20 Hz. Power = V × I computed; cumulative energy (Wh) accumulated for run duration display."
+    },
+    {
+      "from": "Arduino Uno/Nano MCU Platform",
+      "to": "SSD1306 OLED Display UI Module",
+      "data": "I²C framebuffer (set_ma, actual_ma, voltage_v, power_w, energy_wh, otp_flag)",
+      "description": "OLED updated at 4 Hz. Flashes OTP warning if heatsink NTC > 80 °C and reduces load to 50 % automatically."
+    }
+  ],
+  "integration_code": "/*\n * electronic_load.ino — DIY Electronic Load (Constant Current)\n *\n * Elements:\n *   1. MOSFET CC Load Stage + MCP4725 DAC (I²C 0x60) — gate control\n *   2. INA219 (I²C 0x40)                             — actual I + V\n *   3. SSD1306 OLED (I²C 0x3C)                       — live display\n *   4. Rotary Encoder KY-040                          — setpoint\n *   5. Arduino Nano 3.0                               — orchestrator\n *\n * Load formula: I_set_mA = DAC_code × 3300 / 4095 / 100  [mA]\n * (0.1 Ω sense, op-amp drives MOSFET to maintain V_sense = V_dac)\n */\n\n#include <Wire.h>\n#include <Adafruit_INA219.h>\n#include <Adafruit_SSD1306.h>\n#include <Adafruit_MCP4725.h>\n\n// --- Pins ---\n#define ENC_CLK   2\n#define ENC_DT    4\n#define ENC_SW    3\n#define FAN_PIN   7\n#define NTC_PIN  A0\n\n// --- Constants ---\n#define I_MAX_MA   5000\n#define I_STEP_MA    50\n#define I_STEP_COARSE 500\n#define OTP_C         80.0f\n#define DAC_RSHUNT   100.0f   // 0.1 Ω × 1000 = 100 mΩ denominator\n#define VREF_MV     3300.0f\n\n// --- Objects ---\nAdafruit_INA219   ina;\nAdafruit_SSD1306  oled(128, 64, &Wire, -1);\nAdafruit_MCP4725  dac;\n\n// --- State ---\nint     setpoint_ma  = 0;\nbool    load_on      = false;\nfloat   energy_wh    = 0.0f;\n\nvolatile int  enc_d  = 0;\nvolatile bool enc_p  = false;\nvoid ICACHE_RAM_ATTR isr_clk() { enc_d += digitalRead(ENC_DT) ? -1 : 1; }\nvoid ICACHE_RAM_ATTR isr_sw()  { enc_p  = true; }\n\nuint16_t ma_to_dac(int ma) {\n  // V_sense = I × R_shunt = ma × 0.001 × 0.1 = ma × 0.0001 V\n  // DAC_code = V_sense / VREF × 4096 = ma × 0.0001 / 3.3 × 4096\n  return (uint16_t)constrain((long)ma * 4096 / (long)(VREF_MV / 0.1f), 0, 4095);\n}\n\nfloat read_ntc_c() {\n  int raw = analogRead(NTC_PIN);\n  // Simplified Steinhart-Hart for 10k NTC at 25 °C\n  float r = 10000.0f * raw / (1023.0f - raw);\n  float t = 1.0f / (log(r / 10000.0f) / 3950.0f + 1.0f / 298.15f) - 273.15f;\n  return t;\n}\n\nvoid update_oled(float act_ma, float volt_v, float pow_w) {\n  oled.clearDisplay();\n  oled.setTextSize(1); oled.setTextColor(SSD1306_WHITE);\n  oled.setCursor(0,  0); oled.printf(\"Set:  %4d mA\", setpoint_ma);\n  oled.setCursor(0, 12); oled.printf(\"I:  %6.1f mA\", act_ma);\n  oled.setCursor(0, 24); oled.printf(\"V:   %5.3f V\",  volt_v);\n  oled.setCursor(0, 36); oled.printf(\"P:   %5.2f W  %.3f Wh\", pow_w, energy_wh);\n  oled.setCursor(0, 52); oled.print(load_on ? \"LOAD ON \" : \"LOAD OFF\");\n  oled.display();\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  Wire.begin();\n\n  ina.begin();\n  oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);\n  oled.clearDisplay(); oled.display();\n  dac.begin(0x60);\n  dac.setVoltage(0, false);  // DAC = 0 → load off\n\n  pinMode(FAN_PIN, OUTPUT); digitalWrite(FAN_PIN, LOW);\n  pinMode(ENC_CLK, INPUT_PULLUP); pinMode(ENC_DT, INPUT_PULLUP); pinMode(ENC_SW, INPUT_PULLUP);\n  attachInterrupt(digitalPinToInterrupt(ENC_CLK), isr_clk, FALLING);\n  attachInterrupt(digitalPinToInterrupt(ENC_SW),  isr_sw,  FALLING);\n\n  Serial.println(F(\"Electronic load ready.\"));\n}\n\nvoid loop() {\n  static unsigned long last_read  = 0;\n  static unsigned long last_disp  = 0;\n\n  unsigned long now = millis();\n\n  // --- Encoder ---\n  noInterrupts(); int d = enc_d; enc_d = 0; bool p = enc_p; enc_p = false; interrupts();\n  if (d != 0) {\n    setpoint_ma = constrain(setpoint_ma + d * I_STEP_MA, 0, I_MAX_MA);\n    if (load_on) dac.setVoltage(ma_to_dac(setpoint_ma), false);\n  }\n  if (p) {\n    load_on = !load_on;\n    dac.setVoltage(load_on ? ma_to_dac(setpoint_ma) : 0, false);\n    if (!load_on) energy_wh = 0.0f;  // reset on load-off\n  }\n\n  // --- INA219 at 20 Hz ---\n  if (now - last_read >= 50UL) {\n    float dt_h = (now - last_read) / 3600000.0f;\n    last_read = now;\n\n    float act_ma = ina.getCurrent_mA();\n    float volt_v = ina.getBusVoltage_V();\n    float pow_w  = volt_v * act_ma / 1000.0f;\n    energy_wh   += pow_w * dt_h;\n\n    // OTP protection\n    float ntc_c = read_ntc_c();\n    digitalWrite(FAN_PIN, ntc_c > 50.0f ? HIGH : LOW);\n    if (ntc_c > OTP_C && load_on) {\n      setpoint_ma = setpoint_ma / 2;\n      dac.setVoltage(ma_to_dac(setpoint_ma), false);\n      Serial.printf(\"OTP! %.1f C — load halved to %d mA\\n\", ntc_c, setpoint_ma);\n    }\n\n    // OLED at 4 Hz\n    if (now - last_disp >= 250UL) {\n      last_disp = now;\n      update_oled(act_ma, volt_v, pow_w);\n      Serial.printf(\"Set=%d Act=%.1f V=%.3f P=%.2f\\n\", setpoint_ma, act_ma, volt_v, pow_w);\n    }\n  }\n}\n"
+}

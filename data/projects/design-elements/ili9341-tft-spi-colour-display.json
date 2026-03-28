@@ -1,0 +1,21 @@
+{
+  "title": "ILI9341 2.4-inch TFT SPI Colour Display",
+  "component_category": "actuation",
+  "design_question": "How to add a compact full-colour graphical display to an Arduino or ESP32 for waveform visualisation or instrumentation panels?",
+  "selected_approach": "2.4-inch ILI9341 TFT breakout (240×320, SPI, integrated XPT2046 touch). Wired to SPI bus: CS=D10, DC=D9, RST=D8, MOSI=D11, SCK=D13 (Arduino); or SPI VSPI (ESP32). TFT_eSPI library with SPI clock 40 MHz (ESP32) or 8 MHz (Arduino Uno). Backlight on PWM for brightness control. Drawing partial-screen 240-pixel-wide waveform lines at 60 fps using TFT_eSPI's fast horizontal line functions.",
+  "rationale": "ILI9341 provides 65K colour at a well-supported price point (< £4). TFT_eSPI supports ESP32 and AVR with DMA on ESP32, enabling 60 fps partial-screen updates. XPT2046 touch gives menu navigation without extra hardware. 240×320 resolution adequate for waveforms, menus, and gauges.",
+  "alternatives": [
+    {
+      "approach": "SSD1306 128×64 OLED",
+      "reason_rejected": "OLED is monochrome and smaller — adequate for text/simple icons but insufficient for colour waveform display or multi-element instrumentation panels."
+    },
+    {
+      "approach": "2.0-inch ST7789 (240×240, no CS pin)",
+      "reason_rejected": "ST7789 supports faster SPI (80 MHz on ESP32) and has no CS pin simplifying wiring, but 240×240 aspect ratio less suitable for landscape waveform display."
+    }
+  ],
+  "verification_notes": "FACT: 'ILI9341 2.4-inch TFT LCD — SPI Display Interface' confirms RGB565 format, SPI timing, XPT2046 touch, and partial-screen update strategy.",
+  "supporting_fact_titles": [
+    "ILI9341 2.4-inch TFT LCD — SPI Display Interface"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "id": "5b3453f8-9866-5d93-a877-daaf7e3bde9e",
+  "title": "High-Altitude Balloon Telemetry — GPS, Pressure, and Radio Downlink",
+  "domain": "aerospace",
+  "category": "telemetry",
+  "subcategory": "high-altitude balloon",
+  "detail_level": "advanced",
+  "content": "A high-altitude balloon (HAB) flight computer logs and transmits GPS position, altitude (barometric and GPS), temperature, and pressure during ascent to ~30 km. APRS (144.800 MHz) or LoRa 433 MHz radio provides the downlink. The balloon ascends at ~5 m/s, reaching burst altitude in ~90 min; a parachute returns the payload.",
+  "extended_content": "Key design considerations: (1) GPS: use a module that operates above 18 km (most civilian modules are firmware-locked at 18 km or 60,000 ft — the u-blox MAX-M8C with airborne dynamic model disabled unlocks to 80 km). (2) Pressure: BMP280 / BME280 saturates at ~300 m (10 hPa at 30 km); use for low-altitude calibration only; above 10 km rely on GPS altitude. (3) Temperature: at 30 km ambient is −40 to −60 °C; use silicone-insulated wire and keep electronics in a polystyrene box. (4) Radio: APRS uses AFSK 1200 baud on 144.800 MHz (EU) via a 300 mW transmitter (e.g., Dorji DRA818V); LoRa 433 MHz (SX1276) gives longer range (>500 km) at lower data rate. (5) Cutdown: nichrome wire through the neck string, triggered by MCU at target altitude or GPS fence. (6) Power: 2× AA lithium cells maintain voltage down to −40 °C; alkaline cells freeze and fail. Typical flight deck: Arduino Nano + NEO-M8N GPS + BMP280 + DS18B20 + LoRa SX1276. Data logged to SD card every second. Flight prediction: CUSF Predictor (habhub.org).",
+  "formula": "ascent_rate [m/s] = ΔAlt / Δt;  burst_alt ≈ (V_gas / m_gas)^(1/3) × const",
+  "units": "altitude: m, ascent_rate: m/s, temperature: °C, pressure: hPa",
+  "source": "UKHAS (UK High Altitude Society) Technical Wiki; u-blox MAX-M8 Receiver Description; CUSF Balloon Flight Predictor",
+  "source_url": null,
+  "confidence_score": 0.93,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "high-altitude-balloon",
+    "hab",
+    "aprs",
+    "lora",
+    "gps",
+    "telemetry",
+    "aerospace",
+    "cutdown"
+  ],
+  "created_by": "seed"
+}

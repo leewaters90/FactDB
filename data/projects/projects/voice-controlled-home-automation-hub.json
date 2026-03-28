@@ -4,10 +4,13 @@
   "objective": "Recognise 10 voice commands offline; ≤ 500 ms response; control ≥ 4 mains channels; ≥ 30 operations/day.",
   "constraints": "230 V; DIN-rail mount; no cloud dependency; CE-compliant; ≤ £45 BOM.",
   "domain": "systems",
-  "status": "in_design",
+  "status": "completed",
   "supporting_fact_titles": [
     "MQTT Protocol for IoT Sensor Data",
-    "Bluetooth Low Energy (BLE) for App Control"
+    "Bluetooth Low Energy (BLE) for App Control",
+    "Voice Recognition — Keyword Spotting UART Module (LD3320)",
+    "Solid-State Relay (SSR) Mains Load Switching",
+    "N-Channel MOSFET as a Low-Side Power Switch"
   ],
   "design_element_titles": [
     "Voice Recognition UART Speech Module",
@@ -18,6 +21,36 @@
   ],
   "element_usage_notes": {
     "Voice Recognition UART Speech Module": "LD3320 UART @ 9600 baud; 20-word vocabulary; 1-shot user retrain supported.",
-    "Solid-State Relay Mains Actuator Switching": "4-channel SSR board; 230 V / 10 A per channel; zero-cross switching."
-  }
+    "Solid-State Relay Mains Actuator Switching": "4-channel SSR board; 230 V / 10 A per channel; zero-cross switching.",
+    "ESP32 WiFi + MQTT IoT Telemetry": "Broker on local network (192.168.1.x); topic home/automation/{channel}/state; QoS 1.",
+    "BLE GATT Smartphone App Interface": "Fallback manual control; custom GATT service UUID; on/off per channel via BLE write.",
+    "MQTT QoS-1 Secure Event Logger": "Logs every relay state change with timestamp; retained messages for last-state recovery on reboot."
+  },
+  "element_interactions": [
+    {
+      "from": "Voice Recognition UART Speech Module",
+      "to": "ESP32 WiFi + MQTT IoT Telemetry",
+      "data": "command_id (uint8, 0–19) over UART",
+      "description": "LD3320 fires a UART byte on keyword recognition. ESP32 maps command_id to channel+action and dispatches to relay and MQTT logger."
+    },
+    {
+      "from": "BLE GATT Smartphone App Interface",
+      "to": "ESP32 WiFi + MQTT IoT Telemetry",
+      "data": "channel_mask (uint8) + state (uint8: 0=off, 1=on, 0xFF=toggle) via BLE write",
+      "description": "App write characteristic triggers same dispatch path as voice commands — ensures BLE and voice share identical relay logic."
+    },
+    {
+      "from": "ESP32 WiFi + MQTT IoT Telemetry",
+      "to": "Solid-State Relay Mains Actuator Switching",
+      "data": "GPIO level (HIGH/LOW) per channel pin",
+      "description": "ESP32 asserts GPIO 16/17/18/19 to drive the four SSR control inputs. GPIO HIGH = SSR on; channel state cached in NVS for reboot recovery."
+    },
+    {
+      "from": "ESP32 WiFi + MQTT IoT Telemetry",
+      "to": "MQTT QoS-1 Secure Event Logger",
+      "data": "JSON payload {channel, state, source, ts_utc}",
+      "description": "Every relay transition publishes a retained QoS-1 message. Logger aggregates to home/automation/log for audit and HA dashboard."
+    }
+  ],
+  "integration_code": "/*\n * home_automation_hub.ino — main sketch for Voice-Controlled Home Automation Hub\n *\n * Element orchestration:\n *   1. Voice Recognition UART Speech Module (LD3320) — keyword → command_id\n *   2. BLE GATT Smartphone App Interface            — manual override write\n *   3. ESP32 WiFi + MQTT IoT Telemetry              — dispatch + broker publish\n *   4. Solid-State Relay Mains Actuator Switching   — 4-channel GPIO drive\n *   5. MQTT QoS-1 Secure Event Logger               — state-change audit log\n */\n\n#include <Arduino.h>\n#include <BLEDevice.h>\n#include <BLEServer.h>\n#include <BLEUtils.h>\n#include <BLE2902.h>\n#include <WiFi.h>\n#include <PubSubClient.h>\n\n// --- WiFi + MQTT ---\nconst char* SSID        = \"HomeNet\";\nconst char* WIFI_PASS   = \"changeme\";\nconst char* MQTT_HOST   = \"192.168.1.10\";\nconst uint16_t MQTT_PORT = 1883;\n\n// --- SSR GPIO pins (channels 0-3) ---\nconst uint8_t SSR_PINS[4] = {16, 17, 18, 19};\nbool channel_state[4] = {false, false, false, false};\n\n// --- LD3320 UART ---\n#define VOICE_SERIAL Serial2\n#define VOICE_BAUD   9600\n\n// --- MQTT topics ---\nconst char* BASE_TOPIC = \"home/automation\";\n\n// --- BLE UUIDs ---\n#define BLE_SERVICE_UUID  \"12345678-1234-1234-1234-1234567890ab\"\n#define BLE_CHAR_UUID     \"12345678-1234-1234-1234-1234567890ac\"\n\n// --- Voice command map: command_id → {channel, action} ---\n// actions: 0=off, 1=on, 2=toggle\nstruct VoiceCmd { uint8_t channel; uint8_t action; };\nconst VoiceCmd VOICE_MAP[10] = {\n  {0, 1}, {0, 0},   // \"light on\" / \"light off\"\n  {1, 1}, {1, 0},   // \"fan on\"   / \"fan off\"\n  {2, 1}, {2, 0},   // \"pump on\"  / \"pump off\"\n  {3, 1}, {3, 0},   // \"channel four on\" / \"channel four off\"\n  {0, 2}, {1, 2},   // \"toggle light\" / \"toggle fan\"\n};\n\nWiFiClient wifiClient;\nPubSubClient mqtt(wifiClient);\n\n// --- Apply relay + publish ---\nvoid apply_channel(uint8_t ch, uint8_t action, const char* source) {\n  if (ch >= 4) return;\n  if (action == 1)      channel_state[ch] = true;\n  else if (action == 0) channel_state[ch] = false;\n  else                  channel_state[ch] = !channel_state[ch]; // toggle\n\n  digitalWrite(SSR_PINS[ch], channel_state[ch] ? HIGH : LOW);\n\n  // Publish state\n  char topic[64], payload[128];\n  snprintf(topic,   sizeof(topic),   \"%s/%d/state\", BASE_TOPIC, ch);\n  snprintf(payload, sizeof(payload),\n           \"{\\\"channel\\\":%d,\\\"state\\\":%s,\\\"source\\\":\\\"%s\\\"}\",\n           ch, channel_state[ch] ? \"true\" : \"false\", source);\n  mqtt.publish(topic, payload, true);  // retained\n\n  // Publish to audit log\n  char log_topic[64];\n  snprintf(log_topic, sizeof(log_topic), \"%s/log\", BASE_TOPIC);\n  mqtt.publish(log_topic, payload, false);\n\n  Serial.printf(\"CH%d → %s  [%s]\\n\", ch, channel_state[ch] ? \"ON\" : \"OFF\", source);\n}\n\n// --- BLE callbacks ---\nclass HubCallbacks : public BLECharacteristicCallbacks {\n  void onWrite(BLECharacteristic* c) override {\n    uint8_t* data = c->getData();\n    size_t   len  = c->getLength();\n    if (len >= 2) {\n      uint8_t ch     = data[0] & 0x03;\n      uint8_t action = data[1];\n      apply_channel(ch, action, \"ble\");\n    }\n  }\n};\n\nvoid setup_ble() {\n  BLEDevice::init(\"HomeHub\");\n  BLEServer* server = BLEDevice::createServer();\n  BLEService* svc   = server->createService(BLE_SERVICE_UUID);\n  BLECharacteristic* chr = svc->createCharacteristic(\n    BLE_CHAR_UUID,\n    BLECharacteristic::PROPERTY_WRITE\n  );\n  chr->addDescriptor(new BLE2902());\n  chr->setCallbacks(new HubCallbacks());\n  svc->start();\n  BLEAdvertising* adv = BLEDevice::getAdvertising();\n  adv->addServiceUUID(BLE_SERVICE_UUID);\n  adv->start();\n  Serial.println(F(\"BLE advertising started.\"));\n}\n\nvoid mqtt_reconnect() {\n  while (!mqtt.connected()) {\n    Serial.print(F(\"Connecting MQTT...\"));\n    if (mqtt.connect(\"HomeHub\")) {\n      Serial.println(F(\" connected.\"));\n    } else {\n      Serial.printf(\" failed rc=%d, retry 5 s\\n\", mqtt.state());\n      delay(5000);\n    }\n  }\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  VOICE_SERIAL.begin(VOICE_BAUD, SERIAL_8N1, 13, 14); // RX=13, TX=14\n\n  // SSR pins\n  for (uint8_t i = 0; i < 4; i++) {\n    pinMode(SSR_PINS[i], OUTPUT);\n    digitalWrite(SSR_PINS[i], LOW);  // all off at boot\n  }\n\n  // WiFi\n  WiFi.begin(SSID, WIFI_PASS);\n  while (WiFi.status() != WL_CONNECTED) { delay(500); Serial.print('.'); }\n  Serial.printf(\"\\nWiFi OK: %s\\n\", WiFi.localIP().toString().c_str());\n\n  // MQTT\n  mqtt.setServer(MQTT_HOST, MQTT_PORT);\n  mqtt_reconnect();\n\n  // BLE\n  setup_ble();\n\n  Serial.println(F(\"Home automation hub ready.\"));\n}\n\nvoid loop() {\n  if (!mqtt.connected()) mqtt_reconnect();\n  mqtt.loop();\n\n  // --- 1. Voice recognition polling ---\n  if (VOICE_SERIAL.available()) {\n    uint8_t cmd_id = (uint8_t)VOICE_SERIAL.read();\n    if (cmd_id < 10) {\n      VoiceCmd vc = VOICE_MAP[cmd_id];\n      apply_channel(vc.channel, vc.action, \"voice\");\n    }\n  }\n\n  delay(10);\n}\n"
 }

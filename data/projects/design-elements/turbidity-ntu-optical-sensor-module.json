@@ -1,0 +1,22 @@
+{
+  "title": "Turbidity NTU Optical Sensor Module",
+  "component_category": "sensing",
+  "design_question": "How to measure water clarity (turbidity) in NTU units for a portable water quality monitor?",
+  "selected_approach": "DFRobot SEN0189 turbidity sensor (0–3000 NTU, 5 V supply, analog voltage output 0–4.5 V). Immersed directly in water sample. MCU reads on 10-bit ADC (5 V reference): NTU = −1120.4 × V² + 5742.3 × V − 4353.8 (DFRobot calibration curve polynomial). Two-point calibration with distilled water (0 NTU) and standard formazin (100 NTU) solution.",
+  "rationale": "Turbidity is one of the most accessible and ecologically relevant water quality parameters. DFRobot SEN0189 requires no special reagents and returns a continuous analog voltage. 3000 NTU range covers clean tap water (< 1 NTU) to highly turbid river/runoff water (1000+ NTU). Calibration polynomial verified against DFRobot wiki; stable within ±5 % per calibration cycle.",
+  "alternatives": [
+    {
+      "approach": "Nephelometer (90° scattering) TSS-10",
+      "reason_rejected": "More accurate at low NTU (ISO 7027 compliant) but requires specific geometry, sealed housing, and clean LED wavelength control — complexity not justified for portable monitor."
+    },
+    {
+      "approach": "DIY LED + LDR in water-tight housing",
+      "reason_rejected": "Requires full custom construction and manual calibration; not reproducible without calibrated reference solutions."
+    }
+  ],
+  "verification_notes": "FACT: 'Turbidity Sensing — NTU Optical Measurement' confirms NTU units, sensor placement requirements, and two-point calibration with formazin standards.",
+  "supporting_fact_titles": [
+    "Turbidity Sensing — NTU Optical Measurement",
+    "ADC Resolution and Measurement Precision"
+  ]
+}

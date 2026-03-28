@@ -1,0 +1,28 @@
+{
+  "id": "d758336e-2b90-57ed-8609-af792c01e135",
+  "title": "AC Power Factor and True Power Measurement via Current and Voltage Sensing",
+  "domain": "electrical",
+  "category": "power-electronics",
+  "subcategory": "AC measurement",
+  "detail_level": "intermediate",
+  "content": "True (active) power P = V_rms × I_rms × cos(φ), where φ is the phase angle between voltage and current waveforms. Apparent power S = V_rms × I_rms. Power factor PF = P / S = cos(φ). For resistive loads PF = 1; for inductive loads (motors, transformers) PF < 1. Energy consumption E = P × t (Wh).",
+  "extended_content": "Measurement method for embedded systems: (1) Voltage: ZMPT101B mains-transformer module outputs a scaled AC voltage centred at 2.5 V; MCU ADC samples at > 2 kHz for 50/60 Hz. (2) Current: SCT-013-030 split-core CT clamp outputs voltage proportional to current; burden resistor sets output level. (3) Sampling: collect synchronised N cycles (N ≥ 20) of both V and I samples; compute V_rms = √(Σv²/N), I_rms = √(Σi²/N), P = Σ(v×i)/N. Power factor PF = P / (V_rms × I_rms). Library: EmonLib (Arduino) automates this with 1480 samples per second. Calibration: ICAL = (actual current from reference meter) / (HW reading); VCAL = (actual mains voltage) / (HW reading). Safety: ZMPT101B is mains-isolated; never connect mains voltage directly to ADC pins.",
+  "formula": "P [W] = V_rms × I_rms × cos(φ);  PF = P / (V_rms × I_rms)",
+  "units": "P: W, S: VA, V_rms: V, I_rms: A, PF: 0–1",
+  "source": "OpenEnergyMonitor EmonLib Documentation; Elektrik Mühendisleri Odası AC Power Theory; IEC 61557-12",
+  "source_url": null,
+  "confidence_score": 0.96,
+  "status": "draft",
+  "version": 1,
+  "tags": [
+    "power-factor",
+    "true-power",
+    "ac-measurement",
+    "zmpt101b",
+    "ct-clamp",
+    "emonlib",
+    "energy-monitor",
+    "electrical"
+  ],
+  "created_by": "seed"
+}

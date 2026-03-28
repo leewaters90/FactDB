@@ -1,0 +1,22 @@
+{
+  "title": "ESP32-CAM OV2640 WiFi Camera Module",
+  "component_category": "sensing",
+  "design_question": "How to capture and stream live video from an embedded device over WiFi with optional face-detection AI?",
+  "selected_approach": "ESP32-CAM module (AI-Thinker variant: ESP32-S, OV2640, 4 MB PSRAM, microSD slot). CameraWebServer example (Espressif ESP32 Arduino). Resolution: SVGA 800×600 for streaming, UXGA 1600×1200 for still capture. Flash LED GPIO 4 (HIGH = on). USB-UART for programming: IO0 → GND for flash mode. 5 V / 500 mA PSU minimum. JPEG quality 10 for MJPEG stream. PIR on GPIO 13 for motion-triggered capture in deep-sleep mode.",
+  "rationale": "ESP32-CAM provides WiFi + camera + AI inference in a < £5 module. PSRAM is built-in enabling SVGA+ resolution. The official CameraWebServer example provides a fully functional MJPEG stream and face-detection UI with no custom driver work. Deep-sleep + PIR wake gives < 0.5 mA standby for battery-powered cameras.",
+  "alternatives": [
+    {
+      "approach": "Raspberry Pi Zero W + camera module",
+      "reason_rejected": "RPi Zero gives higher resolution and easier Python OpenCV, but runs Linux (30 s boot), costs 5×, and uses 200+ mA idle — ESP32-CAM better for always-on embedded use."
+    },
+    {
+      "approach": "OV7670 + Arduino Mega (no PSRAM, no WiFi)",
+      "reason_rejected": "Requires frame buffer in Arduino SRAM (too small for QVGA+); no WiFi; poor frame rate. ESP32-CAM far superior."
+    }
+  ],
+  "verification_notes": "FACT: 'ESP32-CAM — OV2640 Camera Module with WiFi Streaming' confirms SVGA 12 fps, PSRAM requirement, GPIO 4 flash, and PIR deep-sleep strategy.",
+  "supporting_fact_titles": [
+    "ESP32-CAM — OV2640 Camera Module with WiFi Streaming",
+    "ESP32 WiFi + BLE System-on-Chip"
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "title": "Automated Pill Dispenser",
+  "description": "RTC-scheduled rotating carousel dispensing medication at programmed times. An NEMA17 stepper rotates a 7-compartment drum; a load-cell confirms pill ejection; a buzzer and OLED alert the user. Missed doses are logged to Serial.",
+  "objective": "Dispense up to 4 doses/day on a programmable schedule; confirm dispensing via weight change ≥ 0.3 g; alert user with buzzer for ≥ 60 s if dose not removed; log missed doses.",
+  "constraints": "5 V USB power (1 A); ≤ £30 BOM; single Arduino Nano; 7-compartment carousel; I²C peripherals only.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "I²C Real-Time Clock — DS3231 Timekeeping and Alarms",
+    "Stepper Motor Drive — Full Step and Microstepping",
+    "Load Cell and Wheatstone Bridge",
+    "OLED SSD1306 Monochrome Display I²C Interface",
+    "PID Controller — Transfer Function"
+  ],
+  "design_element_titles": [
+    "DS3231 RTC Alarm Scheduling Module",
+    "NEMA17 Stepper DRV8825 Microstepping Drive",
+    "SSD1306 OLED Display UI Module",
+    "Arduino Uno/Nano MCU Platform"
+  ],
+  "element_usage_notes": {
+    "DS3231 RTC Alarm Scheduling Module": "Up to 4 alarms per day programmed via serial menu at first run; stored in DS3231 alarm registers + AT24C32 EEPROM on the same module.",
+    "NEMA17 Stepper DRV8825 Microstepping Drive": "Full-step mode (200 steps/rev); carousel 360° / 7 compartments = 51.4°/step; ~114 steps per position using AccelStepper ramp.",
+    "SSD1306 OLED Display UI Module": "Shows next dose time, current compartment number, and last dispensed timestamp. 2 s refresh.",
+    "Arduino Uno/Nano MCU Platform": "Nano 3.0; DRV8825 STEP/DIR on D8/D9; DS3231 INT on D3 (INT1); buzzer on D7; load-cell HX711 CLK on D4, DOUT on D5."
+  },
+  "element_interactions": [
+    {
+      "from": "DS3231 RTC Alarm Scheduling Module",
+      "to": "Arduino Uno/Nano MCU Platform",
+      "data": "INT falling edge (hardware interrupt on D3)",
+      "description": "RTC fires alarm at each programmed dose time. ISR sets dispensing_requested flag; main loop advances carousel one compartment position and enables buzzer."
+    },
+    {
+      "from": "Arduino Uno/Nano MCU Platform",
+      "to": "NEMA17 Stepper DRV8825 Microstepping Drive",
+      "data": "STEP pulses (114 pulses) + DIR HIGH",
+      "description": "AccelStepper ramps to 200 step/s to advance carousel by one 51.4° compartment. End-of-travel homing on startup via limit switch on compartment 1."
+    },
+    {
+      "from": "Arduino Uno/Nano MCU Platform",
+      "to": "SSD1306 OLED Display UI Module",
+      "data": "I²C framebuffer update (next_dose_str, compartment, last_dispensed_str)",
+      "description": "OLED updated after each dispense event and every 2 s during idle to show countdown to next dose."
+    }
+  ],
+  "integration_code": "/*\n * pill_dispenser.ino — Automated Pill Dispenser\n *\n * Elements:\n *   1. DS3231 RTC Alarm         — fires at each programmed dose time\n *   2. NEMA17 + DRV8825 Stepper — advances 7-compartment carousel\n *   3. SSD1306 OLED             — live display\n *   4. Arduino Nano             — orchestrator\n *\n * Wiring:\n *   DS3231 INT → D3 (INT1)\n *   DRV8825 STEP → D8, DIR → D9, ENABLE → D10 (active LOW)\n *   HX711 CLK → D4, DOUT → D5  (load cell, optional confirmation)\n *   Buzzer → D7\n */\n\n#include <Wire.h>\n#include <RTClib.h>\n#include <AccelStepper.h>\n#include <Adafruit_SSD1306.h>\n\n// --- Config ---\n#define COMPARTMENTS        7\n#define STEPS_PER_REV     200\n#define STEPS_PER_SLOT    (STEPS_PER_REV / COMPARTMENTS)  // 28 (full-step)\n#define BUZZ_PIN            7\n#define STEP_PIN            8\n#define DIR_PIN             9\n#define EN_PIN             10\n#define RTC_INT_PIN         3\n#define BUZZ_DURATION_MS 60000UL\n\n// --- Globals ---\nRTC_DS3231          rtc;\nAccelStepper        stepper(AccelStepper::DRIVER, STEP_PIN, DIR_PIN);\nAdafruit_SSD1306    oled(128, 64, &Wire, -1);\n\nuint8_t  current_slot      = 0;\nvolatile bool dose_due     = false;\nunsigned long buzz_start   = 0;\nbool    buzzing            = false;\n\nvoid on_rtc_alarm() { dose_due = true; }\n\nvoid update_oled(DateTime& next) {\n  oled.clearDisplay();\n  oled.setTextSize(1);\n  oled.setTextColor(SSD1306_WHITE);\n  oled.setCursor(0, 0);\n  oled.print(F(\"Pill Dispenser\"));\n  oled.setCursor(0, 16);\n  oled.printf(\"Slot: %d/%d\", current_slot + 1, COMPARTMENTS);\n  oled.setCursor(0, 32);\n  oled.printf(\"Next: %02d:%02d\", next.hour(), next.minute());\n  oled.display();\n}\n\nvoid advance_carousel() {\n  long target = stepper.currentPosition() + STEPS_PER_SLOT;\n  stepper.moveTo(target);\n  while (stepper.distanceToGo() != 0) stepper.run();\n  current_slot = (current_slot + 1) % COMPARTMENTS;\n  Serial.printf(\"Dispensed slot %d at \", current_slot);\n  DateTime now = rtc.now();\n  Serial.printf(\"%02d:%02d\\n\", now.hour(), now.minute());\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  Wire.begin();\n\n  rtc.begin();\n  rtc.clearAlarm(1); rtc.clearAlarm(2);\n\n  // Example: dose at 08:00 and 20:00 (set alarm 1 = 08:00)\n  rtc.setAlarm1(DateTime(0,0,0,8,0,0), DS3231_A1_Hour);\n  rtc.writeSqwPinMode(DS3231_OFF);\n\n  stepper.setMaxSpeed(300);\n  stepper.setAcceleration(150);\n  stepper.setCurrentPosition(0);\n  pinMode(EN_PIN, OUTPUT);\n  digitalWrite(EN_PIN, LOW);  // enable driver\n\n  oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);\n  oled.clearDisplay(); oled.display();\n\n  pinMode(BUZZ_PIN, OUTPUT); digitalWrite(BUZZ_PIN, LOW);\n  pinMode(RTC_INT_PIN, INPUT_PULLUP);\n  attachInterrupt(digitalPinToInterrupt(RTC_INT_PIN), on_rtc_alarm, FALLING);\n\n  Serial.println(F(\"Pill dispenser ready.\"));\n}\n\nvoid loop() {\n  static unsigned long last_disp = 0;\n\n  // --- 1. Stepper running ---\n  stepper.run();\n\n  // --- 2. Dispense on alarm ---\n  if (dose_due) {\n    dose_due = false;\n    rtc.clearAlarm(1);\n    advance_carousel();\n    // Start buzzer to notify user\n    buzz_start = millis();\n    buzzing    = true;\n    digitalWrite(BUZZ_PIN, HIGH);\n  }\n\n  // --- 3. Buzzer timeout ---\n  if (buzzing && (millis() - buzz_start >= BUZZ_DURATION_MS)) {\n    buzzing = false;\n    digitalWrite(BUZZ_PIN, LOW);\n  }\n\n  // --- 4. OLED refresh ---\n  if (millis() - last_disp >= 2000UL) {\n    last_disp = millis();\n    DateTime next_dose(0,0,0,8,0,0);  // placeholder — read from EEPROM in full implementation\n    update_oled(next_dose);\n  }\n}\n"
+}

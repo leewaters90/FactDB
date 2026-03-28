@@ -1,0 +1,58 @@
+{
+  "title": "LoRa Environmental Field Station",
+  "description": "Solar-powered remote environmental monitoring node using a BME280 sensor for temperature, humidity, and barometric pressure. An Arduino Pro Mini or ATmega328P sleeps between readings; an SX1276/RFM95W LoRa radio transmits a compact JSON payload to a base-station gateway every 5 minutes. MicroSD card logs locally as backup.",
+  "objective": "Transmit T/RH/P readings every 5 min; LoRa range ≥ 2 km; battery life ≥ 7 days without sun; solar-extended indefinite runtime; locally logged data on microSD.",
+  "constraints": "3.7 V LiPo 2000 mAh; 5 W solar panel; waterproof IP65 housing; 868 MHz LoRa; ≤ £30 BOM per node.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "BME280 Combined Pressure, Humidity, and Temperature Sensor",
+    "LoRa / LoRaWAN — LPWAN for Remote Telemetry",
+    "Low-Power Microcontroller Sleep Modes",
+    "Solar Panel Sizing for Remote IoT Stations",
+    "NTP Time Synchronisation for Data Logging"
+  ],
+  "design_element_titles": [
+    "BME280 Environmental Sensor Module (I²C)",
+    "SX1276 LoRa Radio Module (RFM95W)",
+    "MCU Deep-Sleep Duty Cycle Power Management",
+    "Solar Panel + LiFePO₄ MPPT Power System",
+    "MicroSD 1 Hz Time-Series Data Logger",
+    "Arduino Uno/Nano MCU Platform"
+  ],
+  "element_usage_notes": {
+    "BME280 Environmental Sensor Module (I²C)": "Weather-station mode; OS1 all channels; polled once per 5-min wakeup cycle; powered via MOSFET switch (GPIO 6) to eliminate standby current.",
+    "SX1276 LoRa Radio Module (RFM95W)": "868 MHz; SF10; BW 125 kHz; CR 4/5; +14 dBm output; transmit then sleep; typical Tx duration 370 ms per packet.",
+    "MCU Deep-Sleep Duty Cycle Power Management": "Arduino Pro Mini in power-down sleep; 8-s watchdog timer wakes MCU; 37 wakeups = 5 min; sleep current 0.36 µA (MCU) + 1 µA (RTC).",
+    "Solar Panel + LiFePO₄ MPPT Power System": "5 W / 6 V panel; CN3791 MPPT charger IC; 2000 mAh LiPo; average Tx power 2.3 mA; sleep power 0.5 mA → daily budget 3.4 mAh active + 2 mAh sleep.",
+    "MicroSD 1 Hz Time-Series Data Logger": "Logs one CSV row per wakeup: ISO timestamp, T, RH, P. FAT32; 2 GB card stores > 2 years of data at 5-min intervals.",
+    "Arduino Uno/Nano MCU Platform": "Arduino Pro Mini 3.3 V 8 MHz (eliminates on-board USB and power LED); I²C on A4/A5; SPI on D10–D13 shared by SD and LoRa with separate CS."
+  },
+  "element_interactions": [
+    {
+      "from": "BME280 Environmental Sensor Module (I²C)",
+      "to": "Arduino Uno/Nano MCU Platform",
+      "data": "temp_c (float), humidity_pct (float), pressure_hpa (float) via I²C on wakeup",
+      "description": "On each 5-min wakeup: GPIO 6 HIGH powers BME280; 100 ms stabilisation; single I²C read; GPIO 6 LOW powers down sensor to eliminate 3.6 µA standby drain."
+    },
+    {
+      "from": "Arduino Uno/Nano MCU Platform",
+      "to": "MicroSD 1 Hz Time-Series Data Logger",
+      "data": "CSV row string (timestamp, T, RH, P)",
+      "description": "After BME280 read, MCU writes one CSV row to SD card. SD powered via GPIO 7 MOSFET switch; powered only during write to reduce idle current."
+    },
+    {
+      "from": "Arduino Uno/Nano MCU Platform",
+      "to": "SX1276 LoRa Radio Module (RFM95W)",
+      "data": "JSON payload bytes: {node_id, seq, T, RH, P, batt_mv}",
+      "description": "LoRa packet sent after SD write; 18-byte compact binary (not JSON for air-time efficiency); receives ACK from gateway for confirmed delivery. Tx duration ~370 ms at SF10."
+    },
+    {
+      "from": "MCU Deep-Sleep Duty Cycle Power Management",
+      "to": "Arduino Uno/Nano MCU Platform",
+      "data": "WDT interrupt wakeup (8-s period × 37 = ~5 min)",
+      "description": "MCU enters power-down sleep after LoRa Tx; watchdog wakeup counter incremented each 8-s ISR; at count 37 triggers full measurement + transmit cycle."
+    }
+  ],
+  "integration_code": "/*\n * lora_field_station.ino — LoRa Environmental Field Station\n *\n * Elements:\n *   1. BME280 I²C Sensor              — T / RH / P on wakeup\n *   2. SX1276 LoRa (RFM95W)          — packet Tx after reading\n *   3. MCU Deep-Sleep (WDT 8 s × 37) — 5-min duty cycle\n *   4. Solar + LiFePO₄ MPPT          — power system (hardware, no code)\n *   5. MicroSD Logger                 — CSV backup per reading\n *   6. Arduino Pro Mini 3.3 V         — orchestrator\n *\n * Average current: ~0.5 mA → 2000 mAh cell ≈ 167 days without solar.\n */\n\n#include <Wire.h>\n#include <SPI.h>\n#include <Adafruit_BME280.h>\n#include <LoRa.h>\n#include <SD.h>\n#include <avr/sleep.h>\n#include <avr/wdt.h>\n\n// --- Pins ---\n#define LORA_CS   10\n#define LORA_RST   9\n#define LORA_IRQ   2\n#define SD_CS      8\n#define SENS_PWR   6   // BME280 power via MOSFET\n#define SD_PWR     7   // SD card power via MOSFET\n#define BATT_ADC  A0\n\n// --- Config ---\n#define NODE_ID       1\n#define WAKEUPS_PER_CYCLE 37   // 37 × 8 s ≈ 5 min\n#define LORA_FREQ  868E6\n#define LOG_FILE   \"log.csv\"\n\n// --- Globals ---\nAdafruit_BME280 bme;\nvolatile uint8_t wdt_count = 0;\nuint16_t seq_no = 0;\n\nISR(WDT_vect) {\n  wdt_count++;\n}\n\nvoid wdt_enable_8s() {\n  cli();\n  wdt_reset();\n  MCUSR &= ~(1 << WDRF);\n  WDTCSR |= (1 << WDCE) | (1 << WDE);\n  WDTCSR = (1 << WDIE) | (1 << WDP3) | (1 << WDP0);  // 8 s interrupt\n  sei();\n}\n\nvoid sleep_now() {\n  set_sleep_mode(SLEEP_MODE_PWR_DOWN);\n  sleep_enable();\n  sleep_cpu();\n  sleep_disable();\n}\n\nstruct Payload { uint8_t node_id; uint16_t seq; int16_t temp_x10; uint16_t rh_x10; uint16_t pres_x10; uint16_t batt_mv; };\n\nvoid setup() {\n  Serial.begin(9600);\n  Wire.begin();\n  SPI.begin();\n\n  pinMode(SENS_PWR, OUTPUT); digitalWrite(SENS_PWR, LOW);\n  pinMode(SD_PWR,   OUTPUT); digitalWrite(SD_PWR,   LOW);\n\n  wdt_enable_8s();\n  Serial.println(F(\"Field station boot.\"));\n}\n\nvoid take_reading_and_transmit() {\n  // --- 1. BME280 read ---\n  digitalWrite(SENS_PWR, HIGH); delay(100);\n  bme.begin(0x76);\n  float T   = bme.readTemperature();\n  float RH  = bme.readHumidity();\n  float P   = bme.readPressure() / 100.0f;  // Pa → hPa\n  digitalWrite(SENS_PWR, LOW);\n\n  uint16_t batt_mv = analogRead(BATT_ADC) * 2UL * 3300 / 1023;\n\n  Serial.printf(\"T=%.1f RH=%.1f P=%.1f Batt=%u mV\\n\", T, RH, P, batt_mv);\n\n  // --- 2. Log to SD ---\n  digitalWrite(SD_PWR, HIGH); delay(50);\n  if (SD.begin(SD_CS)) {\n    File f = SD.open(LOG_FILE, FILE_WRITE);\n    if (f) {\n      f.printf(\"%u,%.2f,%.1f,%.2f,%u\\n\", seq_no, T, RH, P, batt_mv);\n      f.close();\n    }\n  }\n  SD.end();\n  digitalWrite(SD_PWR, LOW);\n\n  // --- 3. LoRa transmit ---\n  LoRa.setPins(LORA_CS, LORA_RST, LORA_IRQ);\n  if (LoRa.begin(LORA_FREQ)) {\n    LoRa.setSpreadingFactor(10);\n    LoRa.setSignalBandwidth(125E3);\n    LoRa.setCodingRate4(5);\n\n    Payload pkt;\n    pkt.node_id  = NODE_ID;\n    pkt.seq      = seq_no++;\n    pkt.temp_x10 = (int16_t)(T  * 10);\n    pkt.rh_x10   = (uint16_t)(RH * 10);\n    pkt.pres_x10 = (uint16_t)(P  * 10);\n    pkt.batt_mv  = batt_mv;\n\n    LoRa.beginPacket();\n    LoRa.write((uint8_t*)&pkt, sizeof(pkt));\n    LoRa.endPacket();\n    LoRa.sleep();\n  }\n}\n\nvoid loop() {\n  if (wdt_count >= WAKEUPS_PER_CYCLE) {\n    wdt_count = 0;\n    take_reading_and_transmit();\n  }\n  sleep_now();\n}\n"
+}

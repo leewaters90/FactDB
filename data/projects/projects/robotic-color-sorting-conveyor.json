@@ -1,0 +1,47 @@
+{
+  "title": "Robotic Color Sorting Conveyor",
+  "description": "Arduino-controlled conveyor belt that sorts objects into three bins by colour using a TCS3200 sensor. A DC motor drives a short belt; a TCS3200 reads red, green, and blue when an object arrives at the sense point; the MCU classifies colour and actuates one of three servo diverter arms to route the object into the correct bin.",
+  "objective": "Classify objects as RED, GREEN, or BLUE with > 90 % accuracy; sort rate ≥ 10 objects/min; conveyor belt 200 mm long; three output bins.",
+  "constraints": "5 V USB power; ≤ £25 BOM; Arduino Uno; 3D-printed belt frame and diverter arms; objects: 25 mm diameter coloured discs.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Color Sensing by Reflectance — TCS3200 Frequency-Mode Operation",
+    "DC Motor Speed Control via PWM",
+    "RC Servo Motor PWM Control",
+    "I²C Serial Communication Protocol"
+  ],
+  "design_element_titles": [
+    "TCS3200 Color Sensor for Product Sorting",
+    "DC Gear Motor with PWM Speed Control",
+    "RC Servo Joint Actuator",
+    "Arduino Uno/Nano MCU Platform"
+  ],
+  "element_usage_notes": {
+    "TCS3200 Color Sensor for Product Sorting": "TCS3200 mounted 12 mm above belt; white LED illumination (on S2/S3 select pulse); measures R/G/B frequency windows of 20 ms each; white-balance calibration at startup.",
+    "DC Gear Motor with PWM Speed Control": "6 V DC gear motor (100 RPM); L298N mini; PWM D6 = 40 % duty (~2.4 V, ~3 cm/s belt speed); direction fixed forward.",
+    "RC Servo Joint Actuator": "Three SG90 micro-servos (diverter 1=D9, 2=D10, 3=D11); default 90° (neutral/pass); actuate to 0° or 180° for 300 ms to route object.",
+    "Arduino Uno/Nano MCU Platform": "Uno R3; TCS3200 S0–S3 on D2–D5, OUT on D7 (timer interrupt); servo library for D9/D10/D11; L298N IN1/IN2/ENA on D6/D12/D13."
+  },
+  "element_interactions": [
+    {
+      "from": "TCS3200 Color Sensor for Product Sorting",
+      "to": "Arduino Uno/Nano MCU Platform",
+      "data": "frequency counts for R, G, B channels (pulseIn)",
+      "description": "Uno selects each filter (R: S2=0,S3=0; G: S2=1,S3=1; B: S2=0,S3=1), measures pulseIn duration for 20 ms window, normalises against white calibration, classifies as R/G/B by highest normalised channel."
+    },
+    {
+      "from": "Arduino Uno/Nano MCU Platform",
+      "to": "DC Gear Motor with PWM Speed Control",
+      "data": "PWM duty cycle (40 %) on D6 (ENA) + D12/D13 direction bits",
+      "description": "Belt runs continuously at fixed slow speed. Motor halted for 200 ms during colour reading to prevent object drift on sensor."
+    },
+    {
+      "from": "Arduino Uno/Nano MCU Platform",
+      "to": "RC Servo Joint Actuator",
+      "data": "Servo write (angle: 0°, 90°, or 180°) via Servo library",
+      "description": "After classification: stop belt 50 ms; actuate corresponding diverter servo for 300 ms; return to 90°; resume belt. Diverter 1 = RED bin, 2 = GREEN bin, 3 = BLUE bin."
+    }
+  ],
+  "integration_code": "/*\n * color_sorter.ino — Robotic Color Sorting Conveyor\n *\n * Elements:\n *   1. TCS3200 Color Sensor  — R/G/B frequency measurement\n *   2. DC Gear Motor + L298N — belt drive, stop during read\n *   3. SG90 Servo × 3       — diverter arms per colour bin\n *   4. Arduino Uno           — classification + actuation\n *\n * TCS3200 pin wiring:\n *   S0 → D2, S1 → D3, S2 → D4, S3 → D5, OUT → D7\n * Motor: ENA=D6, IN1=D12, IN2=D13\n * Servos: D9=RED, D10=GREEN, D11=BLUE\n */\n\n#include <Servo.h>\n\n// --- TCS3200 pins ---\n#define S0_PIN  2\n#define S1_PIN  3\n#define S2_PIN  4\n#define S3_PIN  5\n#define OUT_PIN 7\n\n// --- Motor ---\n#define ENA_PIN  6\n#define IN1_PIN 12\n#define IN2_PIN 13\n#define BELT_SPEED 100   // PWM 0–255\n\n// --- Servos ---\n#define SERVO_RED_PIN   9\n#define SERVO_GRN_PIN  10\n#define SERVO_BLU_PIN  11\n#define SERVO_NEUTRAL  90\n#define SERVO_DIVERT    0\n#define DIVERT_MS     300\n\n// --- Calibration (filled by calibrate() at startup) ---\nuint32_t cal_R_white, cal_G_white, cal_B_white;\nuint32_t cal_R_black, cal_G_black, cal_B_black;\n\nServo servoR, servoG, servoB;\n\n// Measure one colour channel (20 ms pulseIn window)\nuint32_t read_channel(uint8_t s2, uint8_t s3) {\n  digitalWrite(S2_PIN, s2); digitalWrite(S3_PIN, s3);\n  delay(2);  // filter settle\n  return pulseIn(OUT_PIN, LOW, 20000);  // µs period\n}\n\nvoid read_rgb(uint32_t& r, uint32_t& g, uint32_t& b) {\n  r = read_channel(LOW,  LOW);\n  g = read_channel(HIGH, HIGH);\n  b = read_channel(LOW,  HIGH);\n}\n\nvoid calibrate() {\n  Serial.println(F(\"Place WHITE object and press enter...\"));\n  while (!Serial.available()) delay(10); Serial.read();\n  read_rgb(cal_R_white, cal_G_white, cal_B_white);\n  Serial.println(F(\"Place BLACK object and press enter...\"));\n  while (!Serial.available()) delay(10); Serial.read();\n  read_rgb(cal_R_black, cal_G_black, cal_B_black);\n  Serial.println(F(\"Calibration done.\"));\n}\n\n// Normalise raw reading to 0–255\nuint8_t norm(uint32_t raw, uint32_t black, uint32_t white) {\n  if (white == black) return 0;\n  long n = 255L * (long)(raw - black) / (long)(white - black);\n  return (uint8_t)constrain(n, 0, 255);\n}\n\nconst char* classify(uint8_t r, uint8_t g, uint8_t b) {\n  if (r > g && r > b) return \"RED\";\n  if (g > r && g > b) return \"GREEN\";\n  return \"BLUE\";\n}\n\nvoid actuate(const char* colour) {\n  // Stop belt briefly\n  analogWrite(ENA_PIN, 0);\n  delay(50);\n\n  Servo* s = nullptr;\n  if      (strcmp(colour, \"RED\")   == 0) s = &servoR;\n  else if (strcmp(colour, \"GREEN\") == 0) s = &servoG;\n  else                                   s = &servoB;\n\n  s->write(SERVO_DIVERT);\n  delay(DIVERT_MS);\n  s->write(SERVO_NEUTRAL);\n  delay(100);\n\n  // Resume belt\n  analogWrite(ENA_PIN, BELT_SPEED);\n}\n\nvoid setup() {\n  Serial.begin(115200);\n\n  // TCS3200 control pins\n  pinMode(S0_PIN, OUTPUT); pinMode(S1_PIN, OUTPUT);\n  pinMode(S2_PIN, OUTPUT); pinMode(S3_PIN, OUTPUT);\n  pinMode(OUT_PIN, INPUT);\n  // 20 % scaling (S0=HIGH, S1=LOW)\n  digitalWrite(S0_PIN, HIGH); digitalWrite(S1_PIN, LOW);\n\n  // Motor\n  pinMode(ENA_PIN, OUTPUT); pinMode(IN1_PIN, OUTPUT); pinMode(IN2_PIN, OUTPUT);\n  digitalWrite(IN1_PIN, HIGH); digitalWrite(IN2_PIN, LOW);  // forward\n\n  // Servos\n  servoR.attach(SERVO_RED_PIN); servoR.write(SERVO_NEUTRAL);\n  servoG.attach(SERVO_GRN_PIN); servoG.write(SERVO_NEUTRAL);\n  servoB.attach(SERVO_BLU_PIN); servoB.write(SERVO_NEUTRAL);\n\n  calibrate();\n\n  // Start belt\n  analogWrite(ENA_PIN, BELT_SPEED);\n  Serial.println(F(\"Sorter running.\"));\n}\n\nvoid loop() {\n  // Detect object: check if ambient light dips (simple threshold on clear channel)\n  // For demo: use a fixed-period read cycle\n  delay(2000);  // wait for next object\n\n  // Stop belt, read colour\n  analogWrite(ENA_PIN, 0); delay(100);\n\n  uint32_t r_raw, g_raw, b_raw;\n  read_rgb(r_raw, g_raw, b_raw);\n\n  uint8_t rn = norm(r_raw, cal_R_black, cal_R_white);\n  uint8_t gn = norm(g_raw, cal_G_black, cal_G_white);\n  uint8_t bn = norm(b_raw, cal_B_black, cal_B_white);\n\n  const char* colour = classify(rn, gn, bn);\n  Serial.printf(\"R=%3u G=%3u B=%3u → %s\\n\", rn, gn, bn, colour);\n\n  actuate(colour);\n}\n"
+}

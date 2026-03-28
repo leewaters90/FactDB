@@ -1,0 +1,48 @@
+{
+  "title": "Bluetooth Bicycle Speedometer",
+  "description": "Arduino Nano-based bicycle computer measuring wheel speed via Hall-effect sensor, displaying speed and trip distance on a 0.96\" OLED, and streaming data to a companion BLE smartphone app over a BLE GATT characteristic.",
+  "objective": "Measure and display speed to ±0.2 km/h; accumulate trip distance to ±10 m per 100 km; stream speed + distance to BLE app at 1 Hz; powered by USB power bank for ≥ 8 h.",
+  "constraints": "Weatherproof enclosure (IP54 minimum); ≤ £20 BOM; 5 V USB power; Arduino Nano 33 BLE or Nano + HM-10 BLE module.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Hall-Effect Speed Sensor for Rotating Machinery",
+    "Wheel Encoder Odometry",
+    "Bluetooth Low Energy (BLE) for App Control",
+    "OLED SSD1306 Monochrome Display I²C Interface",
+    "ADC Resolution and Measurement Precision"
+  ],
+  "design_element_titles": [
+    "Hall-Effect Reed Switch Wheel Speed Sensor",
+    "SSD1306 OLED Display UI Module",
+    "BLE GATT Smartphone App Interface",
+    "Arduino Uno/Nano MCU Platform"
+  ],
+  "element_usage_notes": {
+    "Hall-Effect Reed Switch Wheel Speed Sensor": "A3144 on fork; 1 neodymium spoke magnet; 1 pulse/rev; interrupt on D2 (INT0); wheel circumference configurable (default 2096 mm for 700c × 25c).",
+    "SSD1306 OLED Display UI Module": "3-line layout: line 1 = speed km/h (large font), line 2 = trip distance km, line 3 = elapsed time. Refreshed at 2 Hz.",
+    "BLE GATT Smartphone App Interface": "HM-10 UART module (TX→D10, RX→D11 SoftwareSerial); sends JSON {spd_kmh, dist_km, trip_s} at 1 Hz. nRF Connect or custom app.",
+    "Arduino Uno/Nano MCU Platform": "Nano 3.0; Hall sensor on D2 (INT0); I²C OLED on A4/A5; HM-10 on SoftwareSerial D10/D11; 5 V from USB power bank."
+  },
+  "element_interactions": [
+    {
+      "from": "Hall-Effect Reed Switch Wheel Speed Sensor",
+      "to": "Arduino Uno/Nano MCU Platform",
+      "data": "Interrupt pulse on D2 (rising edge, 1 pulse/revolution)",
+      "description": "ISR records micros() timestamp; main loop computes period = t_current − t_prev, then speed = circumference / period. Timeout (>3 s since last pulse) = 0 km/h."
+    },
+    {
+      "from": "Arduino Uno/Nano MCU Platform",
+      "to": "SSD1306 OLED Display UI Module",
+      "data": "I²C framebuffer update (speed_kmh, dist_km, elapsed_s)",
+      "description": "Display updated at 2 Hz. Speed uses large font (textSize 2); distance and time use textSize 1 on lower rows."
+    },
+    {
+      "from": "Arduino Uno/Nano MCU Platform",
+      "to": "BLE GATT Smartphone App Interface",
+      "data": "JSON string via UART at 9600 baud, once per second",
+      "description": "HM-10 bridges UART to BLE GATT characteristic. Smartphone app subscribes to notify characteristic and renders speed chart."
+    }
+  ],
+  "integration_code": "/*\n * bicycle_speedometer.ino — Bluetooth Bicycle Speedometer\n *\n * Elements:\n *   1. Hall-Effect Wheel Speed Sensor — pulse per revolution on D2\n *   2. SSD1306 OLED Display           — speed + distance + time\n *   3. HM-10 BLE Module               — UART JSON stream at 1 Hz\n *   4. Arduino Nano MCU               — orchestrator\n *\n * Wheel circumference: measure outside diameter of tyre on rim,\n * then C = π × D_mm.  Default: 2096 mm (700c × 25c road tyre).\n */\n\n#include <Wire.h>\n#include <Adafruit_SSD1306.h>\n#include <SoftwareSerial.h>\n\n// --- Config ---\n#define HALL_PIN           2\n#define WHEEL_CIRC_MM   2096.0f   // 700c × 25c\n#define SPEED_TIMEOUT_US 3000000UL  // 3 s = stationary\n#define DISPLAY_MS       500UL\n#define BLE_MS          1000UL\n\n// --- Objects ---\nAdafruit_SSD1306 oled(128, 64, &Wire, -1);\nSoftwareSerial   ble(10, 11);   // RX, TX → HM-10\n\n// --- Globals ---\nvolatile unsigned long last_pulse_us = 0;\nvolatile unsigned long pulse_period_us = 0;\n\nfloat  speed_kmh    = 0.0f;\nfloat  dist_km      = 0.0f;\nunsigned long trip_start_s;\n\nvoid on_hall() {\n  unsigned long t = micros();\n  pulse_period_us = t - last_pulse_us;\n  last_pulse_us   = t;\n  dist_km += WHEEL_CIRC_MM / 1e6f;  // add one revolution in km\n}\n\nvoid draw_display(unsigned long elapsed_s) {\n  oled.clearDisplay();\n  // Speed — large\n  oled.setTextSize(2);\n  oled.setTextColor(SSD1306_WHITE);\n  oled.setCursor(0, 0);\n  oled.printf(\"%.1f km/h\", speed_kmh);\n  // Distance\n  oled.setTextSize(1);\n  oled.setCursor(0, 28);\n  oled.printf(\"Dist: %.2f km\", dist_km);\n  // Elapsed time\n  oled.setCursor(0, 44);\n  oled.printf(\"Time: %02lu:%02lu\", elapsed_s / 60, elapsed_s % 60);\n  oled.display();\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  ble.begin(9600);\n  Wire.begin();\n\n  oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);\n  oled.clearDisplay();\n  oled.display();\n\n  pinMode(HALL_PIN, INPUT_PULLUP);\n  attachInterrupt(digitalPinToInterrupt(HALL_PIN), on_hall, RISING);\n\n  trip_start_s = millis() / 1000;\n  Serial.println(F(\"Bicycle speedometer ready.\"));\n}\n\nvoid loop() {\n  static unsigned long last_display = 0;\n  static unsigned long last_ble     = 0;\n\n  unsigned long now = millis();\n\n  // --- 1. Compute speed ---\n  noInterrupts();\n  unsigned long period = pulse_period_us;\n  unsigned long last_p = last_pulse_us;\n  interrupts();\n\n  if ((micros() - last_p) > SPEED_TIMEOUT_US || period == 0) {\n    speed_kmh = 0.0f;\n  } else {\n    float speed_mmps = (WHEEL_CIRC_MM * 1e6f) / (float)period;\n    speed_kmh = speed_mmps * 3.6f / 1000.0f;\n  }\n\n  unsigned long elapsed_s = now / 1000 - trip_start_s;\n\n  // --- 2. OLED refresh ---\n  if (now - last_display >= DISPLAY_MS) {\n    last_display = now;\n    draw_display(elapsed_s);\n  }\n\n  // --- 3. BLE stream ---\n  if (now - last_ble >= BLE_MS) {\n    last_ble = now;\n    ble.printf(\"{\\\"spd_kmh\\\":%.1f,\\\"dist_km\\\":%.2f,\\\"trip_s\\\":%lu}\\n\",\n               speed_kmh, dist_km, elapsed_s);\n  }\n}\n"
+}

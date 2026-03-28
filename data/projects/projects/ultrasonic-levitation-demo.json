@@ -1,0 +1,40 @@
+{
+  "title": "Ultrasonic Levitation Demo",
+  "description": "Acoustic levitation demonstration device using a 40 kHz ultrasonic transducer array and a reflector plate. Two Arduino-driven transducer arrays (transmit + reflect geometry) create a standing-wave pressure field that can levitate small particles (polystyrene, water droplets). A rotary encoder tunes the frequency; an OLED displays frequency and amplitude. Demonstrates acoustic radiation pressure principles.",
+  "objective": "Generate a 40 kHz standing wave between transducer array and reflector (25 mm gap); levitate polystyrene beads 1–3 mm diameter; frequency tunable ±2 kHz around resonance; display frequency on OLED.",
+  "constraints": "5 V Arduino logic driving L298N half-bridge at 12 V for transducer array; 40 kHz piezo transducers; ≤ £30 BOM; 3D-printed frame.",
+  "domain": "systems",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Ultrasonic Piezoelectric Atomiser (Humidifier)",
+    "Ultrasonic Proximity Sensor — ToF Distance Measurement",
+    "DC Motor Speed Control via PWM",
+    "Rotary Encoder — Incremental A/B Quadrature Pulse Counting",
+    "OLED SSD1306 Monochrome Display I²C Interface"
+  ],
+  "design_element_titles": [
+    "Rotary Encoder User-Interface Navigation",
+    "SSD1306 OLED Display UI Module",
+    "Arduino Uno/Nano MCU Platform"
+  ],
+  "element_usage_notes": {
+    "Rotary Encoder User-Interface Navigation": "KY-040; CLK D2 INT0; 100 Hz per detent (frequency sweep ±2 kHz); press to toggle output on/off.",
+    "SSD1306 OLED Display UI Module": "128×64; large frequency display (kHz) with 2-decimal resolution; output ON/OFF status; note on resonance peak (set by experimenter).",
+    "Arduino Uno/Nano MCU Platform": "Uno R3; Timer1 generates a 50 % duty-cycle square wave on OC1A (D9) at the selected frequency. Timer1 ICR1 register set to drive frequency: ICR1 = (F_CPU / (2 × prescaler × freq)) − 1. L298N IN1/IN2 driven differentially (push-pull) from OC1A and its complement (OC1B). 12 V rail drives transducer array."
+  },
+  "element_interactions": [
+    {
+      "from": "Rotary Encoder User-Interface Navigation",
+      "to": "Arduino Uno/Nano MCU Platform",
+      "data": "direction delta (±100 Hz per detent) + toggle press via GPIO INT",
+      "description": "CW rotation increments frequency by 100 Hz; CCW decrements. Range 37–43 kHz. Press toggles Timer1 output (OC1A/OC1B enabled/disabled). Frequency stored to EEPROM for persistence."
+    },
+    {
+      "from": "Arduino Uno/Nano MCU Platform",
+      "to": "SSD1306 OLED Display UI Module",
+      "data": "I²C framebuffer (freq_khz, output_on) at 2 Hz",
+      "description": "Displays frequency with 0.1 kHz resolution. When output is ON, pulsing indicator shown. User observes levitation and notes resonance frequency visually."
+    }
+  ],
+  "integration_code": "/*\n * ultrasonic_levitation.ino — Acoustic Levitation Demo\n *\n * Elements:\n *   1. Timer1 (OC1A/OC1B on D9/D10) — 40 kHz differential drive\n *   2. L298N IN1=D9, IN2=D10        — push-pull transducer drive (12 V)\n *   3. Rotary Encoder KY-040        — frequency tuning ±100 Hz/detent\n *   4. SSD1306 OLED                 — frequency + ON/OFF display\n *   5. Arduino Uno R3               — Timer1 CTC + complementary outputs\n *\n * Physics:\n *   Standing-wave nodes occur at λ/2 intervals above transducer.\n *   At 40 kHz in air (v≈343 m/s): λ ≈ 8.6 mm → node every ~4.3 mm.\n *   Particles are trapped at pressure nodes (not antinodes).\n */\n\n#include <Wire.h>\n#include <Adafruit_SSD1306.h>\n#include <EEPROM.h>\n#include <avr/interrupt.h>\n\n// --- Pins (Timer1 OC outputs) ---\n#define OC1A_PIN  9   // IN1 of L298N half-bridge\n#define OC1B_PIN 10   // IN2 (complementary)\n#define ENA_PIN   6   // L298N enable (HIGH = active)\n#define ENC_CLK   2\n#define ENC_DT    4\n#define ENC_SW    3\n\n// --- Frequency range ---\n#define FREQ_MIN  37000UL\n#define FREQ_MAX  43000UL\n#define FREQ_DEF  40000UL\n#define FREQ_STEP   100UL\n\n// --- EEPROM ---\n#define EE_FREQ 0  // uint32_t\n\n// --- State ---\nuint32_t freq_hz  = FREQ_DEF;\nbool     output_on = false;\n\nAdafruit_SSD1306 oled(128, 64, &Wire, -1);\n\nvolatile int  enc_d = 0;\nvolatile bool enc_p = false;\nvoid ICACHE_RAM_ATTR isr_clk() { enc_d += digitalRead(ENC_DT) ? -1 : 1; }\nvoid ICACHE_RAM_ATTR isr_sw()  { enc_p = true; }\n\nvoid set_freq(uint32_t f) {\n  // Timer1 Phase-Correct PWM, TOP = ICR1\n  // f_pwm = F_CPU / (2 × prescaler × ICR1) → ICR1 = F_CPU / (2 × 8 × f)\n  uint16_t icr = (uint16_t)(F_CPU / (2UL * 8UL * f)) - 1;\n  ICR1   = icr;\n  OCR1A  = icr / 2;  // 50 % duty\n  OCR1B  = icr / 2;\n}\n\nvoid enable_output(bool on) {\n  output_on = on;\n  if (on) {\n    // OC1A normal, OC1B inverted (complementary)\n    TCCR1A = (1<<COM1A1) | (1<<COM1B1) | (1<<COM1B0) | (1<<WGM11);\n    TCCR1B = (1<<WGM13)  | (1<<CS11);  // Phase-correct PWM, prescaler=8\n    digitalWrite(ENA_PIN, HIGH);\n  } else {\n    TCCR1A = 0; TCCR1B = 0;\n    digitalWrite(OC1A_PIN, LOW);\n    digitalWrite(OC1B_PIN, LOW);\n    digitalWrite(ENA_PIN, LOW);\n  }\n}\n\nvoid draw_oled() {\n  oled.clearDisplay();\n  oled.setTextColor(SSD1306_WHITE);\n  oled.setTextSize(2);\n  oled.setCursor(0, 4);\n  oled.printf(\"%.1f kHz\", freq_hz / 1000.0f);\n  oled.setTextSize(1);\n  oled.setCursor(0, 32); oled.printf(\"Output: %s\", output_on ? \"ON\" : \"OFF\");\n  oled.setCursor(0, 44); oled.print(\"[Encoder: tune freq]\");\n  oled.setCursor(0, 54); oled.print(\"[Press:   on/off   ]\");\n  oled.display();\n}\n\nvoid setup() {\n  Serial.begin(115200);\n  Wire.begin();\n\n  oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);\n  oled.clearDisplay(); oled.display();\n\n  // Load saved frequency\n  uint32_t saved;\n  EEPROM.get(EE_FREQ, saved);\n  if (saved >= FREQ_MIN && saved <= FREQ_MAX) freq_hz = saved;\n\n  pinMode(OC1A_PIN, OUTPUT); pinMode(OC1B_PIN, OUTPUT);\n  pinMode(ENA_PIN, OUTPUT);  digitalWrite(ENA_PIN, LOW);\n  pinMode(ENC_CLK, INPUT_PULLUP); pinMode(ENC_DT, INPUT_PULLUP); pinMode(ENC_SW, INPUT_PULLUP);\n  attachInterrupt(digitalPinToInterrupt(ENC_CLK), isr_clk, FALLING);\n  attachInterrupt(digitalPinToInterrupt(ENC_SW),  isr_sw,  FALLING);\n\n  set_freq(freq_hz);\n  draw_oled();\n  Serial.println(F(\"Ultrasonic levitation demo ready.\"));\n  Serial.printf(\"Initial freq: %lu Hz\\n\", freq_hz);\n}\n\nvoid loop() {\n  noInterrupts(); int d = enc_d; enc_d = 0; bool p = enc_p; enc_p = false; interrupts();\n\n  if (d != 0) {\n    freq_hz = constrain(freq_hz + (long)d * FREQ_STEP, FREQ_MIN, FREQ_MAX);\n    set_freq(freq_hz);\n    EEPROM.put(EE_FREQ, freq_hz);\n    Serial.printf(\"freq=%lu Hz\\n\", freq_hz);\n  }\n  if (p) enable_output(!output_on);\n\n  static unsigned long last_oled = 0;\n  if (millis() - last_oled >= 500UL) {\n    last_oled = millis();\n    draw_oled();\n  }\n}\n"
+}

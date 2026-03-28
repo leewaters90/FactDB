@@ -1,0 +1,22 @@
+{
+  "title": "Hall-Effect Reed Switch Wheel Speed Sensor",
+  "component_category": "sensing",
+  "design_question": "How to measure bicycle wheel speed accurately using a single MCU interrupt pin?",
+  "selected_approach": "A3144 unipolar Hall-effect sensor zip-tied to fork; 6 mm × 3 mm N52 neodymium disc magnet epoxied to spoke. 1 pulse/revolution at rising edge on GPIO interrupt. Speed = wheel_circumference / period (ms). 10 kΩ pull-up to 5 V; sensor output open-drain.",
+  "rationale": "Hall sensors have zero contact wear (vs. mechanical reed switches), operate in wet/muddy conditions, and provide clean digital transitions. A3144 is a proven, inexpensive choice rated −40 °C to +85 °C. Interrupt-driven measurement is CPU-efficient and resolves speeds down to walking pace.",
+  "alternatives": [
+    {
+      "approach": "Mechanical reed switch",
+      "reason_rejected": "Limited to ~10⁷ operations; 1–2 ms bounce requires hardware debounce; not weatherproof without potting."
+    },
+    {
+      "approach": "Optical encoder on hub",
+      "reason_rejected": "Exposed phototransistor fails in rain and mud; requires hub modification."
+    }
+  ],
+  "verification_notes": "FACT: 'Hall-Effect Speed Sensor for Rotating Machinery' confirms interrupt-based period measurement and A3144 suitability for single-magnet spoke installations.",
+  "supporting_fact_titles": [
+    "Hall-Effect Speed Sensor for Rotating Machinery",
+    "Wheel Encoder Odometry"
+  ]
+}
