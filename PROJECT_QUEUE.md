@@ -232,5 +232,159 @@ Continued queue — 6 new facts, 7 new design elements, 8 new projects.
 
 **Batch 1:** 8 new facts, 8 new design elements, 9 new projects.
 **Batch 2:** 6 new facts, 7 new design elements, 8 new projects.
-**Total added:** 14 new facts, 15 new design elements, **17 new projects** (plus 2 in-design projects completed).
-FactDB totals: **130 facts · 113 design elements · 64 projects**.
+**Batch 3:** 6 new facts, 5 new design elements, 8 new projects.
+**Total added:** 20 new facts, 20 new design elements, **25 new projects** (plus 2 in-design projects completed).
+FactDB totals: **136 facts · 118 design elements · 72 projects**.
+
+---
+
+## Batch 3 Projects (Session 3)
+
+### New Facts Created (Batch 3)
+
+| Title | Domain / Category | File |
+|-------|-------------------|------|
+| MAX6675 K-Type Thermocouple-to-Digital SPI Converter | electrical / thermocouples | `f61f3e4e-…` |
+| WS2812B Addressable RGB LED — Single-Wire Protocol and Timing | electrical / lighting | `2c6a7a37-…` |
+| HX711 24-Bit ADC for Load Cell and Wheatstone Bridge Amplification | electrical / sensors | `638ad328-…` |
+| AC Power Factor and True Power Measurement via Current and Voltage Sensing | electrical / power-electronics | `d758336e-…` |
+| Frequency Counter — Gate-Time Pulse Counting Method | electrical / signal-processing | `16e4d8e1-…` |
+| Stepper Motor Closed-Loop Control via Magnetic Encoder Feedback | electrical / actuation | `37900aa4-…` |
+
+### New Design Elements Created (Batch 3)
+
+| Title | Category | File |
+|-------|----------|------|
+| MAX6675 K-Type Thermocouple SPI Module | sensing | `max6675-k-type-thermocouple-spi-module.json` |
+| NeoPixel WS2812B Addressable RGB LED Strip Controller | actuation | `neopixel-ws2812b-led-strip-controller.json` |
+| HX711 Load Cell Precision Weighing Interface | sensing | `hx711-load-cell-precision-weighing.json` |
+| AC Mains Power Meter (ZMPT101B + SCT-013 + EmonLib) | sensing | `ac-mains-power-meter-emonlib.json` |
+| Closed-Loop Stepper Motor with AS5600 Magnetic Encoder | actuation | `closed-loop-stepper-as5600-encoder.json` |
+
+### Projects (Batch 3)
+
+- [x] **Smart Reflow Oven Controller** (`smart-reflow-oven-controller.json`)
+  - Domain: `electrical`
+  - Facts: MAX6675 *(new)*, PID ✓, SSR ✓, Rotary Encoder ✓, OLED SSD1306 ✓
+  - Elements: MAX6675 Module *(new)*, SSR ✓, Rotary Encoder UI ✓, SSD1306 OLED ✓, Arduino Nano ✓
+  - Integration code: Arduino C++ lead-free reflow state machine (PREHEAT/SOAK/RAMP/REFLOW/COOL)
+  - Status: **completed**
+
+- [x] **Automated Precision Scale** (`automated-precision-scale.json`)
+  - Domain: `systems`
+  - Facts: HX711 *(new)*, Load Cell ✓, ADC Resolution ✓, OLED ✓, Rotary Encoder ✓
+  - Elements: HX711 Weighing *(new)*, SSD1306 OLED ✓, Rotary Encoder UI ✓, Arduino Nano ✓
+  - Integration code: Arduino C++ 5 kg scale + tare EEPROM + g/oz toggle + auto-sleep
+  - Status: **completed**
+
+- [x] **LED Grow Light Controller** (`led-grow-light-controller.json`)
+  - Domain: `systems`
+  - Facts: WS2812B *(new)*, MQTT ✓, DS3231 ✓, NTP ✓, OLED ✓
+  - Elements: NeoPixel WS2812B *(new)*, ESP32 MQTT ✓, DS3231 RTC ✓, SSD1306 OLED ✓, MQTT Logger ✓
+  - Integration code: ESP32 Arduino C++ grow light with SEEDLING/VEG/FLOWER spectrum profiles
+  - Status: **completed**
+
+- [x] **AC Energy Monitor Dashboard** (`ac-energy-monitor-dashboard.json`)
+  - Domain: `electrical`
+  - Facts: AC Power Factor *(new)*, CT Clamp RMS ✓, MQTT ✓, NTP ✓, OLED ✓
+  - Elements: AC Power Meter EmonLib *(new)*, ESP32 MQTT ✓, SSD1306 OLED ✓, MicroSD Logger ✓, NTP Logger ✓
+  - Integration code: ESP32 Arduino C++ EmonLib V/I/P/PF + HTTP API + MQTT + SD CSV log
+  - Status: **completed**
+
+- [x] **Closed-Loop CNC Pen Plotter** (`closed-loop-cnc-pen-plotter.json`)
+  - Domain: `mechanical`
+  - Facts: Stepper Closed-Loop *(new)*, Stepper Drive ✓, G-code ✓, RC Servo ✓, Wheel Encoder ✓
+  - Elements: Closed-Loop Stepper AS5600 *(new)*, CoreXY Gantry ✓, GRBL ✓, NEMA17/DRV8825 ✓, RC Servo ✓, Arduino Mega ✓
+  - Integration code: Arduino C++ Timer2 1 kHz closed-loop ISR + GRBL + AS5600 TCA9548A mux
+  - Status: **completed**
+
+- [x] **Automated Plant Watering System** (`automated-plant-watering-system.json`)
+  - Domain: `systems`
+  - Facts: Capacitive Soil Moisture ✓, Solenoid Valve ✓, N-MOSFET ✓, MQTT ✓, DS3231 ✓
+  - Elements: Capacitive Probe ✓, N-MOSFET ✓, DS3231 RTC ✓, SSD1306 OLED ✓, ESP32 MQTT ✓, MQTT Logger ✓
+  - Integration code: ESP32 Arduino C++ 4-zone watering + RTC alarms + MQTT event log
+  - Status: **completed**
+
+- [x] **RFID Access Control Logger** (`rfid-access-control-logger.json`)
+  - Domain: `systems`
+  - Facts: RFID/NFC ✓, N-MOSFET ✓, MQTT ✓, NTP ✓, OTA ✓
+  - Elements: MFRC522 RFID ✓, N-MOSFET ✓, SSD1306 OLED ✓, MicroSD Logger ✓, OTA Update ✓, ESP32 MQTT ✓
+  - Integration code: ESP32 Arduino C++ RFID auth + door strike + CSV log + MQTT + OTA
+  - Status: **completed**
+
+- [x] **Ultrasonic Levitation Demo** (`ultrasonic-levitation-demo.json`)
+  - Domain: `systems`
+  - Facts: Ultrasonic Piezoelectric ✓, Ultrasonic Distance ✓, DC Motor PWM ✓, Rotary Encoder ✓, OLED ✓
+  - Elements: Rotary Encoder UI ✓, SSD1306 OLED ✓, Arduino Uno ✓
+  - Integration code: Arduino C++ Timer1 phase-correct PWM 40 kHz push-pull + frequency tuning
+  - Status: **completed**
+
+---
+
+## Copilot Continuous Seeder
+
+A self-driving seeder script (`scripts/copilot_seeder.py`) can generate new
+projects autonomously by prompting the GitHub Copilot CLI.
+
+**Usage:**
+```bash
+# Run forever (Ctrl-C to stop):
+factdb seed-copilot
+
+# Generate exactly 10 new projects then stop:
+factdb seed-copilot --count 10
+
+# Dry-run (inspect prompts without writing files):
+factdb seed-copilot --dry-run
+
+# Override Copilot model:
+factdb seed-copilot --model gpt-5.2 --count 5
+
+# Verbose output:
+factdb seed-copilot --count 3 --verbose
+```
+
+**How it works:**
+1. Reads all existing fact / element / project titles from `data/` JSON files.
+2. Builds a detailed prompt instructing Copilot to invent a novel project,
+   filling in any gaps with new facts and design elements.
+3. Calls `gh copilot -p "..." --allow-all-tools --autopilot` non-interactively.
+4. Parses the JSON envelope from the response.
+5. Validates and writes new `.json` files to the appropriate `data/` paths.
+6. Appends new relationships to `data/facts/_relationships.json`.
+7. Re-seeds the SQLite DB (`factdb seed && factdb seed-projects`).
+8. Appends a summary line to this file.
+9. Loops back to step 1 (with configurable pause between iterations).
+
+---
+
+## Full Summary
+
+| # | Project | Status |
+|---|---------|--------|
+| 1 | Autonomous Obstacle-Avoidance Rover | ✅ Completed |
+| 2 | Voice-Controlled Home Automation Hub | ✅ Completed |
+| 3 | Weather Station Software | ✅ Completed (prior session) |
+| 4 | Smart Aquarium Controller | ✅ Completed |
+| 5 | CNC Hot Wire Foam Cutter | ✅ Completed |
+| 6 | Automated Pill Dispenser | ✅ Completed |
+| 7 | Bluetooth Bicycle Speedometer | ✅ Completed |
+| 8 | Smart Battery Management System Monitor | ✅ Completed |
+| 9 | Garage Door IoT Controller | ✅ Completed |
+| 10 | Smart Sous-Vide Cooker | ✅ Completed |
+| 11 | LoRa Environmental Field Station | ✅ Completed |
+| 12 | Portable Water Quality Monitor v2 | ✅ Completed |
+| 13 | Automatic Soldering Iron Station | ✅ Completed |
+| 14 | Smart Compost Monitor | ✅ Completed |
+| 15 | Robotic Color Sorting Conveyor | ✅ Completed |
+| 16 | DIY Electronic Load (Constant Current) | ✅ Completed |
+| 17 | Induction Forge Temperature Controller | ✅ Completed |
+| 18 | Smart Reflow Oven Controller | ✅ Completed |
+| 19 | Automated Precision Scale | ✅ Completed |
+| 20 | LED Grow Light Controller | ✅ Completed |
+| 21 | AC Energy Monitor Dashboard | ✅ Completed |
+| 22 | Closed-Loop CNC Pen Plotter | ✅ Completed |
+| 23 | Automated Plant Watering System | ✅ Completed |
+| 24 | RFID Access Control Logger | ✅ Completed |
+| 25 | Ultrasonic Levitation Demo | ✅ Completed |
+| 26+ | *(future — auto-generated by `factdb seed-copilot`)* | 🤖 Automated |
