@@ -211,4 +211,118 @@ def create_app(db_url: str | None = None) -> Flask:
         finally:
             session.close()
 
+    # -----------------------------------------------------------------------
+    # Dependency Chart
+    # -----------------------------------------------------------------------
+
+    @app.get("/chart")
+    def dependency_chart():
+        session = get_session()
+        try:
+            # --- Fetch all active facts and their relationships ---
+            facts = (
+                session.query(Fact)
+                .filter(Fact.is_active.is_(True))
+                .order_by(Fact.domain, Fact.title)
+                .all()
+            )
+            relationships = session.query(FactRelationship).all()
+
+            # --- Fetch design elements and projects ---
+            repo = ProjectRepository(session)
+            elements = repo.list_design_elements(limit=1000)
+            projects = repo.list_projects(limit=500)
+
+            # --- Build graph nodes ---
+            nodes = []
+            fact_id_set: set[str] = set()
+            element_id_set: set[str] = set()
+
+            for fact in facts:
+                nodes.append({
+                    "id": fact.id,
+                    "label": fact.title,
+                    "type": "fact",
+                    "group": fact.domain,
+                    "status": fact.status,
+                    "url": url_for("fact_detail", fact_id=fact.id),
+                })
+                fact_id_set.add(fact.id)
+
+            for el in elements:
+                nodes.append({
+                    "id": el.id,
+                    "label": el.title,
+                    "type": "element",
+                    "group": el.component_category,
+                    "url": url_for("element_detail", element_id=el.id),
+                })
+                element_id_set.add(el.id)
+
+            for proj in projects:
+                nodes.append({
+                    "id": proj.id,
+                    "label": proj.title,
+                    "type": "project",
+                    "group": proj.domain,
+                    "status": proj.status,
+                    "url": url_for("project_detail", project_id=proj.id),
+                })
+
+            # --- Build graph edges ---
+            edges = []
+
+            # Fact → Fact relationships
+            for rel in relationships:
+                if rel.source_fact_id in fact_id_set and rel.target_fact_id in fact_id_set:
+                    edges.append({
+                        "source": rel.source_fact_id,
+                        "target": rel.target_fact_id,
+                        "type": rel.relationship_type,
+                        "weight": rel.weight or 1.0,
+                    })
+
+            # Element → Fact (supporting facts)
+            for el in elements:
+                for fact in el.supporting_facts:
+                    if fact.id in fact_id_set:
+                        edges.append({
+                            "source": el.id,
+                            "target": fact.id,
+                            "type": "uses_fact",
+                            "weight": 1.0,
+                        })
+
+            # Project → Element
+            for proj in projects:
+                for el in proj.elements:
+                    if el.id in element_id_set:
+                        edges.append({
+                            "source": proj.id,
+                            "target": el.id,
+                            "type": "uses_element",
+                            "weight": 1.0,
+                        })
+                # Project → Fact (direct supporting facts)
+                for fact in proj.supporting_facts:
+                    if fact.id in fact_id_set:
+                        edges.append({
+                            "source": proj.id,
+                            "target": fact.id,
+                            "type": "uses_fact",
+                            "weight": 1.0,
+                        })
+
+            graph = {"nodes": nodes, "edges": edges}
+            stats = {
+                "facts": len(facts),
+                "elements": len(elements),
+                "projects": len(projects),
+                "edges": len(edges),
+            }
+
+            return render_template("web/chart.html", graph=graph, stats=stats)
+        finally:
+            session.close()
+
     return app

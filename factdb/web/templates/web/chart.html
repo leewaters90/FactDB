@@ -1,0 +1,360 @@
+{% extends "web/base.html" %}
+{% block title %}Dependency Chart — FactDB{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Dependency Chart</h1>
+  <p>Interactive force-directed graph of facts, design elements, and projects.
+     Drag nodes to reposition · Scroll to zoom · Click a node to open its detail page.</p>
+</div>
+
+<!-- Stats bar -->
+<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
+  <div class="card" style="padding:12px 20px;margin:0;display:flex;align-items:center;gap:10px;">
+    <span style="width:12px;height:12px;border-radius:50%;background:#3b6ef0;display:inline-block;"></span>
+    <strong>{{ stats.facts }}</strong> Facts
+  </div>
+  <div class="card" style="padding:12px 20px;margin:0;display:flex;align-items:center;gap:10px;">
+    <span style="width:12px;height:12px;background:#16a34a;display:inline-block;transform:rotate(45deg);"></span>
+    <strong>{{ stats.elements }}</strong> Design Elements
+  </div>
+  <div class="card" style="padding:12px 20px;margin:0;display:flex;align-items:center;gap:10px;">
+    <span style="width:12px;height:12px;border-radius:3px;background:#d97706;display:inline-block;"></span>
+    <strong>{{ stats.projects }}</strong> Projects
+  </div>
+  <div class="card" style="padding:12px 20px;margin:0;display:flex;align-items:center;gap:10px;">
+    <span style="color:var(--muted);font-size:13px;">→</span>
+    <strong>{{ stats.edges }}</strong> Edges
+  </div>
+</div>
+
+<!-- Controls -->
+<div class="card" style="padding:12px 16px;margin-bottom:16px;">
+  <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;">
+    <div style="display:flex;gap:8px;align-items:center;font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;">
+      Show nodes:
+    </div>
+    <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;">
+      <input type="checkbox" id="toggle-facts" checked> Facts
+    </label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;">
+      <input type="checkbox" id="toggle-elements" checked> Design Elements
+    </label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;">
+      <input type="checkbox" id="toggle-projects" checked> Projects
+    </label>
+    <div style="flex:1;min-width:160px;">
+      <input type="text" id="search-input" placeholder="Highlight by name…"
+             style="width:100%;border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:14px;">
+    </div>
+    <button class="btn btn-outline" id="reset-zoom" style="font-size:13px;padding:5px 12px;">Reset view</button>
+  </div>
+</div>
+
+<!-- Graph canvas -->
+<div class="dep-graph" style="height:640px;position:relative;overflow:hidden;background:#fafbff;">
+  <svg id="chart-svg" style="width:100%;height:100%;"></svg>
+  <!-- Tooltip -->
+  <div id="chart-tooltip" style="
+    position:absolute;pointer-events:none;display:none;
+    background:rgba(26,31,46,.92);color:#fff;font-size:12px;
+    padding:8px 12px;border-radius:6px;max-width:260px;line-height:1.5;
+    box-shadow:0 4px 12px rgba(0,0,0,.25);z-index:10;
+  "></div>
+</div>
+
+<!-- Legend -->
+<div class="card" style="margin-top:16px;padding:14px 20px;">
+  <div style="display:flex;flex-wrap:wrap;gap:24px;font-size:13px;">
+    <strong style="color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.4px;align-self:center;">Legend</strong>
+    <span style="display:flex;align-items:center;gap:6px;">
+      <svg width="16" height="16"><circle cx="8" cy="8" r="6" fill="#3b6ef0"/></svg> Fact
+    </span>
+    <span style="display:flex;align-items:center;gap:6px;">
+      <svg width="16" height="16"><polygon points="8,2 14,8 8,14 2,8" fill="#16a34a"/></svg> Design Element
+    </span>
+    <span style="display:flex;align-items:center;gap:6px;">
+      <svg width="16" height="16"><rect x="2" y="3" width="12" height="10" rx="2" fill="#d97706"/></svg> Project
+    </span>
+    <span style="display:flex;align-items:center;gap:6px;">
+      <svg width="24" height="12"><line x1="0" y1="6" x2="24" y2="6" stroke="#dc2626" stroke-width="1.5"/></svg> depends_on
+    </span>
+    <span style="display:flex;align-items:center;gap:6px;">
+      <svg width="24" height="12"><line x1="0" y1="6" x2="24" y2="6" stroke="#059669" stroke-width="1.5" stroke-dasharray="4,3"/></svg> supports
+    </span>
+    <span style="display:flex;align-items:center;gap:6px;">
+      <svg width="24" height="12"><line x1="0" y1="6" x2="24" y2="6" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="2,2"/></svg> uses element
+    </span>
+    <span style="display:flex;align-items:center;gap:6px;">
+      <svg width="24" height="12"><line x1="0" y1="6" x2="24" y2="6" stroke="#0891b2" stroke-width="1"/></svg> uses fact
+    </span>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script>
+(function () {
+  // ── Data ──────────────────────────────────────────────────────────────────
+  const RAW = {{ graph | tojson }};
+  const nodeMap = new Map(RAW.nodes.map(n => [n.id, n]));
+
+  // ── Config ────────────────────────────────────────────────────────────────
+  const NODE_R = { fact: 7, element: 9, project: 10 };
+  const NODE_COLOR = { fact: "#3b6ef0", element: "#16a34a", project: "#d97706" };
+  const EDGE_COLOR = {
+    depends_on:   "#dc2626",
+    supports:     "#059669",
+    uses_element: "#7c3aed",
+    uses_fact:    "#0891b2",
+  };
+  const EDGE_DASH = {
+    depends_on:   null,
+    supports:     "5,4",
+    uses_element: "2,3",
+    uses_fact:    null,
+  };
+  const EDGE_OPACITY = {
+    depends_on:   0.75,
+    supports:     0.65,
+    uses_element: 0.55,
+    uses_fact:    0.40,
+  };
+
+  // ── SVG setup ─────────────────────────────────────────────────────────────
+  const container = document.getElementById("chart-svg").parentElement;
+  const W = container.clientWidth  || 900;
+  const H = container.clientHeight || 640;
+
+  const svg = d3.select("#chart-svg")
+    .attr("width", W)
+    .attr("height", H);
+
+  // Zoom layer
+  const g = svg.append("g").attr("class", "zoom-layer");
+  const zoom = d3.zoom()
+    .scaleExtent([0.05, 4])
+    .on("zoom", e => g.attr("transform", e.transform));
+  svg.call(zoom);
+
+  // Arrow markers (one per edge type)
+  const defs = svg.append("defs");
+  Object.entries(EDGE_COLOR).forEach(([type, color]) => {
+    defs.append("marker")
+      .attr("id", `arrow-${type}`)
+      .attr("viewBox", "0 -4 8 8")
+      .attr("refX", 14)
+      .attr("refY", 0)
+      .attr("markerWidth", 6)
+      .attr("markerHeight", 6)
+      .attr("orient", "auto")
+      .append("path")
+        .attr("d", "M0,-4L8,0L0,4")
+        .attr("fill", color);
+  });
+
+  // ── Simulation ────────────────────────────────────────────────────────────
+  const simNodes = RAW.nodes.map(n => ({ ...n }));
+  const simEdges = RAW.edges
+    .filter(e => nodeMap.has(e.source) && nodeMap.has(e.target))
+    .map(e => ({ ...e }));
+
+  const sim = d3.forceSimulation(simNodes)
+    .force("link", d3.forceLink(simEdges)
+      .id(d => d.id)
+      .distance(d => {
+        if (d.type === "uses_element") return 80;
+        if (d.type === "uses_fact")    return 70;
+        return 60;
+      })
+      .strength(0.3))
+    .force("charge", d3.forceManyBody().strength(-120).distanceMax(400))
+    .force("center", d3.forceCenter(W / 2, H / 2))
+    .force("collide", d3.forceCollide(d => NODE_R[d.type] + 6))
+    .alphaDecay(0.025);
+
+  // ── Edge layer ────────────────────────────────────────────────────────────
+  const edgeLayer = g.append("g").attr("class", "edges");
+  let link = edgeLayer.selectAll("line")
+    .data(simEdges)
+    .join("line")
+      .attr("stroke",       d => EDGE_COLOR[d.type] || "#aaa")
+      .attr("stroke-width", d => d.type === "depends_on" ? 1.5 : 1)
+      .attr("stroke-dasharray", d => EDGE_DASH[d.type] || null)
+      .attr("stroke-opacity", d => EDGE_OPACITY[d.type] || 0.5)
+      .attr("marker-end", d => `url(#arrow-${d.type})`);
+
+  // ── Node layer ────────────────────────────────────────────────────────────
+  const nodeLayer = g.append("g").attr("class", "nodes");
+
+  function buildNodes(data) {
+    return nodeLayer.selectAll("g.node")
+      .data(data, d => d.id)
+      .join(enter => {
+        const ng = enter.append("g").attr("class", "node").style("cursor", "pointer");
+
+        // Shape by type
+        ng.each(function(d) {
+          const sel = d3.select(this);
+          const r = NODE_R[d.type];
+          if (d.type === "fact") {
+            sel.append("circle").attr("r", r);
+          } else if (d.type === "element") {
+            const s = r * 1.4;
+            sel.append("polygon")
+              .attr("points", `0,${-s} ${s},0 0,${s} ${-s},0`);
+          } else {
+            const w = r * 2.6, h = r * 2;
+            sel.append("rect")
+              .attr("x", -w/2).attr("y", -h/2)
+              .attr("width", w).attr("height", h)
+              .attr("rx", 3);
+          }
+        });
+
+        // Fill / stroke
+        ng.select("circle,polygon,rect")
+          .attr("fill",         d => NODE_COLOR[d.type])
+          .attr("fill-opacity", 0.85)
+          .attr("stroke",       d => d3.color(NODE_COLOR[d.type]).darker(0.6))
+          .attr("stroke-width", 1.2);
+
+        // Label
+        ng.append("text")
+          .attr("dy", d => NODE_R[d.type] + 9)
+          .attr("text-anchor", "middle")
+          .attr("font-size", "9px")
+          .attr("fill", "#1a1f2e")
+          .attr("pointer-events", "none")
+          .text(d => d.label.length > 22 ? d.label.slice(0, 21) + "…" : d.label);
+
+        // Drag
+        ng.call(d3.drag()
+          .on("start", (event, d) => {
+            if (!event.active) sim.alphaTarget(0.3).restart();
+            d.fx = d.x; d.fy = d.y;
+          })
+          .on("drag",  (event, d) => { d.fx = event.x; d.fy = event.y; })
+          .on("end",   (event, d) => {
+            if (!event.active) sim.alphaTarget(0);
+            d.fx = null; d.fy = null;
+          }));
+
+        // Hover tooltip
+        ng.on("mouseover", (event, d) => {
+          const tt = document.getElementById("chart-tooltip");
+          const lines = [`<strong>${d.label}</strong>`, `Type: ${d.type}`];
+          if (d.group)  lines.push(`Group: ${d.group}`);
+          if (d.status) lines.push(`Status: ${d.status}`);
+          tt.innerHTML = lines.join("<br>");
+          tt.style.display = "block";
+          moveTT(event);
+        })
+        .on("mousemove", (event) => moveTT(event))
+        .on("mouseout",  () => {
+          document.getElementById("chart-tooltip").style.display = "none";
+        });
+
+        // Click → navigate
+        ng.on("click", (event, d) => {
+          if (d.url) window.location.href = d.url;
+        });
+
+        return ng;
+      });
+  }
+
+  let node = buildNodes(simNodes);
+
+  function moveTT(event) {
+    const tt = document.getElementById("chart-tooltip");
+    const rect = container.getBoundingClientRect();
+    let x = event.clientX - rect.left + 14;
+    let y = event.clientY - rect.top  - 28;
+    if (x + 270 > W) x = x - 270;
+    if (y < 0) y = 0;
+    tt.style.left = x + "px";
+    tt.style.top  = y + "px";
+  }
+
+  // ── Simulation tick ───────────────────────────────────────────────────────
+  sim.on("tick", () => {
+    link
+      .attr("x1", d => d.source.x)
+      .attr("y1", d => d.source.y)
+      .attr("x2", d => d.target.x)
+      .attr("y2", d => d.target.y);
+
+    node.attr("transform", d => `translate(${d.x},${d.y})`);
+  });
+
+  // ── Visibility toggles ────────────────────────────────────────────────────
+  let showFacts    = true;
+  let showElements = true;
+  let showProjects = true;
+
+  function applyVisibility() {
+    const shown = new Set();
+    simNodes.forEach(n => {
+      const vis = (n.type === "fact"    && showFacts)
+               || (n.type === "element" && showElements)
+               || (n.type === "project" && showProjects);
+      if (vis) shown.add(n.id);
+    });
+
+    node.style("display", d => shown.has(d.id) ? null : "none");
+    link.style("display", d => {
+      const sid = typeof d.source === "object" ? d.source.id : d.source;
+      const tid = typeof d.target === "object" ? d.target.id : d.target;
+      return (shown.has(sid) && shown.has(tid)) ? null : "none";
+    });
+  }
+
+  document.getElementById("toggle-facts").addEventListener("change", e => {
+    showFacts = e.target.checked; applyVisibility();
+  });
+  document.getElementById("toggle-elements").addEventListener("change", e => {
+    showElements = e.target.checked; applyVisibility();
+  });
+  document.getElementById("toggle-projects").addEventListener("change", e => {
+    showProjects = e.target.checked; applyVisibility();
+  });
+
+  // ── Search / highlight ────────────────────────────────────────────────────
+  document.getElementById("search-input").addEventListener("input", e => {
+    const q = e.target.value.trim().toLowerCase();
+    node.select("circle,polygon,rect")
+      .attr("fill-opacity", d => {
+        if (!q) return 0.85;
+        return d.label.toLowerCase().includes(q) ? 1 : 0.12;
+      });
+    node.select("text")
+      .attr("fill-opacity", d => {
+        if (!q) return 1;
+        return d.label.toLowerCase().includes(q) ? 1 : 0.15;
+      });
+  });
+
+  // ── Reset zoom ────────────────────────────────────────────────────────────
+  document.getElementById("reset-zoom").addEventListener("click", () => {
+    svg.transition().duration(500).call(zoom.transform, d3.zoomIdentity);
+  });
+
+  // ── Initial zoom to fit ───────────────────────────────────────────────────
+  sim.on("end", () => {
+    const xs = simNodes.map(n => n.x);
+    const ys = simNodes.map(n => n.y);
+    const xMin = Math.min(...xs), xMax = Math.max(...xs);
+    const yMin = Math.min(...ys), yMax = Math.max(...ys);
+    const pad = 40;
+    const scale = Math.min(
+      (W - pad * 2) / (xMax - xMin || 1),
+      (H - pad * 2) / (yMax - yMin || 1),
+      1
+    );
+    const tx = W / 2 - scale * (xMin + xMax) / 2;
+    const ty = H / 2 - scale * (yMin + yMax) / 2;
+    svg.call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+  });
+})();
+</script>
+{% endblock %}
