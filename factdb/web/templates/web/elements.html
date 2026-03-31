@@ -17,7 +17,15 @@
       {% endfor %}
     </select>
   </div>
-  {% if category_filter %}
+  <div>
+    <label for="created_after">Created after</label>
+    <input type="date" id="created_after" name="created_after" value="{{ created_after }}" onchange="this.form.submit()">
+  </div>
+  <div>
+    <label for="created_before">Created before</label>
+    <input type="date" id="created_before" name="created_before" value="{{ created_before }}" onchange="this.form.submit()">
+  </div>
+  {% if category_filter or created_after or created_before %}
     <a href="{{ url_for('elements_list') }}" class="btn btn-outline">Clear</a>
   {% endif %}
 </form>
@@ -31,6 +39,7 @@
         <th>Category</th>
         <th>Approach (summary)</th>
         <th>Projects</th>
+        <th>Created</th>
         <th>Reviewed</th>
       </tr>
     </thead>
@@ -43,6 +52,9 @@
           {{ el.selected_approach[:120] }}{% if el.selected_approach | length > 120 %}…{% endif %}
         </td>
         <td style="text-align:center;">{{ el.project_links | length }}</td>
+        <td style="text-align:center;font-size:12px;color:#9ca3af;" title="{{ el.created_at.isoformat() if el.created_at else '' }}">
+          {{ el.created_at.strftime('%Y-%m-%d') if el.created_at else '—' }}
+        </td>
         <td style="text-align:center;">
           {% if el.verification_notes %}
             <span style="color:#16a34a;font-weight:600;">✓</span>

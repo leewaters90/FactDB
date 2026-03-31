@@ -7,6 +7,7 @@ boundaries (call ``session.commit()`` after operations).
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import List, Optional, Sequence
 
 from sqlalchemy import select
@@ -114,15 +115,21 @@ class ProjectRepository:
     def list_design_elements(
         self,
         component_category: ComponentCategory | None = None,
+        created_after: datetime | None = None,
+        created_before: datetime | None = None,
         limit: int = 500,
         offset: int = 0,
     ) -> Sequence[DesignElement]:
-        """Return DesignElements, optionally filtered by category."""
+        """Return DesignElements, optionally filtered by category and/or creation date range."""
         stmt = select(DesignElement)
         if component_category is not None:
             stmt = stmt.where(
                 DesignElement.component_category == component_category
             )
+        if created_after is not None:
+            stmt = stmt.where(DesignElement.created_at >= created_after)
+        if created_before is not None:
+            stmt = stmt.where(DesignElement.created_at <= created_before)
         stmt = stmt.order_by(DesignElement.component_category, DesignElement.title)
         stmt = stmt.offset(offset).limit(limit)
         return self.session.execute(stmt).scalars().all()
@@ -210,15 +217,21 @@ class ProjectRepository:
         self,
         status: ProjectStatus | None = None,
         domain: str | None = None,
+        created_after: datetime | None = None,
+        created_before: datetime | None = None,
         limit: int = 100,
         offset: int = 0,
     ) -> Sequence[Project]:
-        """Return projects filtered by status and/or domain."""
+        """Return projects filtered by status, domain, and/or creation date range."""
         stmt = select(Project)
         if status is not None:
             stmt = stmt.where(Project.status == status)
         if domain is not None:
             stmt = stmt.where(Project.domain == domain)
+        if created_after is not None:
+            stmt = stmt.where(Project.created_at >= created_after)
+        if created_before is not None:
+            stmt = stmt.where(Project.created_at <= created_before)
         stmt = stmt.order_by(Project.created_at).offset(offset).limit(limit)
         return self.session.execute(stmt).scalars().all()
 

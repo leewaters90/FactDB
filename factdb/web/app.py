@@ -8,6 +8,8 @@ and their fact dependencies.
 from __future__ import annotations
 
 import os
+from collections import defaultdict
+from datetime import datetime, timezone
 
 from flask import Flask, abort, flash, redirect, render_template, request, url_for
 from sqlalchemy.orm import Session
@@ -16,6 +18,16 @@ from factdb.database import get_session_factory, init_db
 from factdb.models import EngineeringDomain, Fact, FactRelationship
 from factdb.project_models import ComponentCategory, DesignElement, Project, ProjectStatus
 from factdb.project_repository import ProjectRepository
+
+
+def _parse_date(value: str | None) -> datetime | None:
+    """Parse an ISO date string (YYYY-MM-DD) into a UTC-aware datetime, or None."""
+    if not value:
+        return None
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    except ValueError:
+        return None
 
 
 def create_app(db_url: str | None = None) -> Flask:
@@ -63,15 +75,28 @@ def create_app(db_url: str | None = None) -> Flask:
             repo = ProjectRepository(session)
             status_filter = request.args.get("status") or None
             domain_filter = request.args.get("domain") or None
+            created_after_str = request.args.get("created_after") or None
+            created_before_str = request.args.get("created_before") or None
 
             status_enum = ProjectStatus(status_filter) if status_filter else None
-            projects = repo.list_projects(status=status_enum, domain=domain_filter, limit=200)
+            created_after = _parse_date(created_after_str)
+            created_before = _parse_date(created_before_str)
+
+            projects = repo.list_projects(
+                status=status_enum,
+                domain=domain_filter,
+                created_after=created_after,
+                created_before=created_before,
+                limit=200,
+            )
 
             return render_template(
                 "web/projects.html",
                 projects=projects,
                 status_filter=status_filter,
                 domain_filter=domain_filter,
+                created_after=created_after_str or "",
+                created_before=created_before_str or "",
                 statuses=[s.value for s in ProjectStatus],
                 domains=[d.value for d in EngineeringDomain],
             )
@@ -110,13 +135,26 @@ def create_app(db_url: str | None = None) -> Flask:
         try:
             repo = ProjectRepository(session)
             category_filter = request.args.get("category") or None
+            created_after_str = request.args.get("created_after") or None
+            created_before_str = request.args.get("created_before") or None
+
             category_enum = ComponentCategory(category_filter) if category_filter else None
-            elements = repo.list_design_elements(component_category=category_enum, limit=500)
+            created_after = _parse_date(created_after_str)
+            created_before = _parse_date(created_before_str)
+
+            elements = repo.list_design_elements(
+                component_category=category_enum,
+                created_after=created_after,
+                created_before=created_before,
+                limit=500,
+            )
 
             return render_template(
                 "web/elements.html",
                 elements=elements,
                 category_filter=category_filter,
+                created_after=created_after_str or "",
+                created_before=created_before_str or "",
                 categories=[c.value for c in ComponentCategory],
             )
         finally:
@@ -322,6 +360,91 @@ def create_app(db_url: str | None = None) -> Flask:
             }
 
             return render_template("web/chart.html", graph=graph, stats=stats)
+        finally:
+            session.close()
+
+    # -----------------------------------------------------------------------
+    # Convergence Chart
+    # -----------------------------------------------------------------------
+
+    @app.get("/convergence")
+    def convergence_chart():
+        session = get_session()
+        try:
+            facts = (
+                session.query(Fact)
+                .filter(Fact.is_active.is_(True))
+                .order_by(Fact.created_at)
+                .all()
+            )
+            repo = ProjectRepository(session)
+            elements = repo.list_design_elements(limit=2000)
+            projects = repo.list_projects(limit=2000)
+
+            def _bucket(dt) -> str:
+                if dt is None:
+                    return "unknown"
+                return dt.strftime("%Y-%m-%d")
+
+            # Collect all dates
+            all_dates: set[str] = set()
+            fact_counts: dict[str, int] = defaultdict(int)
+            element_counts: dict[str, int] = defaultdict(int)
+            project_counts: dict[str, int] = defaultdict(int)
+
+            for f in facts:
+                d = _bucket(f.created_at)
+                fact_counts[d] += 1
+                all_dates.add(d)
+            for e in elements:
+                d = _bucket(e.created_at)
+                element_counts[d] += 1
+                all_dates.add(d)
+            for p in projects:
+                d = _bucket(p.created_at)
+                project_counts[d] += 1
+                all_dates.add(d)
+
+            all_dates.discard("unknown")
+            sorted_dates = sorted(all_dates)
+
+            # Build cumulative series
+            cum_facts, cum_elements, cum_projects = [], [], []
+            cf = ce = cp = 0
+            for d in sorted_dates:
+                cf += fact_counts.get(d, 0)
+                ce += element_counts.get(d, 0)
+                cp += project_counts.get(d, 0)
+                cum_facts.append(cf)
+                cum_elements.append(ce)
+                cum_projects.append(cp)
+
+            # Daily counts series
+            daily_facts    = [fact_counts.get(d, 0)    for d in sorted_dates]
+            daily_elements = [element_counts.get(d, 0) for d in sorted_dates]
+            daily_projects = [project_counts.get(d, 0) for d in sorted_dates]
+
+            chart_data = {
+                "labels": sorted_dates,
+                "cumulative": {
+                    "facts":    cum_facts,
+                    "elements": cum_elements,
+                    "projects": cum_projects,
+                },
+                "daily": {
+                    "facts":    daily_facts,
+                    "elements": daily_elements,
+                    "projects": daily_projects,
+                },
+            }
+            stats = {
+                "facts":    len(facts),
+                "elements": len(elements),
+                "projects": len(projects),
+                "days":     len(sorted_dates),
+            }
+
+            return render_template("web/convergence.html", chart_data=chart_data, stats=stats)
         finally:
             session.close()
 

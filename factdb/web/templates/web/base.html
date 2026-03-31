@@ -13,6 +13,7 @@
   <a href="{{ url_for('elements_list') }}" {% if request.endpoint and request.endpoint.startswith('element') %}class="active"{% endif %}>Design Elements</a>
   <a href="{{ url_for('facts_list') }}" {% if request.endpoint and request.endpoint.startswith('fact') %}class="active"{% endif %}>Facts</a>
   <a href="{{ url_for('dependency_chart') }}" {% if request.endpoint == 'dependency_chart' %}class="active"{% endif %}>Chart</a>
+  <a href="{{ url_for('convergence_chart') }}" {% if request.endpoint == 'convergence_chart' %}class="active"{% endif %}>Convergence</a>
 </nav>
 
 <div class="page">

@@ -1,0 +1,265 @@
+{% extends "web/base.html" %}
+{% block title %}Convergence — FactDB{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Seed-Copilot Convergence</h1>
+  <p>Cumulative and daily growth of facts, design elements, and projects seeded over time.</p>
+</div>
+
+<!-- Summary stats -->
+<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px;">
+  <div class="card" style="padding:12px 20px;margin:0;display:flex;align-items:center;gap:10px;">
+    <span style="width:12px;height:12px;border-radius:50%;background:#3b6ef0;display:inline-block;"></span>
+    <strong>{{ stats.facts }}</strong>&nbsp;Facts
+  </div>
+  <div class="card" style="padding:12px 20px;margin:0;display:flex;align-items:center;gap:10px;">
+    <span style="width:12px;height:12px;background:#16a34a;display:inline-block;transform:rotate(45deg);"></span>
+    <strong>{{ stats.elements }}</strong>&nbsp;Design Elements
+  </div>
+  <div class="card" style="padding:12px 20px;margin:0;display:flex;align-items:center;gap:10px;">
+    <span style="width:12px;height:12px;border-radius:3px;background:#d97706;display:inline-block;"></span>
+    <strong>{{ stats.projects }}</strong>&nbsp;Projects
+  </div>
+  <div class="card" style="padding:12px 20px;margin:0;display:flex;align-items:center;gap:10px;">
+    <span style="color:var(--muted);font-size:18px;">📅</span>
+    <strong>{{ stats.days }}</strong>&nbsp;Active days
+  </div>
+</div>
+
+<!-- Chart toggle -->
+<div class="card" style="padding:12px 16px;margin-bottom:16px;">
+  <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;">
+    <span style="font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;">View</span>
+    <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;">
+      <input type="radio" name="chart-mode" value="cumulative" checked> Cumulative
+    </label>
+    <label style="display:flex;align-items:center;gap=6px;font-size:14px;cursor:pointer;">
+      <input type="radio" name="chart-mode" value="daily"> Daily additions
+    </label>
+  </div>
+</div>
+
+<!-- Main cumulative chart -->
+<div class="card" style="padding:20px;margin-bottom:20px;">
+  <h3 style="margin:0 0 16px;font-size:15px;font-weight:600;">Cumulative Growth</h3>
+  <div style="position:relative;height:340px;">
+    <canvas id="cumChart"></canvas>
+  </div>
+</div>
+
+<!-- Daily additions chart -->
+<div class="card" style="padding:20px;margin-bottom:20px;">
+  <h3 style="margin:0 0 16px;font-size:15px;font-weight:600;">Daily Additions</h3>
+  <div style="position:relative;height:260px;">
+    <canvas id="dailyChart"></canvas>
+  </div>
+</div>
+
+<!-- Composition chart (latest snapshot) -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+  <div class="card" style="padding:20px;">
+    <h3 style="margin:0 0 16px;font-size:15px;font-weight:600;">Composition by Type</h3>
+    <div style="position:relative;height:220px;">
+      <canvas id="donutChart"></canvas>
+    </div>
+  </div>
+  <div class="card" style="padding:20px;">
+    <h3 style="margin:0 0 16px;font-size:15px;font-weight:600;">Growth Rate (7-day rolling avg)</h3>
+    <div style="position:relative;height:220px;">
+      <canvas id="rateChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+  const DATA = {{ chart_data | tojson }};
+  const labels = DATA.labels;
+  const cum = DATA.cumulative;
+  const daily = DATA.daily;
+
+  // ── Shared chart defaults ─────────────────────────────────────────────────
+  Chart.defaults.font.family = "inherit";
+  Chart.defaults.color = "#6b7280";
+
+  const COLORS = {
+    facts:    { line: "#3b6ef0", fill: "rgba(59,110,240,0.12)" },
+    elements: { line: "#16a34a", fill: "rgba(22,163,74,0.12)"  },
+    projects: { line: "#d97706", fill: "rgba(217,119,6,0.12)"  },
+  };
+
+  // ── 1. Cumulative line chart ───────────────────────────────────────────────
+  const cumCtx = document.getElementById("cumChart").getContext("2d");
+  const cumChart = new Chart(cumCtx, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Facts",
+          data: cum.facts,
+          borderColor: COLORS.facts.line,
+          backgroundColor: COLORS.facts.fill,
+          fill: true,
+          tension: 0.35,
+          pointRadius: labels.length > 30 ? 0 : 3,
+          borderWidth: 2,
+        },
+        {
+          label: "Design Elements",
+          data: cum.elements,
+          borderColor: COLORS.elements.line,
+          backgroundColor: COLORS.elements.fill,
+          fill: true,
+          tension: 0.35,
+          pointRadius: labels.length > 30 ? 0 : 3,
+          borderWidth: 2,
+        },
+        {
+          label: "Projects",
+          data: cum.projects,
+          borderColor: COLORS.projects.line,
+          backgroundColor: COLORS.projects.fill,
+          fill: true,
+          tension: 0.35,
+          pointRadius: labels.length > 30 ? 0 : 3,
+          borderWidth: 2,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: { position: "top" },
+        tooltip: {
+          callbacks: {
+            title: ctx => ctx[0].label,
+            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}`,
+          },
+        },
+      },
+      scales: {
+        x: { ticks: { maxTicksLimit: 12, maxRotation: 0 } },
+        y: { beginAtZero: true, grid: { color: "#f1f5f9" } },
+      },
+    },
+  });
+
+  // ── 2. Daily bar chart ────────────────────────────────────────────────────
+  const dailyCtx = document.getElementById("dailyChart").getContext("2d");
+  new Chart(dailyCtx, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        { label: "Facts",           data: daily.facts,    backgroundColor: COLORS.facts.line,    borderRadius: 2 },
+        { label: "Design Elements", data: daily.elements, backgroundColor: COLORS.elements.line, borderRadius: 2 },
+        { label: "Projects",        data: daily.projects, backgroundColor: COLORS.projects.line, borderRadius: 2 },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: { legend: { position: "top" } },
+      scales: {
+        x: { stacked: true, ticks: { maxTicksLimit: 12, maxRotation: 0 } },
+        y: { stacked: true, beginAtZero: true, grid: { color: "#f1f5f9" } },
+      },
+    },
+  });
+
+  // ── 3. Donut chart — current totals ───────────────────────────────────────
+  const lastFacts    = cum.facts.length    ? cum.facts[cum.facts.length - 1]       : 0;
+  const lastElements = cum.elements.length ? cum.elements[cum.elements.length - 1] : 0;
+  const lastProjects = cum.projects.length ? cum.projects[cum.projects.length - 1] : 0;
+
+  const donutCtx = document.getElementById("donutChart").getContext("2d");
+  new Chart(donutCtx, {
+    type: "doughnut",
+    data: {
+      labels: ["Facts", "Design Elements", "Projects"],
+      datasets: [{
+        data: [lastFacts, lastElements, lastProjects],
+        backgroundColor: [COLORS.facts.line, COLORS.elements.line, COLORS.projects.line],
+        borderWidth: 2,
+        borderColor: "#fff",
+        hoverOffset: 6,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: "bottom" },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.label}: ${ctx.parsed} (${Math.round(ctx.parsed / (lastFacts + lastElements + lastProjects) * 100)}%)`,
+          },
+        },
+      },
+    },
+  });
+
+  // ── 4. Rolling 7-day average growth rate ─────────────────────────────────
+  function rollingAvg(arr, window) {
+    return arr.map((_, i) => {
+      const slice = arr.slice(Math.max(0, i - window + 1), i + 1);
+      return parseFloat((slice.reduce((a, b) => a + b, 0) / slice.length).toFixed(2));
+    });
+  }
+
+  const rateCtx = document.getElementById("rateChart").getContext("2d");
+  new Chart(rateCtx, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Facts (7d avg)",
+          data: rollingAvg(daily.facts, 7),
+          borderColor: COLORS.facts.line,
+          backgroundColor: "transparent",
+          tension: 0.4,
+          pointRadius: 0,
+          borderWidth: 2,
+        },
+        {
+          label: "Elements (7d avg)",
+          data: rollingAvg(daily.elements, 7),
+          borderColor: COLORS.elements.line,
+          backgroundColor: "transparent",
+          tension: 0.4,
+          pointRadius: 0,
+          borderWidth: 2,
+        },
+        {
+          label: "Projects (7d avg)",
+          data: rollingAvg(daily.projects, 7),
+          borderColor: COLORS.projects.line,
+          backgroundColor: "transparent",
+          tension: 0.4,
+          pointRadius: 0,
+          borderWidth: 2,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: { legend: { position: "top", labels: { boxWidth: 12, font: { size: 11 } } } },
+      scales: {
+        x: { ticks: { maxTicksLimit: 8, maxRotation: 0 } },
+        y: { beginAtZero: true, grid: { color: "#f1f5f9" } },
+      },
+    },
+  });
+
+})();
+</script>
+{% endblock %}

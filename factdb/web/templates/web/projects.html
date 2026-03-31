@@ -26,7 +26,15 @@
       {% endfor %}
     </select>
   </div>
-  {% if status_filter or domain_filter %}
+  <div>
+    <label for="created_after">Created after</label>
+    <input type="date" id="created_after" name="created_after" value="{{ created_after }}" onchange="this.form.submit()">
+  </div>
+  <div>
+    <label for="created_before">Created before</label>
+    <input type="date" id="created_before" name="created_before" value="{{ created_before }}" onchange="this.form.submit()">
+  </div>
+  {% if status_filter or domain_filter or created_after or created_before %}
     <a href="{{ url_for('projects_list') }}" class="btn btn-outline">Clear</a>
   {% endif %}
 </form>
@@ -44,6 +52,7 @@
         <span class="badge badge-{{ p.domain }}" style="background:#f1f5f9;color:#475569;">{{ p.domain }}</span>
         &nbsp;·&nbsp; {{ p.elements | length }} element{{ 's' if p.elements | length != 1 }}
         {% if p.created_by %}&nbsp;·&nbsp; by {{ p.created_by }}{% endif %}
+        {% if p.created_at %}&nbsp;·&nbsp; <span title="{{ p.created_at.isoformat() }}" style="color:#9ca3af;font-size:12px;">{{ p.created_at.strftime('%Y-%m-%d') }}</span>{% endif %}
       </div>
       <div class="card-body" style="font-size:13px;color:#6b7280;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;">
         {{ p.description }}
