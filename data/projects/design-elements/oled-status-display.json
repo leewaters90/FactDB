@@ -1,0 +1,5 @@
+{
+  "title": "OLED Status Display",
+  "component_category": "processing",
+  "selected_approach": "0.96-inch SSD1306 128×64 OLED on I2C (0x3C). Adafruit_SSD1306 library. Displays real-time temperature, rate of rise (dT/dt), current operating mode, and fault status. Updated at 2 Hz. Low power (< 20 mA); no backlight aging."
+}

@@ -1,0 +1,8 @@
+{
+  "title": "Tuned Mass Damper Optimal Frequency and Damping Ratios",
+  "domain": "civil",
+  "category": "structural engineering",
+  "content": "A tuned mass damper (TMD) reduces structural resonance by coupling a secondary mass md to the primary structure of mass ms. Optimal tuning: frequency ratio fd/fn=1/(1+μ) where μ=md/ms is the mass ratio. Optimal TMD damping ratio: ζd=√(3μ/(8(1+μ)³)). Pedestrian bridges with natural frequencies 1.6–2.4 Hz are particularly susceptible to lock-step crowd excitation. Active TMDs use a motor-driven mass to apply real-time corrective force.",
+  "detail_level": "intermediate",
+  "id": "76818dcf-8b82-4d38-984e-e711a0f66bac"
+}

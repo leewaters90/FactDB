@@ -1,0 +1,17 @@
+{
+  "title": "thermal_fault_check",
+  "artifact_type": "function",
+  "language": "arduino",
+  "signature": "bool thermal_fault_check(float temp, float max_temp, int alarm_pin)",
+  "content": "Validates temperature within safe range; activates piezo alarm on fault; returns true if fault detected.",
+  "code": "bool thermal_fault_check(float temp,float max_temp,int alarm_pin){\n  if(temp<-10.0f||temp>max_temp){\n    tone(alarm_pin,(temp>max_temp)?1760:880,500);\n    return true;}\n  noTone(alarm_pin);\n  return false;\n}",
+  "tags": [
+    "fault",
+    "thermal",
+    "alarm",
+    "safety",
+    "sma"
+  ],
+  "domain": "software",
+  "category": "function"
+}

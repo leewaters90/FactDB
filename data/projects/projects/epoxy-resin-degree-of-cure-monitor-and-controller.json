@@ -1,0 +1,55 @@
+{
+  "title": "Epoxy Resin Degree-of-Cure Monitor and Controller",
+  "description": "Closed-loop cure monitor that heats an epoxy laminate sample on a Peltier stage, tracks degree-of-cure α in real time via dielectric ion viscosity measurement, holds cure temperature via PID, and triggers cool-down at α ≥ 0.95 while logging to serial for host-side analysis.",
+  "objective": "Achieve full cure (α ≥ 0.95) with peak temperature ≤ 80 °C; detect gelation/vitrification transitions; log temperature, α, and actuator state every 2 s; fault-cut on overtemperature.",
+  "constraints": "Arduino Nano; Peltier TEC; interdigitated DEA sensor on FR4; BOM < $35; serial logging only.",
+  "domain": "materials",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Dielectric Cure Monitoring Ion Viscosity and Degree of Cure",
+    "Ashby Material Selection — Property Charts"
+  ],
+  "design_element_titles": [
+    "Interdigitated Dielectric Cure Sensor Board",
+    "Peltier TEC Thermoelectric Heating Stage",
+    "NTC 10kΩ Thermistor Probe Assembly",
+    "USB-UART CP2102 Serial Data Bridge"
+  ],
+  "element_usage_notes": [
+    "Measures ion viscosity change during cure; ADC reading log-scaled to IV",
+    "Bidirectional temperature control for precise isothermal cure profile",
+    "Reads cure temperature as PID process variable; Steinhart-Hart in firmware",
+    "Streams CSV to host PC at 115200 baud for off-line analysis"
+  ],
+  "element_interactions": [
+    {
+      "from": "NTC 10kΩ Thermistor Probe Assembly",
+      "to": "Peltier TEC Thermoelectric Heating Stage",
+      "data": "temperature_C",
+      "description": "PID uses thermistor reading as process variable to modulate Peltier duty cycle"
+    },
+    {
+      "from": "Interdigitated Dielectric Cure Sensor Board",
+      "to": "USB-UART CP2102 Serial Data Bridge",
+      "data": "alpha_degree_of_cure",
+      "description": "Computed α value streamed to host for real-time cure curve plotting"
+    },
+    {
+      "from": "NTC 10kΩ Thermistor Probe Assembly",
+      "to": "USB-UART CP2102 Serial Data Bridge",
+      "data": "temperature_C",
+      "description": "Temperature co-logged with α for correlation analysis"
+    },
+    {
+      "from": "Peltier TEC Thermoelectric Heating Stage",
+      "to": "USB-UART CP2102 Serial Data Bridge",
+      "data": "pwm_duty",
+      "description": "Actuator state logged for energy audit"
+    }
+  ],
+  "integration_code": "extern int pid_heater_control(float sp,float pv,float dt,float kp,float ki,float kd,float* intg,float* lastE);\nextern float epoxy_degree_of_cure(float log_iv,float log_iv_min,float log_iv_max);\n\nconst float SP=80.0f,KP=3.0f,KI=0.2f,KD=0.8f,TEMP_MAX=90.0f;\nconst int PELTIER_PIN=9,DEA_PIN=A0,NTC_PIN=A1;\nconst float R_REF=10000.0f,B_NTC=3950.0f,T0_NTC=298.15f;\nconst float IV_MIN=3.5f,IV_MAX=9.5f;\nfloat intg=0,lastE=0;\n\n// === NTC Thermistor ===\nvoid therm_init(){pinMode(NTC_PIN,INPUT);}\nfloat therm_read(){\n  float v=analogRead(NTC_PIN)*3.3f/1023.0f;\n  float r=R_REF*v/(3.3f-v);\n  float inv_T=1.0f/T0_NTC+(1.0f/B_NTC)*log(r/R_REF);\n  return 1.0f/inv_T-273.15f;\n}\n\n// === DEA Sensor ===\nvoid dea_init(){pinMode(DEA_PIN,INPUT);}\nfloat dea_log_iv(){float v=analogRead(DEA_PIN)/1023.0f;return IV_MIN+v*(IV_MAX-IV_MIN);}\n\n// === Peltier Stage ===\nvoid peltier_init(){pinMode(PELTIER_PIN,OUTPUT);analogWrite(PELTIER_PIN,0);}\nvoid peltier_set(int p){analogWrite(PELTIER_PIN,constrain(p,0,255));}\n\n// === Fault Handler ===\nbool fault_check(float t){if(t>TEMP_MAX){peltier_set(0);Serial.println(\"FAULT:OVERTEMP\");return true;}return false;}\n\n// === Serial Logger ===\nvoid logger_header(){Serial.println(\"t_s,temp_C,alpha,pwm,event\");}\nvoid logger_write(float t_s,float temp,float alpha,int pwm,const char* ev){\n  Serial.print(t_s,1);Serial.print(',');Serial.print(temp,2);Serial.print(',');Serial.print(alpha,4);Serial.print(',');Serial.print(pwm);Serial.print(',');Serial.println(ev);}\n\nvoid setup(){\n  Serial.begin(115200);\n  therm_init();dea_init();peltier_init();\n  logger_header();\n}\n\nunsigned long lastMs=0;\nvoid loop(){\n  unsigned long now=millis();\n  float dt=(now-lastMs)/1000.0f;\n  if(dt<2.0f)return;\n  lastMs=now;\n  float temp=therm_read();\n  float logIV=dea_log_iv();\n  float alpha=epoxy_degree_of_cure(logIV,IV_MIN,IV_MAX);\n  if(fault_check(temp))return;\n  const char* ev=\"\";\n  if(alpha>=0.95f){peltier_set(0);ev=\"CURE_COMPLETE\";logger_write(now/1000.0f,temp,alpha,0,ev);return;}\n  if(alpha>=0.85f)ev=\"VITRIFY\";\n  else if(alpha>=0.55f)ev=\"GEL\";\n  int pwm=pid_heater_control(SP,temp,dt,KP,KI,KD,&intg,&lastE);\n  peltier_set(pwm);\n  logger_write(now/1000.0f,temp,alpha,pwm,ev);\n}",
+  "software_artifact_titles": [
+    "pid_heater_control",
+    "epoxy_degree_of_cure"
+  ]
+}

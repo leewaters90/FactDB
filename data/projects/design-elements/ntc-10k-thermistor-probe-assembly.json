@@ -1,0 +1,5 @@
+{
+  "title": "NTC 10kΩ Thermistor Probe Assembly",
+  "component_category": "sensing",
+  "selected_approach": "Glass-bead NTC 10 kΩ at 25 °C; Steinhart-Hart three-coefficient linearisation in firmware; voltage divider with 10 kΩ precision resistor to 3.3 V; response 3 s"
+}

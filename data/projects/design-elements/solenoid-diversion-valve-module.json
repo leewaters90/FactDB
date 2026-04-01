@@ -1,0 +1,5 @@
+{
+  "title": "Solenoid Diversion Valve Module",
+  "component_category": "actuation",
+  "selected_approach": "12 V normally-open G1/2 solenoid valve on the downpipe tee. Driven via IRLZ44N N-channel MOSFET with flyback diode (1N4007). ESP32 GPIO pulls MOSFET gate high to energise coil and divert flow to storage; releases to drain when quality thresholds fail or tank is full. Coil current ~500 mA; MOSFET Rds(on) <0.02 Ω at 10 V gate drive."
+}

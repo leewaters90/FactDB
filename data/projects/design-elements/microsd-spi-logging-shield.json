@@ -1,0 +1,5 @@
+{
+  "title": "MicroSD SPI Logging Shield",
+  "component_category": "processing",
+  "selected_approach": "SPI MicroSD breakout at CS=D10; FAT32; appends CSV header on init; writes timestamp, temps, gradient, PWM, fault flag each second"
+}

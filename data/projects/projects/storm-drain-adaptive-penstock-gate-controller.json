@@ -1,0 +1,48 @@
+{
+  "title": "Storm Drain Adaptive Penstock Gate Controller",
+  "description": "Monitors storm drain water depth with a weatherproof ultrasonic sensor, computes real-time channel flow rate via Manning's equation, and controls a linear actuator penstock gate to maintain flow below 85% of channel capacity — including first-flush diversion logic and flood bypass mode, distinct from rainwater harvesting quality-monitoring projects.",
+  "objective": "Adaptive gate control to keep channel flow below 85% of Manning capacity, divert first 10 mm first-flush runoff, and trigger flood bypass at 95%, with SD event log.",
+  "constraints": "Arduino Uno, JSN-SR04T sensor, L298N H-bridge, 200 mm linear actuator, 300 mm penstock, SD card; 0.3 m wide concrete channel (n=0.013), slope S=0.005; 12 V solar battery.",
+  "domain": "civil",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Manning's Equation for Open Channel Flow Capacity",
+    "Rainwater First-Flush Diversion"
+  ],
+  "design_element_titles": [
+    "JSN-SR04T Weatherproof Ultrasonic Depth Sensor",
+    "Linear Actuator Penstock Gate Drive",
+    "Cascaded PID Rate and Attitude Controller",
+    "Buzzer and LED Fault Annunciator"
+  ],
+  "element_usage_notes": {
+    "JSN-SR04T Weatherproof Ultrasonic Depth Sensor": "Measures water depth; combined with known rectangular geometry yields flow area and hydraulic radius.",
+    "Linear Actuator Penstock Gate Drive": "Three-position gate control driven by H-bridge based on flow ratio and first-flush timer.",
+    "Cascaded PID Rate and Attitude Controller": "Outer loop: flow ratio vs. 0.80 capacity setpoint; inner loop: gate position rate of change.",
+    "Buzzer and LED Fault Annunciator": "Flood alarm at 95% capacity or sensor out-of-range fault."
+  },
+  "element_interactions": [
+    {
+      "from": "JSN-SR04T Weatherproof Ultrasonic Depth Sensor",
+      "to": "Cascaded PID Rate and Attitude Controller",
+      "data": "flow_m3s",
+      "description": "Flow rate computed from depth fed as outer PID loop process variable."
+    },
+    {
+      "from": "Cascaded PID Rate and Attitude Controller",
+      "to": "Linear Actuator Penstock Gate Drive",
+      "data": "gate_cmd",
+      "description": "PID output maps to gate position command (0=closed, 1=partial, 2=full)."
+    },
+    {
+      "from": "JSN-SR04T Weatherproof Ultrasonic Depth Sensor",
+      "to": "Buzzer and LED Fault Annunciator",
+      "data": "flow_ratio",
+      "description": "Flow ratio exceeding 0.95 independently triggers flood alarm."
+    }
+  ],
+  "integration_code": "#define TRIG 3\n#define ECHO 4\n#define G_IN1 7\n#define G_IN2 8\n#define G_ENA 6\n#define BUZZER 9\n#define LED 10\n#define SD_CS 5\n#define SENSOR_H 0.70f\n#define CH_W 0.30f\n#define N_ROUGH 0.013f\n#define S_SLOPE 0.005f\n#define CAP_RATIO 0.85f\n#include <SD.h>\nfloat intg=0,lastE=0;\nbool firstFlush=true;\nunsigned long ffStart=0;\n\nfloat manning_flow_rate(float n,float R,float S,float A){return (1.0f/n)*pow(R,2.0f/3.0f)*sqrt(S)*A;}\n\nfloat read_depth(){\n  digitalWrite(TRIG,LOW);delayMicroseconds(2);\n  digitalWrite(TRIG,HIGH);delayMicroseconds(10);digitalWrite(TRIG,LOW);\n  return SENSOR_H-(pulseIn(ECHO,HIGH)*0.000343f/2.0f);\n}\n\nfloat depth_to_Q(float d){\n  if(d<=0)return 0;\n  float A=CH_W*d,P=CH_W+2*d;\n  return manning_flow_rate(N_ROUGH,A/P,S_SLOPE,A);\n}\n\nfloat Q_max(){float d=0.25f,A=CH_W*d,P=CH_W+2*d;return manning_flow_rate(N_ROUGH,A/P,S_SLOPE,A);}\n\nvoid set_gate(int cmd){\n  if(cmd==0){digitalWrite(G_IN1,LOW);digitalWrite(G_IN2,LOW);analogWrite(G_ENA,0);}\n  else if(cmd==1){digitalWrite(G_IN1,HIGH);digitalWrite(G_IN2,LOW);analogWrite(G_ENA,128);}\n  else{digitalWrite(G_IN1,HIGH);digitalWrite(G_IN2,LOW);analogWrite(G_ENA,255);}\n}\n\nvoid run_alarm(float r){if(r>=0.95f){tone(BUZZER,2000);analogWrite(LED,255);}else{noTone(BUZZER);analogWrite(LED,(int)(r*200));}}\n\nvoid log_event(float d,float r){File f=SD.open(\"drain.csv\",FILE_WRITE);if(f){f.print(millis());f.print(',');f.print(d);f.print(',');f.println(r);f.close();}}\n\nvoid setup(){Serial.begin(115200);pinMode(TRIG,OUTPUT);pinMode(ECHO,INPUT);pinMode(G_IN1,OUTPUT);pinMode(G_IN2,OUTPUT);pinMode(G_ENA,OUTPUT);pinMode(BUZZER,OUTPUT);pinMode(LED,OUTPUT);SD.begin(SD_CS);ffStart=millis();}\n\nvoid loop(){\n  float d=read_depth(),Q=depth_to_Q(d),Qm=Q_max(),r=Q/Qm;\n  if(firstFlush&&(millis()-ffStart<600000)){set_gate(0);}else{firstFlush=false;set_gate(r>0.95f?2:(r>CAP_RATIO)?1:0);}\n  run_alarm(r);log_event(d,r);\n  Serial.print(\"r=\");Serial.println(r);\n  delay(500);\n}",
+  "software_artifact_titles": [
+    "manning_flow_rate"
+  ]
+}

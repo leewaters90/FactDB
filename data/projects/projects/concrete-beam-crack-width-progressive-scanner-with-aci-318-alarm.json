@@ -1,0 +1,48 @@
+{
+  "title": "Concrete Beam Crack Width Progressive Scanner with ACI 318 Alarm",
+  "description": "Mounts a stepper-driven VL53L0X TOF sensor to scan linearly across a concrete beam face in 1 mm steps, measures crack opening width at ten sample points, applies temperature compensation, compares against the ACI 318 0.33 mm exterior limit, logs growth rate to SD card, and alarms on propagating cracks — targeting quasi-static structural deterioration rather than dynamic vibration.",
+  "objective": "Detect crack widths >0.20 mm across a 200 mm span, alarm on ACI 318 limit exceedance or growth rate >0.05 mm/day, and classify crack as arrested or propagating.",
+  "constraints": "Arduino Mega, VL53L0X TOF sensor, NEMA 17 stepper with A4988 driver, SD card, DS18B20 for thermal correction; stationary mount on 0.3×0.5 m RC beam; 5 V USB power.",
+  "domain": "civil",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "ACI 318 Flexural Crack Width Limits and Gergely-Lutz Approximation",
+    "Beam Bending — Flexure Formula"
+  ],
+  "design_element_titles": [
+    "Arduino 3D Scanner — Stepper Turntable + TOF Sensor",
+    "DS18B20 1-Wire Temperature Probe Array",
+    "Buzzer and LED Fault Annunciator",
+    "HX711 Load Cell Amplifier Array"
+  ],
+  "element_usage_notes": {
+    "Arduino 3D Scanner — Stepper Turntable + TOF Sensor": "Repurposed for linear scan; stepper drives TOF sensor across beam face in 1 mm increments over 200 mm total travel.",
+    "DS18B20 1-Wire Temperature Probe Array": "Concrete surface temperature for thermal expansion correction (α_c=10×10⁻⁶/°C).",
+    "Buzzer and LED Fault Annunciator": "Alarm when any scan point exceeds 0.33 mm (ACI exterior) or 3-day growth rate exceeds 0.05 mm/day.",
+    "HX711 Load Cell Amplifier Array": "Monitors applied four-point bending test load for load-crack-width correlation."
+  },
+  "element_interactions": [
+    {
+      "from": "Arduino 3D Scanner — Stepper Turntable + TOF Sensor",
+      "to": "DS18B20 1-Wire Temperature Probe Array",
+      "data": "tof_raw_mm",
+      "description": "Raw TOF distance corrected with surface temperature to remove thermal expansion artifact."
+    },
+    {
+      "from": "DS18B20 1-Wire Temperature Probe Array",
+      "to": "Buzzer and LED Fault Annunciator",
+      "data": "temp_C",
+      "description": "Surface temperature >50°C triggers secondary fire/abnormal-heat alarm."
+    },
+    {
+      "from": "HX711 Load Cell Amplifier Array",
+      "to": "Buzzer and LED Fault Annunciator",
+      "data": "load_N",
+      "description": "High applied load combined with crack > ACI limit triggers composite fault alarm."
+    }
+  ],
+  "integration_code": "#include <Wire.h>\n#include <VL53L0X.h>\n#include <OneWire.h>\n#include <DallasTemperature.h>\n#include <AccelStepper.h>\n#include <SD.h>\n#define STEP_PIN 3\n#define DIR_PIN 4\n#define SD_CS 10\n#define ONE_WIRE_BUS 2\n#define BUZZER 8\n#define LED 9\n#define N_POINTS 10\n#define STEPS_SPAN 200\n#define ACI_LIM 0.33f\nVL53L0X tof;\nOneWire ow(ONE_WIRE_BUS); DallasTemperature ds(&ow);\nAccelStepper stepper(AccelStepper::DRIVER,STEP_PIN,DIR_PIN);\nint ref_mm=50;\nfloat prev_widths[N_POINTS]={0};\nunsigned long prev_time=0;\n\nfloat tof_crack_width_mm(int t,int r){float d=(float)(t-r);return d<0?0:d;}\n\nfloat thermal_correct(float w,float T){return w-0.010f*(T-20.0f);}\n\nvoid scan_beam(float*widths){\n  for(int i=0;i<N_POINTS;i++){\n    stepper.moveTo(i*(STEPS_SPAN/N_POINTS));stepper.runToPosition();\n    int d=tof.readRangeSingleMillimeters();\n    widths[i]=tof_crack_width_mm(d,ref_mm);\n  }\n  stepper.moveTo(0);stepper.runToPosition();\n}\n\nvoid run_alarm(float*w,float*pw,float dt_days){\n  bool fault=false;\n  for(int i=0;i<N_POINTS;i++){\n    if(w[i]>ACI_LIM) fault=true;\n    if(dt_days>0&&(w[i]-pw[i])/dt_days>0.05f) fault=true;\n  }\n  if(fault){tone(BUZZER,1500);analogWrite(LED,255);}else{noTone(BUZZER);analogWrite(LED,0);}\n}\n\nvoid log_sd(float*w,float T){\n  File f=SD.open(\"crack.csv\",FILE_WRITE);\n  if(f){f.print(millis());f.print(',');f.print(T);\n    for(int i=0;i<N_POINTS;i++){f.print(',');f.print(w[i]);}f.println();f.close();}\n}\n\nvoid setup(){Wire.begin();tof.init();tof.setTimeout(500);ds.begin();SD.begin(SD_CS);stepper.setMaxSpeed(400);stepper.setAcceleration(200);Serial.begin(115200);pinMode(BUZZER,OUTPUT);pinMode(LED,OUTPUT);}\n\nvoid loop(){\n  float widths[N_POINTS];\n  ds.requestTemperatures();float T=ds.getTempCByIndex(0);\n  scan_beam(widths);\n  for(int i=0;i<N_POINTS;i++) widths[i]=thermal_correct(widths[i],T);\n  float dt_days=(millis()-prev_time)/86400000.0f;\n  run_alarm(widths,prev_widths,dt_days);\n  log_sd(widths,T);\n  for(int i=0;i<N_POINTS;i++) prev_widths[i]=widths[i];\n  prev_time=millis();\n  delay(3600000);\n}",
+  "software_artifact_titles": [
+    "tof_crack_width_mm"
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "title": "NTC Thermistor Backup Sensor",
+  "component_category": "sensing",
+  "selected_approach": "10 kΩ NTC (B=3950) in voltage divider on A0; Steinhart-Hart temperature computation; activated as fallback on thermocouple fault flag assertion."
+}

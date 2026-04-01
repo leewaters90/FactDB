@@ -1,0 +1,5 @@
+{
+  "title": "HM-10 BLE Alert Transmitter",
+  "component_category": "communication",
+  "selected_approach": "HM-10 BLE module on Serial1 at 9600 baud; sends JSON {bin,mag,rms} on confirmed anomaly; heartbeat ping every 5 s."
+}

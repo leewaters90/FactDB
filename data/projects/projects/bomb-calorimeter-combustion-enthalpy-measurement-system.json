@@ -1,0 +1,57 @@
+{
+  "title": "Bomb Calorimeter Combustion Enthalpy Measurement System",
+  "description": "Automates data acquisition for a bench-top bomb calorimeter experiment. A PT100/MAX31865 probe monitors water-jacket temperature at 1 Hz before and after ignition. An Arduino triggers the capacitor-discharge Nichrome ignition wire, then logs the full thermal trajectory to SD card and OLED. After the peak temperature is detected and the post-combustion drift is confirmed, the Arduino computes ΔH_comb using the bomb calorimeter energy balance and reports the result in kJ/mol.",
+  "objective": "Automate ignition trigger, thermal logging, peak detection, and ΔH_comb calculation for solid fuel pellets in a bomb calorimeter; target accuracy ±0.5 % vs. benzoic acid reference (−26.434 kJ/g).",
+  "constraints": "Arduino Uno, PT100/MAX31865, capacitor discharge igniter, OLED, SD logger; oxygen pressure ≤ 30 bar; only approved solid fuels (benzoic acid, sucrose, naphthalene); operator must be trained; never open bomb until T returns to baseline.",
+  "domain": "chemical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Combustion Enthalpy and Standard Heat of Formation",
+    "Heat of Reaction and Calorimetry",
+    "First Law of Thermodynamics"
+  ],
+  "design_element_titles": [
+    "PT100 RTD Precision Temperature Module",
+    "High-Pressure Bomb Calorimeter Vessel",
+    "Nichrome Ignition Wire Controller",
+    "SD Card Data Logger Module",
+    "OLED Status Display"
+  ],
+  "element_usage_notes": {
+    "PT100 RTD Precision Temperature Module": "Immersed in water jacket; reads at 1 Hz for full pre/post-combustion thermal trajectory with 0.03 °C resolution.",
+    "High-Pressure Bomb Calorimeter Vessel": "Houses fuel pellet and ignition wire in pressurised O₂; submerged in calibrated water jacket.",
+    "Nichrome Ignition Wire Controller": "Capacitor discharge fires ignition wire on Arduino command; single-shot, optically isolated.",
+    "SD Card Data Logger Module": "Logs t, T, phase (baseline/combustion/cooling) and final ΔH_comb result.",
+    "OLED Status Display": "Shows live T, elapsed time, phase status, and final ΔH_comb result post-calculation."
+  },
+  "element_interactions": [
+    {
+      "from": "Nichrome Ignition Wire Controller",
+      "to": "High-Pressure Bomb Calorimeter Vessel",
+      "data": "ignition_pulse",
+      "description": "Capacitor discharge fires wire, igniting fuel pellet inside sealed vessel"
+    },
+    {
+      "from": "High-Pressure Bomb Calorimeter Vessel",
+      "to": "PT100 RTD Precision Temperature Module",
+      "data": "heat_flux_J",
+      "description": "Combustion heat raises water jacket temperature measured by PT100"
+    },
+    {
+      "from": "PT100 RTD Precision Temperature Module",
+      "to": "SD Card Data Logger Module",
+      "data": "temperature_C",
+      "description": "Full T(t) trajectory logged; peak detection and drift correction applied post-hoc"
+    },
+    {
+      "from": "PT100 RTD Precision Temperature Module",
+      "to": "OLED Status Display",
+      "data": "temperature_C",
+      "description": "Live temperature and computed ΔH_comb displayed on OLED"
+    }
+  ],
+  "integration_code": "#include <Wire.h>\n#include <Adafruit_MAX31865.h>\n#include <Adafruit_SSD1306.h>\n#include <SD.h>\n#define MAX_CS 8\n#define IGN_PIN 9\n#define SD_CS 10\n#define WATER_G 2000.0f\n#define Cp_W 4.186f\n#define Cv_BOMB 1550.0f\n#define BASELINE_S 120\n#define POST_S 180\nAdafruit_MAX31865 rtd(MAX_CS);\nAdafruit_SSD1306 oled(128,64,&Wire,-1);\nFile lg;\nfloat g_T0=0,g_Tpeak=-999;\nbool fired=false,done=false;\nunsigned long fireTime=0;\nfloat bomb_calorimeter_enthalpy(float T0,float Tpk,float CvB,float wg,float Cpw){\n  return -(CvB+wg*Cpw)*(Tpk-T0);\n}\nvoid initHardware(){\n  rtd.begin(MAX31865_3WIRE);pinMode(IGN_PIN,OUTPUT);\n  oled.begin(SSD1306_SWITCHCAPVCC,0x3C);oled.clearDisplay();\n  SD.begin(SD_CS);lg=SD.open(\"bomb.csv\",FILE_WRITE);\n  if(lg)lg.println(\"t_s,T_C,phase\");\n  Serial.begin(9600);\n}\nfloat readPT100Temperature(){return rtd.temperature(100,430.0f);}\nvoid logPhaseSD(unsigned long t,float T,const char*ph){\n  if(lg){lg.print(t);lg.print(',');lg.print(T,3);lg.print(',');lg.println(ph);lg.flush();}\n}\nvoid updateOLEDDisplay(float T,float dH,bool showDH){\n  oled.clearDisplay();oled.setTextSize(1);oled.setTextColor(SSD1306_WHITE);\n  oled.setCursor(0,0);oled.print(fired?\"COMBUSTION\":\"BASELINE\");\n  oled.setCursor(0,12);oled.print(\"T:\");oled.print(T,2);oled.print(\"C\");\n  if(showDH){oled.setCursor(0,28);oled.print(\"dH=\");oled.print(dH/1000.0f,2);oled.print(\"kJ\");}\n  oled.display();\n}\nvoid checkFaultSafety(float T){\n  if(T>95.0f){Serial.println(\"FAULT:OVERTEMP\");lg.close();while(1);}\n}\nvoid setup(){\n  initHardware();\n  Serial.println(\"Baseline phase 120s\");\n  for(int i=0;i<BASELINE_S;i++){\n    float T=readPT100Temperature();checkFaultSafety(T);\n    logPhaseSD(i,T,\"baseline\");updateOLEDDisplay(T,0,false);delay(1000);\n  }\n  g_T0=readPT100Temperature();\n  digitalWrite(IGN_PIN,HIGH);delay(150);digitalWrite(IGN_PIN,LOW);\n  fired=true;fireTime=millis();Serial.println(\"IGNITION\");\n}\nvoid loop(){\n  if(done)return;\n  static unsigned long prev=0;unsigned long now=millis();\n  if(now-prev<1000)return;prev=now;\n  float T=readPT100Temperature();checkFaultSafety(T);\n  if(T>g_Tpeak)g_Tpeak=T;\n  logPhaseSD(now/1000,T,\"combustion\");\n  updateOLEDDisplay(T,0,false);\n  if(fired&&now-fireTime>POST_S*1000UL){\n    float dH=bomb_calorimeter_enthalpy(g_T0,g_Tpeak,Cv_BOMB,WATER_G,Cp_W);\n    Serial.print(\"dH_comb=\");Serial.print(dH/1000.0f,3);Serial.println(\"kJ\");\n    if(lg){lg.print(\"dH_kJ=\");lg.println(dH/1000.0f,3);lg.close();}\n    updateOLEDDisplay(g_Tpeak,dH,true);\n    done=true;\n  }\n}",
+  "software_artifact_titles": [
+    "bomb_calorimeter_enthalpy"
+  ]
+}

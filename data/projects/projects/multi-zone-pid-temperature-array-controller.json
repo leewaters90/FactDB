@@ -1,0 +1,55 @@
+{
+  "title": "Multi-Zone PID Temperature Array Controller",
+  "description": "Four-zone heater controller using MAX31865 PT100 RTDs, per-zone pid_heater_control loops with thermal decoupling, SSR round-robin arbitration preventing rail overload, and MODBUS RTU setpoint interface over RS-485.",
+  "objective": "Hold 4 zones to individual setpoints within ±0.5°C with decoupling correction; prevent shared rail overload via arbitration; expose readings via MODBUS.",
+  "constraints": "Arduino Mega; 4x MAX31865 SPI CS=6-9; 4x SSR-40DA on pins 2-5; MAX485 RS-485 on UART1; shared 24 V rail ≤20 A.",
+  "domain": "software",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Multi-Zone Thermal Decoupling in Array Heater Systems",
+    "Big-O Notation — Time Complexity"
+  ],
+  "design_element_titles": [
+    "4-Channel SSR-40DA Heater Bank",
+    "MAX31865 PT100 RTD Array",
+    "Zone Priority Round-Robin Arbiter",
+    "MAX485 RS-485 MODBUS RTU Slave"
+  ],
+  "element_usage_notes": {
+    "4-Channel SSR-40DA Heater Bank": "One SSR active per 100 ms arbiter slot to stay within 20 A rail limit.",
+    "MAX31865 PT100 RTD Array": "Reads 4 zone temperatures at 10 Hz; fault register triggers zone shutdown.",
+    "Zone Priority Round-Robin Arbiter": "Selects highest-error zone for each SSR slot via zone_arbitrate.",
+    "MAX485 RS-485 MODBUS RTU Slave": "Allows PLC/SCADA to read temperatures and write per-zone setpoints."
+  },
+  "element_interactions": [
+    {
+      "from": "MAX31865 PT100 RTD Array",
+      "to": "Zone Priority Round-Robin Arbiter",
+      "data": "zone temperatures + errors",
+      "description": "Temperature errors per zone fed to zone_arbitrate for slot selection."
+    },
+    {
+      "from": "Zone Priority Round-Robin Arbiter",
+      "to": "4-Channel SSR-40DA Heater Bank",
+      "data": "active zone index",
+      "description": "Arbiter enables one SSR output per 100 ms control tick."
+    },
+    {
+      "from": "MAX485 RS-485 MODBUS RTU Slave",
+      "to": "Zone Priority Round-Robin Arbiter",
+      "data": "setpoints",
+      "description": "MODBUS holding registers update per-zone PID setpoints used by arbiter."
+    },
+    {
+      "from": "MAX31865 PT100 RTD Array",
+      "to": "MAX485 RS-485 MODBUS RTU Slave",
+      "data": "zone temperatures",
+      "description": "RTD readings populate MODBUS input registers for SCADA readback."
+    }
+  ],
+  "integration_code": "#include <SPI.h>\nextern int pid_heater_control(float,float,float,float,float,float,float*,float*);\nextern uint8_t zone_arbitrate(float*,uint8_t,uint8_t);\n#define ZONES 4\nconst int cs[]={6,7,8,9},ssr[]={2,3,4,5};\nfloat sp[ZONES]={60,65,70,75},pv[ZONES];\nfloat ig[ZONES]={0,0,0,0},le[ZONES]={0,0,0,0};\nuint8_t act=0;\nvoid rtd_setup(){\n  SPI.begin();\n  for(int i=0;i<ZONES;i++){pinMode(cs[i],OUTPUT);digitalWrite(cs[i],HIGH);}}\nfloat rtd_read(uint8_t z){\n  SPI.beginTransaction(SPISettings(1000000,MSBFIRST,SPI_MODE1));\n  digitalWrite(cs[z],LOW);\n  uint16_t v=((uint16_t)SPI.transfer(0)<<8)|SPI.transfer(0);\n  digitalWrite(cs[z],HIGH);\n  SPI.endTransaction();\n  if(v&0x01)return -999.0f;\n  return(v>>1)*0.03125f-256.0f;}\nvoid ssr_setup(){for(int i=0;i<ZONES;i++){pinMode(ssr[i],OUTPUT);digitalWrite(ssr[i],LOW);}}\nvoid ssr_set(uint8_t z,bool on){for(int i=0;i<ZONES;i++)digitalWrite(ssr[i],(i==z&&on)?HIGH:LOW);}\nvoid fault_check(){\n  for(int i=0;i<ZONES;i++)if(pv[i]<-100){ssr_set(0,false);\n    Serial.print(\"FAULT:RTD\");Serial.println(i);}}\nvoid modbus_tick(){}\nunsigned long pt=0;\nvoid setup(){Serial.begin(115200);rtd_setup();ssr_setup();}\nvoid loop(){\n  unsigned long n=millis();\n  float dt=(n-pt)/1000.0f;\n  if(dt<0.1f)return;pt=n;\n  for(int i=0;i<ZONES;i++)pv[i]=rtd_read(i);\n  fault_check();\n  float errs[ZONES];\n  for(int i=0;i<ZONES;i++){\n    float dec=0;\n    for(int j=0;j<ZONES;j++)if(j!=i)dec+=0.05f*(pv[j]-sp[j]);\n    errs[i]=(sp[i]-dec)-pv[i];}\n  act=zone_arbitrate(errs,ZONES,act);\n  int pw=pid_heater_control(sp[act]+errs[act]-(sp[act]-pv[act]),pv[act],dt,2.0f,0.1f,0.05f,&ig[act],&le[act]);\n  ssr_set(act,pw>128);\n  modbus_tick();\n  for(int i=0;i<ZONES;i++){Serial.print(pv[i],1);Serial.print(',');}Serial.println();}",
+  "software_artifact_titles": [
+    "pid_heater_control",
+    "zone_arbitrate"
+  ]
+}

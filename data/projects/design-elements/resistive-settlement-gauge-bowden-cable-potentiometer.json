@@ -1,0 +1,5 @@
+{
+  "title": "Resistive Settlement Gauge — Bowden Cable Potentiometer",
+  "component_category": "sensing",
+  "selected_approach": "100 mm travel 10 kΩ linear potentiometer with stainless-steel Bowden cable anchored at a deep stable benchmark and connected to a foundation survey nail; Arduino 10-bit ADC reads 0–5 V proportional to absolute settlement with 0.1 mm resolution; weatherproof junction box."
+}

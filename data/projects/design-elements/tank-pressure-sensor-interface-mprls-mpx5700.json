@@ -1,0 +1,5 @@
+{
+  "title": "Tank Pressure Sensor Interface — MPRLS/MPX5700",
+  "component_category": "sensing",
+  "selected_approach": "Honeywell MPRLS (I2C, 0–25 psi absolute) or Freescale MPX5700 (analog 0–700 kPa) read tank pressure every 10 ms. ADC averaged over 4 samples. Pressure drop per pulse used to estimate propellant mass expended and cross-check commanded impulse against Tsiolkovsky ΔV model."
+}

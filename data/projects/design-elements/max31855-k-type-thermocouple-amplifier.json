@@ -1,0 +1,5 @@
+{
+  "title": "MAX31855 K-Type Thermocouple Amplifier",
+  "component_category": "sensing",
+  "selected_approach": "MAX31855 SPI thermocouple amplifier; 0.25°C resolution; internal cold-junction compensation; open/short fault bits checked each read cycle; CS on pin 10."
+}

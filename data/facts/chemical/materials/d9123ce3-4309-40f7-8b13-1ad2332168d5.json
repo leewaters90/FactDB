@@ -1,0 +1,8 @@
+{
+  "title": "Crystal Nucleation and Growth Kinetics",
+  "domain": "chemical",
+  "category": "materials",
+  "content": "Crystallisation proceeds via two stages: nucleation (formation of stable nuclei; rate J = A·exp(−ΔG*/kT) where ΔG* is the free-energy barrier) and crystal growth (rate proportional to supersaturation σ = (C−Cs)/Cs). Controlled cooling rates suppress spurious nucleation, producing fewer, larger crystals. The Tammann curve shows that maximum nucleation rate and maximum growth rate occur at different temperatures, enabling zone-controlled crystallisation profiles.",
+  "detail_level": "intermediate",
+  "id": "d9123ce3-4309-40f7-8b13-1ad2332168d5"
+}

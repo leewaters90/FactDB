@@ -1,0 +1,18 @@
+{
+  "title": "miners_rule_damage_per_cycle",
+  "artifact_type": "function",
+  "language": "arduino",
+  "signature": "float miners_rule_damage_per_cycle(float amplitude_g, float C_log10, float m)",
+  "content": "Returns per-cycle fatigue damage increment using Basquin power law. amplitude_g is peak acceleration in g; C_log10 is log10 of S-N intercept constant; m is slope exponent.",
+  "code": "float miners_rule_damage_per_cycle(float amplitude_g,float C_log10,float m){\n  if(amplitude_g<=0.0f)return 0.0f;\n  float logN=C_log10-m*log10f(amplitude_g);\n  float N=pow(10.0f,constrain(logN,1.0f,15.0f));\n  return 1.0f/N;\n}",
+  "tags": [
+    "fatigue",
+    "Miners-rule",
+    "S-N-curve",
+    "Basquin",
+    "materials",
+    "structural"
+  ],
+  "domain": "software",
+  "category": "function"
+}

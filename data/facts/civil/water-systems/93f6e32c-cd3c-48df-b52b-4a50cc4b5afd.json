@@ -1,0 +1,8 @@
+{
+  "title": "Joukowsky Water Hammer Pressure Surge in Pipe Flow",
+  "domain": "civil",
+  "category": "water systems",
+  "content": "Instantaneous valve closure in a pressurised pipeline generates a pressure surge: ΔP=ρ·a·ΔV, where ρ≈1000 kg/m³, a is the pressure wave speed (900–1400 m/s in steel pipe), and ΔV is the velocity change. Wave speed a=√(K/ρ)/√(1+K·D/(E·t)) where K=bulk modulus of water, D=pipe diameter, E=pipe elastic modulus, t=wall thickness. Surge arrestors, air vessels, and slow-closing valves (close time > 2L/a) limit surge to safe levels.",
+  "detail_level": "intermediate",
+  "id": "93f6e32c-cd3c-48df-b52b-4a50cc4b5afd"
+}

@@ -1,0 +1,5 @@
+{
+  "title": "Piezo Buzzer Fault Alarm",
+  "component_category": "control",
+  "selected_approach": "5 V piezo on pin 8; 880 Hz for sensor fault; 1760 Hz for over-temperature; silent during normal operation; tone() library."
+}

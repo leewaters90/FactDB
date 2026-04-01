@@ -1,0 +1,54 @@
+{
+  "title": "Watts Nickel Electroplating Bath Quality Controller",
+  "description": "Closed-loop electroplating controller that monitors bath pH, current density, and temperature, adjusts galvanostatic current to maintain deposit quality within the Hull-cell optimum window, displays status on LCD, and triggers fault isolation on out-of-window conditions.",
+  "objective": "Hold current density 2–5 A/dm², pH 3.5–4.5, temperature 45–55 °C; log bath state every 5 s to serial; fault-cut current and alert on out-of-spec condition.",
+  "constraints": "Arduino Mega; LM317 current source; pH electrode; NTC bath probe; LCD display; BOM < $50.",
+  "domain": "materials",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Electroplating Current Density and Hull Cell Deposit Quality",
+    "Ashby Material Selection — Property Charts"
+  ],
+  "design_element_titles": [
+    "Analog pH Electrode Transimpedance Amplifier",
+    "LM317 Galvanostatic Plating Current Source",
+    "Immersed NTC Bath Temperature Probe",
+    "16x2 LCD I2C Status Display"
+  ],
+  "element_usage_notes": [
+    "pH reading used for fault threshold and operator display",
+    "Current setpoint updated each loop cycle; feedback from INA169 shunt monitor",
+    "Temperature monitored for process window compliance; no active heating in this design",
+    "Shows live pH, current, temp and fault code on two lines"
+  ],
+  "element_interactions": [
+    {
+      "from": "Analog pH Electrode Transimpedance Amplifier",
+      "to": "LM317 Galvanostatic Plating Current Source",
+      "data": "ph_value",
+      "description": "pH out-of-spec triggers current cutoff via fault handler"
+    },
+    {
+      "from": "LM317 Galvanostatic Plating Current Source",
+      "to": "16x2 LCD I2C Status Display",
+      "data": "current_mA",
+      "description": "Measured current displayed on LCD line 1"
+    },
+    {
+      "from": "Immersed NTC Bath Temperature Probe",
+      "to": "16x2 LCD I2C Status Display",
+      "data": "temperature_C",
+      "description": "Bath temperature displayed on LCD line 2"
+    },
+    {
+      "from": "Analog pH Electrode Transimpedance Amplifier",
+      "to": "16x2 LCD I2C Status Display",
+      "data": "ph_value",
+      "description": "pH value co-displayed for operator monitoring"
+    }
+  ],
+  "integration_code": "#include <Wire.h>\n#include <LiquidCrystal_I2C.h>\n\nextern bool electroplating_quality_check(float ph,float current_mA,float temp_C);\n\nLiquidCrystal_I2C lcd(0x27,16,2);\nconst int CURRENT_PWM=9,PH_PIN=A0,CURR_PIN=A1,NTC_PIN=A2;\nconst float I_SP=300.0f;\nconst float R_NTC=10000.0f,B_NTC=3950.0f;\nfloat err_i=0;\n\n// === pH Sensor ===\nvoid ph_init(){pinMode(PH_PIN,INPUT);}\nfloat ph_read(){return analogRead(PH_PIN)*14.0f/1023.0f;}\n\n// === Current Source ===\nvoid current_init(){pinMode(CURRENT_PWM,OUTPUT);analogWrite(CURRENT_PWM,0);}\nvoid current_set(float mA){int p=(int)(mA/500.0f*255);analogWrite(CURRENT_PWM,constrain(p,0,255));}\nfloat current_read(){return analogRead(CURR_PIN)*500.0f/1023.0f;}\n\n// === NTC Bath Temp ===\nvoid temp_init(){pinMode(NTC_PIN,INPUT);}\nfloat temp_read(){float v=analogRead(NTC_PIN)*3.3f/1023.0f;float r=R_NTC*v/(3.3f-v);return 1.0f/(1.0f/298.15f+(1.0f/B_NTC)*log(r/R_NTC))-273.15f;}\n\n// === LCD Status ===\nvoid lcd_update(float ph,float curr,float temp,bool fault){\n  lcd.setCursor(0,0);lcd.print(\"pH:\");lcd.print(ph,1);lcd.print(\" I:\");lcd.print(curr,0);lcd.print(\"mA\");\n  lcd.setCursor(0,1);if(fault){lcd.print(\"!! FAULT STOP  \");}else{lcd.print(\"T:\");lcd.print(temp,0);lcd.print(\"C OK       \");}}\n\n// === Fault Handler ===\nbool fault_check(float ph,float curr,float temp){\n  if(!electroplating_quality_check(ph,curr,temp)){current_set(0);Serial.println(\"FAULT:WINDOW\");return true;}return false;}\n\n// === Current PI Controller ===\nvoid current_control(float sp,float pv,float dt){\n  float e=sp-pv;err_i+=e*dt;\n  float out=sp+2.0f*e+0.5f*err_i;\n  current_set(constrain(out,0,500));}\n\nvoid setup(){\n  Serial.begin(115200);\n  Wire.begin();\n  ph_init();current_init();temp_init();\n  lcd.init();lcd.backlight();\n  Serial.println(\"t_s,ph,curr_mA,temp_C,fault\");\n}\n\nunsigned long lastMs=0;\nvoid loop(){\n  unsigned long now=millis();\n  float dt=(now-lastMs)/1000.0f;\n  if(dt<5.0f)return;\n  lastMs=now;\n  float ph=ph_read(),curr=current_read(),temp=temp_read();\n  bool fault=fault_check(ph,curr,temp);\n  if(!fault)current_control(I_SP,curr,dt);\n  lcd_update(ph,curr,temp,fault);\n  Serial.print(now/1000);Serial.print(',');Serial.print(ph,2);Serial.print(',');Serial.print(curr,1);Serial.print(',');Serial.print(temp,1);Serial.print(',');Serial.println(fault?1:0);\n}",
+  "software_artifact_titles": [
+    "electroplating_quality_check"
+  ]
+}

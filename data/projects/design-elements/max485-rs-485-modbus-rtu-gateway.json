@@ -1,0 +1,5 @@
+{
+  "title": "MAX485 RS-485 Modbus RTU Gateway",
+  "component_category": "communication",
+  "selected_approach": "MAX485 transceiver; Arduino sends Modbus RTU corrosion data frames to remote SCADA at 9600 baud; 120 Ω bus termination; DE/RE pin D2"
+}

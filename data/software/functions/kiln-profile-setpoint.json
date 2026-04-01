@@ -1,0 +1,18 @@
+{
+  "title": "kiln_profile_setpoint",
+  "artifact_type": "function",
+  "language": "arduino",
+  "signature": "float kiln_profile_setpoint(unsigned long elapsed_s, const float* temps, const unsigned long* durations, int n_seg)",
+  "content": "Returns interpolated target temperature for a multi-segment kiln profile at a given elapsed time. Holds last segment temperature after profile completion.",
+  "code": "float kiln_profile_setpoint(unsigned long elapsed_s,const float* temps,const unsigned long* durations,int n_seg){\n  unsigned long t=0;\n  for(int i=0;i<n_seg-1;i++){\n    unsigned long seg=durations[i];\n    if(elapsed_s<t+seg){\n      float frac=(float)(elapsed_s-t)/seg;\n      return temps[i]+(temps[i+1]-temps[i])*frac;\n    }\n    t+=seg;\n  }\n  return temps[n_seg-1];\n}",
+  "tags": [
+    "kiln",
+    "profile",
+    "setpoint",
+    "ceramics",
+    "sintering",
+    "materials"
+  ],
+  "domain": "software",
+  "category": "function"
+}

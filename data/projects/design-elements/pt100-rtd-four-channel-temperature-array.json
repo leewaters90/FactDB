@@ -1,0 +1,5 @@
+{
+  "title": "PT100 RTD Four-Channel Temperature Array",
+  "component_category": "sensing",
+  "selected_approach": "Four PT100 probes on MAX31865 SPI amplifiers sharing one SPI bus; waterproofed with epoxy sleeve for concrete embedment; 0.03 °C resolution; individual CS pins D4-D7"
+}

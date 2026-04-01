@@ -1,0 +1,17 @@
+{
+  "title": "zone_arbitrate",
+  "artifact_type": "function",
+  "language": "arduino",
+  "signature": "uint8_t zone_arbitrate(float* errors, uint8_t n, uint8_t last_zone)",
+  "content": "Priority-weighted round-robin arbiter selecting the highest-error zone for the next SSR activation slot; prevents simultaneous relay firing.",
+  "code": "uint8_t zone_arbitrate(float* errors,uint8_t n,uint8_t last_zone){\n  uint8_t best=(last_zone+1)%n;\n  float be=fabsf(errors[best]);\n  for(uint8_t i=1;i<n;i++){\n    uint8_t c=(last_zone+1+i)%n;\n    if(fabsf(errors[c])>be){be=fabsf(errors[c]);best=c;}}\n  return best;\n}",
+  "tags": [
+    "thermal",
+    "multi-zone",
+    "arbiter",
+    "ssr",
+    "scheduling"
+  ],
+  "domain": "software",
+  "category": "function"
+}

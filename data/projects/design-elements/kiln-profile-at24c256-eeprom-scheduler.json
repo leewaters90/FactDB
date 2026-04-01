@@ -1,0 +1,5 @@
+{
+  "title": "Kiln Profile AT24C256 EEPROM Scheduler",
+  "component_category": "processing",
+  "selected_approach": "AT24C256 I2C EEPROM at 0x50; stores up to 20 profile segments per zone (target_C, ramp_deg_per_min, dwell_s) as packed structs; three-channel profiles loaded at power-on"
+}

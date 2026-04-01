@@ -1,0 +1,5 @@
+{
+  "title": "Relay-Switched Magnetic Stirrer",
+  "component_category": "control",
+  "selected_approach": "DC motor magnetic stirrer plate controlled via a 5 V single-channel relay module driven by NPN transistor (BC547) with flyback diode. Arduino digital pin provides ON/OFF control; stirrer speed set by onboard potentiometer."
+}

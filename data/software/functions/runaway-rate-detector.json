@@ -1,0 +1,17 @@
+{
+  "title": "runaway_rate_detector",
+  "artifact_type": "function",
+  "language": "arduino",
+  "signature": "bool runaway_rate_detector(float T, float dt, float* prevT, float max_rate_C_s, float fault_temp)",
+  "content": "Detects thermal runaway by computing dT/dt and comparing to a maximum allowable rate. Returns true on runaway detection.",
+  "code": "bool runaway_rate_detector(float T,float dt,float*prevT,float max_rate,float fault_temp){\n  float rate=(dt>0)?(T-*prevT)/dt:0.0f;\n  *prevT=T;\n  return (rate>max_rate||T>fault_temp);\n}",
+  "tags": [
+    "safety",
+    "runaway",
+    "polymerization",
+    "thermal",
+    "arduino"
+  ],
+  "domain": "software",
+  "category": "function"
+}

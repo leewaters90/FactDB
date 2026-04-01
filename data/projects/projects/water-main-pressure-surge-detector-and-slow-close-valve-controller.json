@@ -1,0 +1,48 @@
+{
+  "title": "Water Main Pressure Surge Detector and Slow-Close Valve Controller",
+  "description": "Monitors a pressurised water main at 1 kHz to detect water hammer transients, logs surge waveforms to SD, computes predicted surge pressure from Joukowsky equation, and adaptively adjusts the close time of a motorised ball valve to keep ΔP ≤ 200 kPa — targeting buried pipe infrastructure rather than surface water quality or harvesting.",
+  "objective": "Detect water hammer events >50 kPa, log waveform timestamps to SD, enforce slow-close time that limits Joukowsky surge to ≤200 kPa on a 100 mm steel main at 2 m/s flow.",
+  "constraints": "Arduino Uno, MPX5700AP sensor, motorised ball valve, relay module, SD card; 100 mm steel main, operating pressure 350 kPa, flow velocity 2 m/s; 12 V DC supply.",
+  "domain": "civil",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Joukowsky Water Hammer Pressure Surge in Pipe Flow",
+    "Rainwater First-Flush Diversion"
+  ],
+  "design_element_titles": [
+    "MPX5700AP Pipe Pressure Transducer",
+    "Slow-Close Motorised Ball Valve",
+    "Cascaded PID Rate and Attitude Controller",
+    "Buzzer and LED Fault Annunciator"
+  ],
+  "element_usage_notes": {
+    "MPX5700AP Pipe Pressure Transducer": "Sampled at 1 kHz; peak detection algorithm identifies surge events above 50 kPa baseline noise.",
+    "Slow-Close Motorised Ball Valve": "Close time proportionally extended by PID based on measured previous surge vs. 200 kPa limit.",
+    "Cascaded PID Rate and Attitude Controller": "Inner loop: close-rate setpoint tracking; outer loop: measured peak surge vs. 200 kPa setpoint adjusts close time.",
+    "Buzzer and LED Fault Annunciator": "Alarm on surge >200 kPa; second alarm on sudden pressure drop >100 kPa (pipe burst indicator)."
+  },
+  "element_interactions": [
+    {
+      "from": "MPX5700AP Pipe Pressure Transducer",
+      "to": "Cascaded PID Rate and Attitude Controller",
+      "data": "peak_surge_kPa",
+      "description": "Peak surge pressure from each event drives outer PID loop to adjust future valve close time."
+    },
+    {
+      "from": "Cascaded PID Rate and Attitude Controller",
+      "to": "Slow-Close Motorised Ball Valve",
+      "data": "close_time_s",
+      "description": "PID output incrementally adjusts valve close time to reduce surge on next operation."
+    },
+    {
+      "from": "MPX5700AP Pipe Pressure Transducer",
+      "to": "Buzzer and LED Fault Annunciator",
+      "data": "surge_kPa",
+      "description": "Surge >200 kPa or burst-drop >100 kPa directly triggers alarm independent of PID."
+    }
+  ],
+  "integration_code": "#include <SD.h>\n#define P_PIN A0\n#define VALVE_RELAY 6\n#define BUZZER 8\n#define LED 9\n#define SD_CS 10\n#define VREF 5.0f\n#define P_SURGE_LIMIT 200.0f\n#define P_BURST_DROP 100.0f\n#define DT 1.0f\nfloat intg=0,lastE=0;\nfloat closeTime=10.0f;\nfloat prevP=350.0f;\n\nfloat joukowsky_surge_pressure(float rho,float a,float dv){\n  return rho*a*fabs(dv)/1000.0f;\n}\n\nfloat read_pressure_kPa(){\n  float V=(analogRead(P_PIN)/1023.0f)*VREF;\n  return ((V/VREF)-0.04f)*700.0f/0.9f;\n}\n\nfloat sample_peak_surge(int n){\n  float base=read_pressure_kPa(),pk=base;\n  for(int i=0;i<n;i++){float p=read_pressure_kPa();if(p>pk)pk=p;delayMicroseconds(1000);}\n  return pk-base;\n}\n\nvoid adjust_close_time(float surge){\n  float e=surge-P_SURGE_LIMIT;\n  intg+=e*DT; intg=constrain(intg,-30,30);\n  float d=(e-lastE)/DT; lastE=e;\n  closeTime+=0.4f*e/P_SURGE_LIMIT*10.0f;\n  closeTime=constrain(closeTime,5.0f,60.0f);\n}\n\nvoid slow_close_valve(){\n  digitalWrite(VALVE_RELAY,HIGH);\n  delay((unsigned long)(closeTime*1000));\n  digitalWrite(VALVE_RELAY,LOW);\n}\n\nvoid run_alarm(float surge,float P){\n  if(surge>P_SURGE_LIMIT||prevP-P>P_BURST_DROP){tone(BUZZER,2000);analogWrite(LED,255);}\n  else{noTone(BUZZER);analogWrite(LED,0);}\n}\n\nvoid log_sd(float P,float surge){\n  File f=SD.open(\"hammer.csv\",FILE_WRITE);\n  if(f){f.print(millis());f.print(',');f.print(P);f.print(',');f.println(surge);f.close();}\n}\n\nvoid setup(){Serial.begin(115200);SD.begin(SD_CS);pinMode(VALVE_RELAY,OUTPUT);pinMode(BUZZER,OUTPUT);pinMode(LED,OUTPUT);}\n\nvoid loop(){\n  float P=read_pressure_kPa();\n  float surge=sample_peak_surge(100);\n  adjust_close_time(surge);\n  run_alarm(surge,P);\n  log_sd(P,surge);\n  prevP=P;\n  Serial.print(\"P=\");Serial.print(P);Serial.print(\" dP=\");Serial.println(surge);\n  delay(100);\n}",
+  "software_artifact_titles": [
+    "joukowsky_surge_pressure"
+  ]
+}

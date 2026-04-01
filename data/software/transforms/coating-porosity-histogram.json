@@ -1,0 +1,18 @@
+{
+  "title": "coating_porosity_histogram",
+  "artifact_type": "transform",
+  "language": "python",
+  "signature": "def coating_porosity_histogram(image_bgr: object, dark_threshold: int = 50) -> float",
+  "content": "Estimates thermal spray coating porosity percentage from a BGR image by greyscale thresholding. Returns porosity as a float percentage 0-100.",
+  "code": "def coating_porosity_histogram(image_bgr, dark_threshold=50):\n    import cv2\n    import numpy as np\n    gray = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2GRAY)\n    _, thresh = cv2.threshold(gray, dark_threshold, 255, cv2.THRESH_BINARY_INV)\n    porosity = float(np.sum(thresh > 0)) / thresh.size * 100.0\n    return round(porosity, 3)",
+  "tags": [
+    "coating",
+    "porosity",
+    "thermal-spray",
+    "image-analysis",
+    "opencv",
+    "materials"
+  ],
+  "domain": "software",
+  "category": "transform"
+}

@@ -1,0 +1,8 @@
+{
+  "title": "Seebeck Effect and Thermoelectric Power Generation",
+  "domain": "chemical",
+  "category": "thermodynamics",
+  "content": "When a temperature gradient ΔT exists across a thermoelectric junction, an open-circuit voltage V_oc = S·ΔT is generated, where S is the Seebeck coefficient (μV/K). Maximum power transfer occurs when load resistance equals internal resistance: P_max = S²·ΔT²/(4·R_int). Chemical processes with persistent thermal gradients (e.g., exothermic reactors, distillation columns) are candidate sources for thermoelectric energy harvesting.",
+  "detail_level": "intermediate",
+  "id": "9870727c-4e46-47f5-917d-7a91d5e1a291"
+}

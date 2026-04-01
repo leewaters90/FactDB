@@ -258,6 +258,7 @@ related = search.suggest_related_by_tags(fact_id)
 | `factdb prereqs FACT_ID` | Backward-chain prerequisite tree |
 | `factdb export` | Export verified facts as JSON |
 | `factdb web` | Launch the web UI (projects, elements, facts, review) |
+| `factdb seed-copilot` | Run autonomous Copilot seeder for new projects |
 
 ---
 
@@ -274,6 +275,7 @@ base and reviewing design decisions:
 | Element detail | `/elements/<id>` | Approach, alternatives, supporting facts, review form |
 | Facts | `/facts` | Search and filter engineering facts |
 | Fact detail | `/facts/<id>` | Full fact with formula, relationships, and verification history |
+| Seeding | `/seeding` | Start/stop Copilot seeding jobs and monitor live job output |
 
 ### Starting the web server
 
@@ -297,6 +299,34 @@ Each **Design Element** detail page (`/elements/<id>`) includes a **Review
 Notes** form.  Submit free-text notes to record your assessment — these are
 saved as `verification_notes` on the element and surfaced in the project view
 with a ✓ indicator.
+
+### Copilot seeding
+
+`factdb seed-copilot` generates new projects (plus missing facts/elements)
+using a retrieval-first workflow.
+
+```bash
+# One project
+factdb seed-copilot --count 1 --verbose
+
+# Batch run
+factdb seed-copilot --count 10
+
+# Dry-run prompt inspection
+factdb seed-copilot --dry-run
+```
+
+Intent generation defaults to **Copilot-generated intent** for both terminal
+and Web UI runs. To force deterministic local intent generation:
+
+```bash
+FACTDB_INTENT_WITH_COPILOT=0 factdb seed-copilot --count 1
+```
+
+```powershell
+$env:FACTDB_INTENT_WITH_COPILOT="0"
+factdb seed-copilot --count 1
+```
 
 ---
 

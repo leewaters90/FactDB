@@ -1,0 +1,57 @@
+{
+  "title": "Exothermic Polymerization Thermal Runaway Safety Monitor",
+  "description": "Monitors an exothermic free-radical polymerisation reaction (e.g., styrene with AIBN initiator) for thermal runaway. A DS18B20 array tracks bulk temperature; a software dT/dt detector flags runaway onset (> 0.5 °C/s or T > 90 °C); an SSR-Controlled Water Cooling Jacket activates automatically at 70 °C warning; a hardware dual-threshold relay interlock cuts power at 90 °C independently of the MCU. An OLED shows live temperature, rate, and fault state.",
+  "objective": "Detect polymerisation runaway onset within 1 s, automatically engage cooling at warning threshold, and trigger hardware interlock at fault threshold with OLED and Serial fault reporting.",
+  "constraints": "Arduino Uno, DS18B20 × 2, SSR cooling jacket, dual-threshold hardware interlock, OLED display; no more than 50 mL monomer per run; max safe temperature 90 °C; ventilated fume cupboard required.",
+  "domain": "chemical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Reaction Rate Kinetics — Arrhenius Equation",
+    "Heat of Reaction and Calorimetry",
+    "First Law of Thermodynamics"
+  ],
+  "design_element_titles": [
+    "DS18B20 1-Wire Temperature Probe Array",
+    "SSR-Controlled Water Cooling Jacket",
+    "Dual-Threshold Safety Relay Interlock",
+    "OLED Status Display",
+    "Cascaded PID Rate and Attitude Controller"
+  ],
+  "element_usage_notes": {
+    "DS18B20 1-Wire Temperature Probe Array": "Two probes (core and surface) sampled at 0.5 Hz for spatial temperature gradient and runaway detection.",
+    "SSR-Controlled Water Cooling Jacket": "Activated at 70 °C (WARNING) to remove reaction heat; duty cycle proportional to temperature excess.",
+    "Dual-Threshold Safety Relay Interlock": "Hardware-only protection: cuts heater relay at 90 °C regardless of MCU state.",
+    "OLED Status Display": "Shows T_core, T_surface, dT/dt, cooling duty, and FAULT / WARNING / OK banner.",
+    "Cascaded PID Rate and Attitude Controller": "Outer loop regulates temperature rate of rise; inner loop adjusts cooling jacket duty cycle."
+  },
+  "element_interactions": [
+    {
+      "from": "DS18B20 1-Wire Temperature Probe Array",
+      "to": "Cascaded PID Rate and Attitude Controller",
+      "data": "temperature_C",
+      "description": "Temperature readings feed outer rate-of-rise loop and inner temperature loop"
+    },
+    {
+      "from": "Cascaded PID Rate and Attitude Controller",
+      "to": "SSR-Controlled Water Cooling Jacket",
+      "data": "cooling_duty",
+      "description": "PID output sets SSR duty cycle to modulate cooling water flow"
+    },
+    {
+      "from": "DS18B20 1-Wire Temperature Probe Array",
+      "to": "Dual-Threshold Safety Relay Interlock",
+      "data": "temperature_C",
+      "description": "Analog thermistor mirror feeds hardware comparators for MCU-independent fault trip"
+    },
+    {
+      "from": "Dual-Threshold Safety Relay Interlock",
+      "to": "OLED Status Display",
+      "data": "fault_state",
+      "description": "Hardware fault state read back via digital pin and displayed on OLED"
+    }
+  ],
+  "integration_code": "#include <OneWire.h>\n#include <DallasTemperature.h>\n#include <Wire.h>\n#include <Adafruit_SSD1306.h>\n#define OW_PIN 2\n#define SSR_PIN 8\n#define FAULT_IN_PIN 6\n#define WARN_TEMP 70.0f\n#define FAULT_TEMP 90.0f\n#define MAX_RATE 0.5f\nOneWire ow(OW_PIN); DallasTemperature ds(&ow);\nAdafruit_SSD1306 oled(128,64,&Wire,-1);\nfloat g_prevT=0;\nbool runaway_rate_detector(float T,float dt,float*prevT,float maxR,float faultT){\n  float rate=(dt>0.001f)?(T-*prevT)/dt:0.0f;\n  *prevT=T;\n  return(rate>maxR||T>faultT);\n}\nvoid initHardware(){\n  ds.begin();pinMode(SSR_PIN,OUTPUT);pinMode(FAULT_IN_PIN,INPUT_PULLUP);\n  oled.begin(SSD1306_SWITCHCAPVCC,0x3C);oled.clearDisplay();\n  Serial.begin(9600);\n}\nfloat readTemperatureSensor(){\n  ds.requestTemperatures();return ds.getTempCByIndex(0);\n}\nvoid coolingSSRControl(float T){\n  if(T>WARN_TEMP){int d=(int)constrain(5*(T-WARN_TEMP),0,255);analogWrite(SSR_PIN,d);}\n  else analogWrite(SSR_PIN,0);\n}\nvoid updateOLEDDisplay(float T,float rate,bool fault){\n  oled.clearDisplay();oled.setTextSize(1);oled.setTextColor(SSD1306_WHITE);\n  oled.setCursor(0,0);oled.print(\"T:\");oled.print(T,1);oled.print(\"C\");\n  oled.setCursor(0,12);oled.print(\"dT/dt:\");oled.print(rate,3);oled.print(\"C/s\");\n  oled.setCursor(0,24);oled.print(fault?\"!! FAULT-RUNAWAY !!\":(T>WARN_TEMP?\"WARNING\":\"OK\"));\n  oled.display();\n}\nvoid checkHardwareInterlock(){\n  if(digitalRead(FAULT_IN_PIN)==LOW){\n    analogWrite(SSR_PIN,255);Serial.println(\"HW_FAULT:INTERLOCK\");\n  }\n}\nvoid setup(){initHardware();g_prevT=readTemperatureSensor();}\nvoid loop(){\n  static unsigned long prev=0;unsigned long now=millis();\n  if(now-prev<500)return;prev=now;\n  float dt=(now-prev)/1000.0f;float T=readTemperatureSensor();\n  bool fault=runaway_rate_detector(T,0.5f,&g_prevT,MAX_RATE,FAULT_TEMP);\n  if(fault){analogWrite(SSR_PIN,255);Serial.println(\"SW_FAULT:RUNAWAY\");}\n  coolingSSRControl(T);\n  checkHardwareInterlock();\n  float rate=(T-g_prevT)/0.5f;\n  updateOLEDDisplay(T,rate,fault);\n  Serial.print(\"T=\");Serial.print(T,2);Serial.print(\" rate=\");Serial.println(rate,3);\n}",
+  "software_artifact_titles": [
+    "runaway_rate_detector"
+  ]
+}

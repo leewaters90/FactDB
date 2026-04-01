@@ -1,0 +1,17 @@
+{
+  "title": "cooling_profile_step",
+  "artifact_type": "function",
+  "language": "arduino",
+  "signature": "bool cooling_profile_step(float* targets, unsigned long* holds, int n_zones, int* zone, unsigned long* zone_start, float pv, float tol)",
+  "content": "Advances through a multi-zone temperature profile. Returns true when all zones complete. Caller applies thermal actuator based on current zone target.",
+  "code": "bool cooling_profile_step(float*targets,unsigned long*holds,int n,int*zone,unsigned long*zs,float pv,float tol){\n  if(*zone>=n) return true;\n  float sp=targets[*zone];\n  bool atSP=fabs(pv-sp)<=tol;\n  if(atSP && millis()-*zs>holds[*zone]){\n    (*zone)++; *zs=millis();\n  } else if(!atSP){\n    *zs=millis();\n  }\n  return (*zone>=n);\n}",
+  "tags": [
+    "profile",
+    "crystallization",
+    "multi-zone",
+    "thermal",
+    "arduino"
+  ],
+  "domain": "software",
+  "category": "function"
+}

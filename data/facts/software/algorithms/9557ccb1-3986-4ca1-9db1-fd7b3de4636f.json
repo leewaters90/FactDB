@@ -1,0 +1,8 @@
+{
+  "title": "Complementary Filter for IMU Attitude Estimation",
+  "domain": "software",
+  "category": "algorithms",
+  "content": "The complementary filter fuses high-frequency gyroscope integration with low-frequency accelerometer tilt: θ = α*(θ + ω*dt) + (1-α)*θ_acc, where α≈0.98. It exploits gyro accuracy at high frequencies and accelerometer accuracy near DC with O(1) computation per axis per sample, suitable for 1 kHz attitude loops on ARM Cortex-M MCUs without requiring matrix operations.",
+  "detail_level": "intermediate",
+  "id": "9557ccb1-3986-4ca1-9db1-fd7b3de4636f"
+}

@@ -1,0 +1,5 @@
+{
+  "title": "pH Sensor Module with Automatic Temperature Compensation",
+  "component_category": "sensing",
+  "selected_approach": "Analog pH electrode (BNC connector) with pH-4502C signal conditioning board. Outputs 0–5 V for pH 0–14. Arduino ADC reads voltage; linear calibration with pH 4 and pH 7 buffer solutions. Temperature compensation coefficient −0.003 pH/°C applied using DS18B20 reading."
+}

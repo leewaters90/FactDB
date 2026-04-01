@@ -32,7 +32,7 @@ Each iteration:
       - matching design elements and similar projects
 
 5.  Builds the final generation prompt from that retrieved context, calls
-    ``gh copilot -p "..." --allow-all-tools --autopilot``, and parses
+    ``gh copilot -p "..." --no-ask-user`` in prompt mode, and parses
     the JSON envelope from stdout.
 
 6.  Saves new facts → data/facts/{domain}/{category}/
@@ -87,6 +87,7 @@ REPO_ROOT = Path(__file__).parent.parent
 FACTS_DIR = REPO_ROOT / "data" / "facts"
 ELEMENTS_DIR = REPO_ROOT / "data" / "projects" / "design-elements"
 PROJECTS_DIR = REPO_ROOT / "data" / "projects" / "projects"
+SOFTWARE_DIR = REPO_ROOT / "data" / "software"
 RELATIONSHIPS_FILE = FACTS_DIR / "_relationships.json"
 QUEUE_FILE = REPO_ROOT / "PROJECT_QUEUE.md"
 CONVERGENCE_FILE = REPO_ROOT / "data" / "convergence.jsonl"
@@ -117,11 +118,11 @@ CONVERGENCE_WARN = 0.80  # threshold to emit saturation warning
 NOVELTY_MA_WINDOW = 10   # moving-average window for novelty_rate
 MAX_INTENT_SPARSE_CATEGORIES = 8
 MAX_INTENT_PROJECT_TITLES = 24
-MAX_RETRIEVED_FACTS = 12
-MAX_RETRIEVED_ELEMENTS = 8
-MAX_RETRIEVED_PROJECTS = 5
-MAX_RETRIEVED_RELATIONSHIPS = 16
-MAX_RETRIEVAL_TERMS = 8
+MAX_RETRIEVED_FACTS = 4
+MAX_RETRIEVED_ELEMENTS = 4
+MAX_RETRIEVED_PROJECTS = 2
+MAX_RETRIEVED_RELATIONSHIPS = 8
+MAX_RETRIEVAL_TERMS = 6
 MAX_RETRIEVAL_CATEGORY_TERMS = 4
 STOP_WORDS = {
     "and", "the", "with", "from", "into", "onto", "over", "under",
@@ -153,6 +154,16 @@ class ElementSummary:
 
 
 @dataclass
+class SoftwareArtifactSummary:
+    title: str
+    artifact_type: str   # "function" or "transform"
+    language: str
+    signature: str
+    content: str         # first sentence description
+    tags: list[str]
+
+
+@dataclass
 class KnowledgeContext:
     # Grouped fact summaries: domain → category → [FactSummary]
     fact_map: dict[str, dict[str, list[FactSummary]]]
@@ -162,6 +173,9 @@ class KnowledgeContext:
     project_titles: set[str]
     # Element capability index: component_category → [ElementSummary]
     element_index: dict[str, list[ElementSummary]]
+    # Software artifact index: artifact_type → [SoftwareArtifactSummary]
+    software_artifact_index: dict[str, list[SoftwareArtifactSummary]]
+    software_artifact_titles: set[str]
     # Relationship graph: (source_title, target_title, type)
     relationships: list[tuple[str, str, str]]
     # Coverage stats
@@ -230,6 +244,7 @@ class RetrievedContext:
     facts: list[RetrievedFact]
     elements: list[RetrievedElement]
     projects: list[RetrievedProject]
+    software_artifacts: list[SoftwareArtifactSummary]
     relationships: list[tuple[str, str, str]]
     retrieval_terms: list[str]
 
@@ -297,6 +312,30 @@ def load_knowledge_context() -> KnowledgeContext:
         except Exception:
             pass
 
+    software_artifact_index: dict[str, list[SoftwareArtifactSummary]] = collections.defaultdict(list)
+    software_artifact_titles: set[str] = set()
+
+    for path in sorted(SOFTWARE_DIR.rglob("*.json")):
+        try:
+            d = json.loads(path.read_text())
+            title = d.get("title", "")
+            if not title:
+                continue
+            artifact_type = d.get("artifact_type", "function")
+            software_artifact_titles.add(title)
+            software_artifact_index[artifact_type].append(
+                SoftwareArtifactSummary(
+                    title=title,
+                    artifact_type=artifact_type,
+                    language=d.get("language", "python"),
+                    signature=d.get("signature", ""),
+                    content=_first_sentence(d.get("content", "")),
+                    tags=d.get("tags", []),
+                )
+            )
+        except Exception:
+            pass
+
     project_titles: set[str] = set()
     project_domains: list[str] = []
 
@@ -344,6 +383,8 @@ def load_knowledge_context() -> KnowledgeContext:
         fact_titles=fact_titles,
         element_titles=element_titles,
         project_titles=project_titles,
+        software_artifact_index=software_artifact_index,
+        software_artifact_titles=software_artifact_titles,
         element_index=element_index,
         relationships=relationships,
         n_facts=n_facts,
@@ -828,12 +869,12 @@ def generate_project_intent(
 ) -> tuple[ProjectIntent | None, str, str | None]:
     """Generate a compact project intent and return the prompt and any error.
 
-    Default behavior is local deterministic intent generation to avoid
-    additional Copilot round-trips and timeout risk on Windows terminals.
-    Set FACTDB_INTENT_WITH_COPILOT=1 to use model-driven intent generation.
+    Default behavior is Copilot-driven intent generation.
+    Set FACTDB_INTENT_WITH_COPILOT=0 to force local deterministic intent
+    generation when you want faster/offline behavior.
     """
     prompt = build_intent_prompt(ctx)
-    if os.environ.get("FACTDB_INTENT_WITH_COPILOT", "0") not in {"1", "true", "TRUE"}:
+    if os.environ.get("FACTDB_INTENT_WITH_COPILOT", "1") in {"0", "false", "FALSE"}:
         return build_local_intent(ctx), prompt, None
 
     intent_timeout = max(timeout, 240)
@@ -849,6 +890,33 @@ def generate_project_intent(
     return _build_intent(intent_dict), prompt, None
 
 
+MAX_RETRIEVED_SOFTWARE_ARTIFACTS = 4
+
+
+def _match_software_artifacts(
+    ctx: KnowledgeContext | None,
+    keyword_tokens: set[str],
+    max_results: int = MAX_RETRIEVED_SOFTWARE_ARTIFACTS,
+) -> list[SoftwareArtifactSummary]:
+    """Score and return the most relevant software artifacts for the keyword set."""
+    if ctx is None:
+        return []
+    scored: list[tuple[float, SoftwareArtifactSummary]] = []
+    for artifacts in ctx.software_artifact_index.values():
+        for artifact in artifacts:
+            score = _score_overlap(
+                artifact.title,
+                artifact.signature,
+                artifact.content,
+                " ".join(artifact.tags),
+                keywords=keyword_tokens,
+            )
+            if score > 0:
+                scored.append((score, artifact))
+    scored.sort(key=lambda x: -x[0])
+    return [a for _, a in scored[:max_results]]
+
+
 def _enum_or_none(enum_cls, value: str | None):
     """Return an Enum member for *value* or None if parsing fails."""
     if not value:
@@ -859,7 +927,7 @@ def _enum_or_none(enum_cls, value: str | None):
         return None
 
 
-def retrieve_factdb_context(intent: ProjectIntent, session: Any | None = None) -> RetrievedContext:
+def retrieve_factdb_context(intent: ProjectIntent, session: Any | None = None, knowledge_ctx: KnowledgeContext | None = None) -> RetrievedContext:
     """Retrieve a compact FactDB slice for the generated project intent."""
     from factdb.database import get_session_factory, init_db
     from factdb.models import DetailLevel, FactStatus
@@ -1061,6 +1129,7 @@ def retrieve_factdb_context(intent: ProjectIntent, session: Any | None = None) -
             facts=facts,
             elements=elements,
             projects=projects,
+            software_artifacts=_match_software_artifacts(knowledge_ctx, keyword_tokens),
             relationships=relationships,
             retrieval_terms=retrieval_terms,
         )
@@ -1071,13 +1140,19 @@ def retrieve_factdb_context(intent: ProjectIntent, session: Any | None = None) -
 
 def _format_retrieved_context(retrieved: RetrievedContext) -> str:
     """Render the retrieved FactDB slice into a compact prompt block."""
+    def _compact(text: str, limit: int = 140) -> str:
+        text = re.sub(r"\s+", " ", (text or "")).strip()
+        if len(text) <= limit:
+            return text
+        return text[: limit - 3].rstrip() + "..."
+
     lines = [
         "=== PROJECT INTENT ===",
         f"Title hint: {retrieved.intent.title_hint}",
         f"Domain: {retrieved.intent.domain}",
-        f"Problem: {retrieved.intent.problem_statement}",
-        f"Objective: {retrieved.intent.objective}",
-        f"Constraints: {retrieved.intent.constraints}",
+        f"Problem: {_compact(retrieved.intent.problem_statement, 90)}",
+        f"Objective: {_compact(retrieved.intent.objective, 90)}",
+        f"Constraints: {_compact(retrieved.intent.constraints, 90)}",
         f"Retrieval terms: {', '.join(retrieved.retrieval_terms)}",
         "",
         "=== RETRIEVED FACTS (reuse these first) ===",
@@ -1085,26 +1160,15 @@ def _format_retrieved_context(retrieved: RetrievedContext) -> str:
 
     if retrieved.facts:
         for fact in retrieved.facts:
-            tag_suffix = f" | tags: {', '.join(fact.tags)}" if fact.tags else ""
-            lines.append(
-                f"- {fact.title} [{fact.domain}/{fact.category}, {fact.detail_level}, conf {fact.confidence_score:.2f}]"
-            )
-            lines.append(f"  {fact.content}{tag_suffix}")
+            lines.append(f"- {fact.title} [{fact.domain}/{fact.category}]")
     else:
         lines.append("- No matching facts found")
 
     lines.append("\n=== RETRIEVED DESIGN ELEMENTS (prefer reuse) ===")
     if retrieved.elements:
         for element in retrieved.elements:
-            lines.append(f"- {element.title} [{element.component_category}]")
-            if element.design_question:
-                lines.append(f"  question: {element.design_question}")
-            if element.selected_approach:
-                lines.append(f"  approach: {element.selected_approach}")
-            if element.supporting_fact_titles:
-                lines.append(f"  supported by: {', '.join(element.supporting_fact_titles)}")
-            if element.used_in_projects:
-                lines.append(f"  used in: {', '.join(element.used_in_projects)}")
+            line = f"- {element.title} [{element.component_category}]"
+            lines.append(line)
     else:
         lines.append("- No matching design elements found")
 
@@ -1112,13 +1176,6 @@ def _format_retrieved_context(retrieved: RetrievedContext) -> str:
     if retrieved.projects:
         for project in retrieved.projects:
             lines.append(f"- {project.title} [{project.domain}]")
-            lines.append(f"  {project.description}")
-            if project.objective:
-                lines.append(f"  objective: {project.objective}")
-            if project.design_element_titles:
-                lines.append(f"  elements: {', '.join(project.design_element_titles)}")
-            if project.supporting_fact_titles:
-                lines.append(f"  facts: {', '.join(project.supporting_fact_titles)}")
     else:
         lines.append("- No close project matches found")
 
@@ -1128,12 +1185,29 @@ def _format_retrieved_context(retrieved: RetrievedContext) -> str:
             lines.append(f"- {source} --[{rel_type}]--> {target}")
     else:
         lines.append("- No direct retrieved relationships found")
+
+    lines.append("\n=== REUSABLE SOFTWARE ARTIFACTS (functions / transforms) ===")
+    if retrieved.software_artifacts:
+        for artifact in retrieved.software_artifacts:
+            lines.append(f"- [{artifact.artifact_type}] {artifact.title}  `{artifact.signature}`")
+    else:
+        lines.append("- No matching software artifacts found")
+
     return "\n".join(lines)
 
 
-def build_generation_prompt(retrieved: RetrievedContext) -> str:
+def build_generation_prompt(retrieved: RetrievedContext, projects_per_request: int = 1) -> str:
     """Build the final project-generation prompt from the retrieved context."""
     retrieved_block = _format_retrieved_context(retrieved)
+    batch_note = ""
+    if projects_per_request > 1:
+        batch_note = (
+            f"\nBATCH MODE\n"
+            f"- Generate exactly {projects_per_request} distinct projects in one response.\n"
+            f"- Use a top-level `projects_batch` array where each item is a full envelope with keys:\n"
+            f"  new_facts, new_relationships, new_design_elements, project.\n"
+            f"- Keep cross-project overlap low and avoid duplicate titles.\n"
+        )
     return f"""You are a senior embedded-systems / mechatronics engineer designing projects for FactDB.
 
 You already have a compact project intent plus a retrieved FactDB context slice.
@@ -1145,73 +1219,50 @@ For new facts, connect them to retrieved facts using depends_on or supports rela
 {retrieved_block}
 
 PROJECT DESIGN RULES
-1. Reuse retrieved design elements wherever possible.
-2. Prefer retrieved facts in supporting_fact_titles.
-3. Domain must be one of: mechanical, electrical, civil, software, chemical, aerospace, materials, systems, general.
-4. Must use at least 4 design elements, include element_interactions, and provide complete integration_code.
-5. integration_code must be runnable Arduino C++ or MicroPython, not pseudocode.
-6. Keep the project distinct from the similar existing projects listed above.
+1. Reuse retrieved design elements/facts first; add new ones only if required.
+2. Domain must be one of: mechanical, electrical, civil, software, chemical, aerospace, materials, systems, general.
+3. Use at least 4 design elements and include element_interactions.
+4. integration_code MUST be composed of modular named segments — one per design element or logical subsystem.
+   Each segment is a self-contained function or block. Call those functions from a main() / setup()+loop() entry point.
+   Prefer to CALL the reusable software artifacts listed under REUSABLE SOFTWARE ARTIFACTS by their exact function name.
+   Only inline code when no matching artifact exists and a new_software_artifact is also defined below.
+5. Keep the project distinct from the similar existing projects listed above.
+6. Do not call tools or shell commands; respond directly with JSON only.
 
-Respond with ONLY one valid JSON object (no markdown, no prose):
-{{
-  "new_facts": [
-    {{
-      "id": "<UUID v4>",
-      "title": "<unique title>",
-      "domain": "<domain>",
-      "category": "<slug>",
-      "subcategory": "<slug>",
-      "detail_level": "fundamental|intermediate|advanced",
-      "content": "<concise 1-3 sentence summary>",
-      "extended_content": "<150-300 word detailed explanation with practical notes>",
-      "formula": "<formula or null>",
-      "units": "<units or null>",
-      "source": "<datasheet/textbook/standard>",
-      "source_url": null,
-      "confidence_score": 0.95,
-      "status": "draft",
-      "version": 1,
-      "tags": ["tag1"],
-      "created_by": "copilot-seeder"
-    }}
-  ],
-  "new_relationships": [
-    {{
-      "source_title": "<existing or new fact title>",
-      "target_title": "<existing or new fact title>",
-      "relationship_type": "depends_on|supports",
-      "weight": 0.9,
-      "description": "<one sentence>"
-    }}
-  ],
-  "new_design_elements": [
-    {{
-      "title": "<unique element title>",
-      "component_category": "power|sensing|actuation|control|communication|software|mechanical|processing",
-      "design_question": "<engineering question this element answers>",
-      "selected_approach": "<specific components + wiring + library>",
-      "rationale": "<why this approach, 2-3 sentences>",
-      "alternatives": [{{"approach": "...", "reason_rejected": "..."}}],
-      "verification_notes": "<fact titles that support this element>",
-      "supporting_fact_titles": ["<title>"]
-    }}
-  ],
-  "project": {{
-    "title": "<unique project title>",
-    "description": "<2-3 sentence overview>",
-    "objective": "<measurable goals>",
-    "constraints": "<budget, voltage, platform, enclosure>",
-    "domain": "<domain>",
-    "status": "completed",
-    "supporting_fact_titles": ["<existing or new>"],
-    "design_element_titles": ["<existing or new>"],
-    "element_usage_notes": {{"<ElementTitle>": "<specific configuration in this project>"}},
-    "element_interactions": [
-      {{"from": "<el>", "to": "<el>", "data": "<signal/protocol>", "description": "<purpose>"}}
-    ],
-    "integration_code": "<complete sketch as escaped string>"
-  }}
-}}
+{batch_note}
+
+Respond with ONLY valid JSON (no markdown, no prose):
+Required keys:
+- new_facts (array)
+- new_relationships (array)
+- new_design_elements (array)
+- new_software_artifacts (array)
+- project (object)
+
+Required fields:
+- fact: title, domain, category, content (id optional; omit if unavailable)
+- relationship: source_title, target_title, relationship_type, weight, description
+- design element: title, component_category, selected_approach
+- software artifact: title, artifact_type ("function"|"transform"), language ("python"|"arduino"),
+    signature, content, code, tags (array)
+- project: title, description, objective, constraints, domain, status, supporting_fact_titles,
+    design_element_titles, element_usage_notes, element_interactions, integration_code,
+    software_artifact_titles (array of artifact titles used)
+
+Rules:
+- relationship_type must be depends_on or supports
+- project.status must be "completed"
+- integration_code must be complete runnable Arduino C++ or MicroPython as a JSON string
+- integration_code must call modular segment functions — one per subsystem — rather than being a single flat block
+- keep integration_code compact (target <= 6000 characters)
+- do not use markdown fences
+- Return strict JSON only
+
+If generating one project, minimal shape:
+{{"new_facts":[],"new_relationships":[],"new_design_elements":[],"new_software_artifacts":[],"project":{{}}}}
+
+If generating multiple projects, minimal shape:
+{{"projects_batch":[{{"new_facts":[],"new_relationships":[],"new_design_elements":[],"new_software_artifacts":[],"project":{{}}}}]}}
 """
 
 
@@ -1274,6 +1325,50 @@ def find_copilot_executable() -> str | None:
     return None
 
 
+_COPILOT_HELP_CACHE: str | None = None
+_COPILOT_FLAG_SUPPORT: dict[str, bool] = {}
+
+
+def _get_copilot_help_text() -> str:
+    """Return Copilot CLI help text for feature detection (cached)."""
+    global _COPILOT_HELP_CACHE
+    if _COPILOT_HELP_CACHE is not None:
+        return _COPILOT_HELP_CACHE
+
+    copilot_exe = find_copilot_executable()
+    if copilot_exe:
+        cmd = [copilot_exe, "--help"]
+    else:
+        # `gh copilot` requires `--` to pass flags to the underlying CLI.
+        cmd = [find_gh_executable(), "copilot", "--", "--help"]
+
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=20,
+            cwd=str(REPO_ROOT),
+        )
+        _COPILOT_HELP_CACHE = (result.stdout or "") + "\n" + (result.stderr or "")
+    except Exception:
+        _COPILOT_HELP_CACHE = ""
+
+    return _COPILOT_HELP_CACHE
+
+
+def copilot_supports_flag(flag: str) -> bool:
+    """Return True when Copilot CLI help advertises *flag*."""
+    cached = _COPILOT_FLAG_SUPPORT.get(flag)
+    if cached is not None:
+        return cached
+    supported = flag in _get_copilot_help_text()
+    _COPILOT_FLAG_SUPPORT[flag] = supported
+    return supported
+
+
 def get_gh_auth_token() -> str | None:
     """Return GitHub CLI auth token if available."""
     try:
@@ -1326,11 +1421,21 @@ def call_copilot(prompt: str, model: str, timeout: int = 300, verbose: bool = Fa
     """
     copilot_exe = find_copilot_executable()
     if copilot_exe:
-        cmd = [copilot_exe, "-p", prompt, "--allow-all", "--no-ask-user", "--autopilot"]
+        cmd = [copilot_exe, "-p", prompt, "--no-ask-user"]
     else:
-        cmd = [find_gh_executable(), "copilot", "-p", prompt, "--allow-all", "--no-ask-user", "--autopilot"]
+        cmd = [find_gh_executable(), "copilot", "-p", prompt, "--no-ask-user"]
     if model:
         cmd += ["--model", model]
+    # Force no-tools mode for deterministic JSON generation and to avoid
+    # permission-gated shell attempts in non-interactive sessions.
+    if copilot_supports_flag("--disable-builtin-mcps"):
+        cmd += ["--disable-builtin-mcps"]
+    if copilot_supports_flag("--deny-tool"):
+        cmd += ["--deny-tool=shell"]
+    # Verbose mode can request extra stream details when available.
+    if verbose:
+        if copilot_supports_flag("--stream"):
+            cmd += ["--stream", "on"]
 
     env = os.environ.copy()
     token = get_gh_auth_token()
@@ -1342,8 +1447,10 @@ def call_copilot(prompt: str, model: str, timeout: int = 300, verbose: bool = Fa
     if verbose:
         exe_name = os.path.basename(cmd[0])
         model_hint = f" --model {model}" if model else ""
+        reasoning_hint = ""
+        stream_hint = " --stream on" if "--stream" in cmd else ""
         click.echo(click.style(
-            f"  ▶ Invoking: {exe_name}{model_hint}  (timeout {timeout}s)",
+            f"  ▶ Invoking: {exe_name}{model_hint}{reasoning_hint}{stream_hint}  (timeout {timeout}s)",
             fg="bright_blue",
         ))
 
@@ -1351,6 +1458,7 @@ def call_copilot(prompt: str, model: str, timeout: int = 300, verbose: bool = Fa
         cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        stdin=subprocess.DEVNULL,
         cwd=str(REPO_ROOT),
         env=env,
     )
@@ -1376,6 +1484,7 @@ def call_copilot(prompt: str, model: str, timeout: int = 300, verbose: bool = Fa
     stdout_chunks: list[bytes] = []
     # Track whether we have seen the start of the JSON block yet
     _json_started = threading.Event()
+    _saw_preamble_output = threading.Event()
 
     def _stream_stdout():
         assert proc.stdout is not None
@@ -1394,6 +1503,7 @@ def call_copilot(prompt: str, model: str, timeout: int = 300, verbose: bool = Fa
                         break
                     if stripped_line:
                         # Always show reasoning text — this is the model thinking
+                        _saw_preamble_output.set()
                         click.echo(click.style(f"  💬 {line}", fg="bright_white"))
                 buf = text_so_far.encode("utf-8")
 
@@ -1436,14 +1546,15 @@ def call_copilot(prompt: str, model: str, timeout: int = 300, verbose: bool = Fa
     stderr_thread.join(timeout=5)
     stdout_thread.join(timeout=5)
 
-    if timed_out:
-        raise subprocess.TimeoutExpired(cmd, timeout)
-
     # Drain any remaining stdout not yet read by the thread
     assert proc.stdout is not None
     stdout_chunks.append(proc.stdout.read())
     stdout_text = b"".join(stdout_chunks).decode("utf-8", errors="replace")
     stderr_text = "\n".join(stderr_lines)
+
+    if timed_out:
+        # Preserve partial stdout so callers can attempt JSON salvage.
+        raise subprocess.TimeoutExpired(cmd, timeout, output=stdout_text, stderr=stderr_text)
 
     if verbose:
         click.echo(click.style(
@@ -1451,6 +1562,11 @@ def call_copilot(prompt: str, model: str, timeout: int = 300, verbose: bool = Fa
             f"{len(stdout_text):,} chars stdout",
             dim=True,
         ))
+        if not _saw_preamble_output.is_set():
+            click.echo(click.style(
+                "  ℹ No pre-JSON stream received from Copilot (response arrived as a single block).",
+                dim=True,
+            ))
     else:
         click.echo(click.style(f"  ✓ Copilot responded in {elapsed_total}s", dim=True))
 
@@ -1466,36 +1582,52 @@ def call_copilot(prompt: str, model: str, timeout: int = 300, verbose: bool = Fa
 # ---------------------------------------------------------------------------
 
 def extract_json(raw: str) -> dict:
-    """Robustly extract the first complete JSON object from *raw*."""
+    """Extract the first valid JSON object from *raw*.
+
+    Copilot output may contain braces in diagnostic/tool text (for example,
+    shell snippets) before the real JSON envelope. This parser scans all
+    candidate ``{`` positions and returns the first decodable dict-shaped
+    object that matches expected seeder keys.
+    """
     stripped = re.sub(r"```(?:json)?\s*", "", raw)
     stripped = re.sub(r"```", "", stripped)
-    start = stripped.find("{")
-    if start == -1:
+
+    decoder = json.JSONDecoder()
+    candidates: list[tuple[int, dict]] = []
+    for m in re.finditer(r"\{", stripped):
+        idx = m.start()
+        try:
+            obj, end = decoder.raw_decode(stripped[idx:])
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(obj, dict):
+            continue
+        candidates.append((idx, obj))
+
+    if not candidates:
         raise ValueError("No JSON object found in Copilot response")
-    depth = end = 0
-    in_string = escape = False
-    for i, ch in enumerate(stripped[start:], start):
-        if escape:
-            escape = False
-            continue
-        if ch == "\\" and in_string:
-            escape = True
-            continue
-        if ch == '"' and not escape:
-            in_string = not in_string
-            continue
-        if in_string:
-            continue
-        if ch == "{":
-            depth += 1
-        elif ch == "}":
-            depth -= 1
-            if depth == 0:
-                end = i + 1
-                break
-    if not end:
-        raise ValueError("Unbalanced JSON braces in Copilot response")
-    return json.loads(stripped[start:end])
+
+    # Prefer objects that look like seeder envelopes.
+    for _idx, obj in candidates:
+        if "projects_batch" in obj:
+            return obj
+        if "project" in obj and (
+            "new_facts" in obj or "new_design_elements" in obj or "new_relationships" in obj
+        ):
+            return obj
+
+    # Fall back to the first decoded dict.
+    return candidates[0][1]
+
+
+def extract_payloads(envelope: dict) -> list[dict]:
+    """Normalise single or batch envelopes into a list of project payloads."""
+    if isinstance(envelope.get("projects_batch"), list):
+        payloads = [item for item in envelope["projects_batch"] if isinstance(item, dict)]
+        return payloads
+    if isinstance(envelope.get("project"), dict):
+        return [envelope]
+    return []
 
 
 def _slug(title: str) -> str:
@@ -1505,7 +1637,7 @@ def _slug(title: str) -> str:
 
 def validate_fact(fact: dict) -> list[str]:
     errors = []
-    for field in ("id", "title", "domain", "category", "content"):
+    for field in ("title", "domain", "category", "content"):
         if not fact.get(field):
             errors.append(f"fact missing required field: {field}")
     if fact.get("domain") not in VALID_DOMAINS:
@@ -1523,6 +1655,34 @@ def validate_element(el: dict) -> list[str]:
     if el.get("component_category") not in VALID_CATEGORIES:
         errors.append(f"element category '{el.get('component_category')}' invalid")
     return errors
+
+
+VALID_ARTIFACT_TYPES = {"function", "transform"}
+VALID_ARTIFACT_LANGUAGES = {"python", "arduino", "lua"}
+
+
+def validate_software_artifact(artifact: dict) -> list[str]:
+    errors = []
+    for field in ("title", "artifact_type", "code"):
+        if not artifact.get(field):
+            errors.append(f"software_artifact missing required field: {field}")
+    if artifact.get("artifact_type") not in VALID_ARTIFACT_TYPES:
+        artifact["artifact_type"] = "function"
+    if artifact.get("language") not in VALID_ARTIFACT_LANGUAGES:
+        artifact["language"] = "python"
+    return errors
+
+
+def save_software_artifact(artifact: dict, dry_run: bool) -> Path:
+    artifact_type = artifact.get("artifact_type", "function")
+    subdir = SOFTWARE_DIR / f"{artifact_type}s"
+    path = subdir / f"{_slug(artifact['title'])}.json"
+    if not dry_run:
+        subdir.mkdir(parents=True, exist_ok=True)
+        artifact.setdefault("domain", "software")
+        artifact.setdefault("category", artifact_type)
+        path.write_text(json.dumps(artifact, indent=2, ensure_ascii=False), encoding="utf-8")
+    return path
 
 
 def validate_project(proj: dict) -> list[str]:
@@ -1550,28 +1710,28 @@ def save_fact(fact: dict, dry_run: bool) -> Path:
     path = target_dir / f"{fact_id}.json"
     if not dry_run:
         target_dir.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(fact, indent=2, ensure_ascii=False))
+        path.write_text(json.dumps(fact, indent=2, ensure_ascii=False), encoding="utf-8")
     return path
 
 
 def save_element(el: dict, dry_run: bool) -> Path:
     path = ELEMENTS_DIR / f"{_slug(el['title'])}.json"
     if not dry_run:
-        path.write_text(json.dumps(el, indent=2, ensure_ascii=False))
+        path.write_text(json.dumps(el, indent=2, ensure_ascii=False), encoding="utf-8")
     return path
 
 
 def save_project(proj: dict, dry_run: bool) -> Path:
     path = PROJECTS_DIR / f"{_slug(proj['title'])}.json"
     if not dry_run:
-        path.write_text(json.dumps(proj, indent=2, ensure_ascii=False))
+        path.write_text(json.dumps(proj, indent=2, ensure_ascii=False), encoding="utf-8")
     return path
 
 
 def append_relationships(new_rels: list[dict], dry_run: bool) -> int:
     existing: list[dict] = []
     if RELATIONSHIPS_FILE.exists():
-        existing = json.loads(RELATIONSHIPS_FILE.read_text())
+        existing = json.loads(RELATIONSHIPS_FILE.read_text(encoding="utf-8"))
     existing_keys = {(r["source_title"], r["target_title"]) for r in existing}
     added = 0
     for rel in new_rels:
@@ -1583,7 +1743,7 @@ def append_relationships(new_rels: list[dict], dry_run: bool) -> int:
             existing_keys.add(key)
             added += 1
     if not dry_run and added:
-        RELATIONSHIPS_FILE.write_text(json.dumps(existing, indent=2, ensure_ascii=False))
+        RELATIONSHIPS_FILE.write_text(json.dumps(existing, indent=2, ensure_ascii=False), encoding="utf-8")
     return added
 
 
@@ -1623,10 +1783,14 @@ def run_one_iteration(
     dry_run: bool,
     verbose: bool,
     timeout: int,
+    projects_per_request: int,
+    single_request: bool,
 ) -> dict[str, Any]:
     """Run one prompt → parse → save cycle.  Returns summary dict."""
     summary: dict[str, Any] = {
         "title": None,
+        "titles": [],
+        "n_projects": 0,
         "n_facts": 0,
         "n_elements": 0,
         "n_relationships": 0,
@@ -1645,14 +1809,18 @@ def run_one_iteration(
         click.echo(click.style("  [dry-run] Retrieval and final generation occur after live intent generation.", fg="cyan"))
         return summary
 
-    click.echo(click.style("  Generating project intent…", dim=True))
-    intent, _intent_prompt, intent_error = generate_project_intent(ctx, model, timeout, verbose=verbose)
-    if intent_error:
-        summary["errors"].append(f"intent generation failed: {intent_error}")
-        return summary
-    if intent is None:
-        summary["errors"].append("intent generation returned no intent")
-        return summary
+    if single_request:
+        click.echo(click.style("  Single-request mode: using local intent (no Copilot intent call)…", dim=True))
+        intent = build_local_intent(ctx)
+    else:
+        click.echo(click.style("  Generating project intent…", dim=True))
+        intent, _intent_prompt, intent_error = generate_project_intent(ctx, model, timeout, verbose=verbose)
+        if intent_error:
+            summary["errors"].append(f"intent generation failed: {intent_error}")
+            return summary
+        if intent is None:
+            summary["errors"].append("intent generation returned no intent")
+            return summary
 
     click.echo(
         click.style(
@@ -1662,103 +1830,151 @@ def run_one_iteration(
     )
 
     click.echo(click.style("  Retrieving relevant FactDB context…", dim=True))
-    retrieved = retrieve_factdb_context(intent)
-    prompt = build_generation_prompt(retrieved)
+    retrieved = retrieve_factdb_context(intent, knowledge_ctx=ctx)
+    prompt = build_generation_prompt(retrieved, projects_per_request=projects_per_request)
     if verbose:
         click.echo(
             click.style(
                 f"  Retrieved {len(retrieved.facts)} facts, {len(retrieved.elements)} elements, "
-                f"{len(retrieved.projects)} projects, {len(retrieved.relationships)} relationships",
+                f"{len(retrieved.projects)} projects, {len(retrieved.relationships)} relationships, "
+                f"{len(retrieved.software_artifacts)} software artifact(s)",
                 dim=True,
             )
         )
         click.echo(click.style(f"  Final prompt length: {len(prompt):,} chars", dim=True))
+        click.echo(click.style("── Full generation prompt ──", fg="yellow"))
+        click.echo(prompt)
+        click.echo(click.style("── End of prompt ──", fg="yellow"))
 
     click.echo(click.style("  Generating project from retrieved context…", dim=True))
     try:
         raw = call_copilot(prompt, model, timeout, verbose=verbose)
-    except (subprocess.TimeoutExpired, RuntimeError) as exc:
+    except subprocess.TimeoutExpired as exc:
+        # Guard: on timeout, try to salvage a valid JSON envelope from partial stdout.
+        partial = (exc.output or "") if isinstance(exc.output, str) else ""
+        if partial.strip():
+            try:
+                envelope = extract_json(partial)
+                summary["errors"].append(
+                    f"copilot timed out after {timeout}s; salvaged partial JSON envelope"
+                )
+                if verbose:
+                    click.echo(click.style("  ⚠ Timeout reached; salvaged JSON from partial stdout.", fg="yellow"))
+            except Exception:
+                summary["errors"].append(str(exc))
+                return summary
+        else:
+            summary["errors"].append(str(exc))
+            return summary
+    except RuntimeError as exc:
         summary["errors"].append(str(exc))
         return summary
 
     if verbose:
         click.echo(click.style(f"  Response: {len(raw):,} chars", dim=True))
 
-    try:
-        envelope = extract_json(raw)
-    except (ValueError, json.JSONDecodeError) as exc:
-        summary["errors"].append(f"JSON parse error: {exc}")
-        if verbose:
-            click.echo(raw[:2000])
+    if "envelope" not in locals():
+        try:
+            envelope = extract_json(raw)
+        except (ValueError, json.JSONDecodeError) as exc:
+            summary["errors"].append(f"JSON parse error: {exc}")
+            if verbose:
+                click.echo(raw[:2000])
+            return summary
+
+    payloads = extract_payloads(envelope)
+    if not payloads:
+        summary["errors"].append("response JSON missing project payload(s)")
         return summary
 
-    # ── Save new facts ────────────────────────────────────────────────────
-    for fact in envelope.get("new_facts", []):
-        errs = validate_fact(fact)
+    for payload_idx, payload in enumerate(payloads, start=1):
+        if len(payloads) > 1:
+            click.echo(click.style(f"  Processing payload {payload_idx}/{len(payloads)}…", dim=True))
+
+        # ── Save new facts ────────────────────────────────────────────────
+        for fact in payload.get("new_facts", []):
+            errs = validate_fact(fact)
+            if errs:
+                summary["errors"].extend(errs)
+                continue
+            if fact["title"] in ctx.fact_titles:
+                click.echo(click.style(f"    ↳ Fact exists, skipping: {fact['title']}", fg="yellow"))
+                continue
+            save_fact(fact, dry_run)
+            ctx.fact_titles.add(fact["title"])
+            summary["n_facts"] += 1
+            click.echo(click.style(f"    ✓ Fact: {fact['title']}", fg="green"))
+
+        # ── Save new software artifacts ───────────────────────────────────
+        for artifact in payload.get("new_software_artifacts", []):
+            errs = validate_software_artifact(artifact)
+            if errs:
+                summary["errors"].extend(errs)
+                continue
+            if artifact["title"] in ctx.software_artifact_titles:
+                click.echo(click.style(f"    ↳ Software artifact exists, skipping: {artifact['title']}", fg="yellow"))
+                continue
+            save_software_artifact(artifact, dry_run)
+            ctx.software_artifact_titles.add(artifact["title"])
+            click.echo(click.style(f"    ✓ Software artifact: {artifact['title']}", fg="green"))
+
+        # ── Save new elements ─────────────────────────────────────────────
+        for el in payload.get("new_design_elements", []):
+            errs = validate_element(el)
+            if errs:
+                summary["errors"].extend(errs)
+                continue
+            if el["title"] in ctx.element_titles:
+                click.echo(click.style(f"    ↳ Element exists, skipping: {el['title']}", fg="yellow"))
+                continue
+            save_element(el, dry_run)
+            ctx.element_titles.add(el["title"])
+            summary["n_elements"] += 1
+            click.echo(click.style(f"    ✓ Element: {el['title']}", fg="green"))
+
+        # ── Save project ──────────────────────────────────────────────────
+        proj = payload.get("project", {})
+        errs = validate_project(proj)
         if errs:
             summary["errors"].extend(errs)
-            continue
-        if fact["title"] in ctx.fact_titles:
-            click.echo(click.style(f"    ↳ Fact exists, skipping: {fact['title']}", fg="yellow"))
-            continue
-        save_fact(fact, dry_run)
-        ctx.fact_titles.add(fact["title"])
-        summary["n_facts"] += 1
-        click.echo(click.style(f"    ✓ Fact: {fact['title']}", fg="green"))
+        elif proj.get("title") in ctx.project_titles:
+            click.echo(click.style(f"    ↳ Project exists, skipping: {proj['title']}", fg="yellow"))
+        else:
+            save_project(proj, dry_run)
+            ctx.project_titles.add(proj["title"])
+            summary["titles"].append(proj["title"])
+            summary["n_projects"] += 1
+            if summary["title"] is None:
+                summary["title"] = proj["title"]
+                summary["project"] = proj
+            click.echo(click.style(f"    ✓ Project: {proj['title']}", fg="green"))
 
-    # ── Save new elements ─────────────────────────────────────────────────
-    for el in envelope.get("new_design_elements", []):
-        errs = validate_element(el)
-        if errs:
-            summary["errors"].extend(errs)
-            continue
-        if el["title"] in ctx.element_titles:
-            click.echo(click.style(f"    ↳ Element exists, skipping: {el['title']}", fg="yellow"))
-            continue
-        save_element(el, dry_run)
-        ctx.element_titles.add(el["title"])
-        summary["n_elements"] += 1
-        click.echo(click.style(f"    ✓ Element: {el['title']}", fg="green"))
-
-    # ── Save project ──────────────────────────────────────────────────────
-    proj = envelope.get("project", {})
-    errs = validate_project(proj)
-    if errs:
-        summary["errors"].extend(errs)
-    elif proj.get("title") in ctx.project_titles:
-        click.echo(click.style(f"    ↳ Project exists, skipping: {proj['title']}", fg="yellow"))
-    else:
-        save_project(proj, dry_run)
-        ctx.project_titles.add(proj["title"])
-        summary["title"] = proj["title"]
-        summary["project"] = proj
-        click.echo(click.style(f"    ✓ Project: {proj['title']}", fg="green"))
-
-    # ── Save relationships ────────────────────────────────────────────────
-    summary["n_relationships"] = append_relationships(
-        envelope.get("new_relationships", []), dry_run
-    )
+        # ── Save relationships ────────────────────────────────────────────
+        summary["n_relationships"] += append_relationships(
+            payload.get("new_relationships", []), dry_run
+        )
 
     # ── Compute convergence metrics ───────────────────────────────────────
-    if summary["title"] and not dry_run:
+    if summary["n_projects"] > 0 and not dry_run:
         ctx_after = load_knowledge_context()
         metrics = compute_metrics(
             ctx_before=ctx,
             ctx_after=ctx_after,
-            project=proj,
+            project=summary["project"],
             n_new_rels=summary["n_relationships"],
             novelty_history=novelty_history,
             global_iteration=global_iteration,
         )
         summary["metrics"] = metrics
         save_metrics(metrics, dry_run)
-        append_queue_entry(
-            summary["title"],
-            summary["n_facts"],
-            summary["n_elements"],
-            metrics.convergence_score,
-            dry_run,
-        )
+        for title in summary["titles"]:
+            append_queue_entry(
+                title,
+                summary["n_facts"],
+                summary["n_elements"],
+                metrics.convergence_score,
+                dry_run,
+            )
 
     return summary
 
@@ -1782,9 +1998,13 @@ def run_one_iteration(
               help="Show extra diagnostic output.")
 @click.option("--timeout", default=300, show_default=True,
               help="Seconds before a Copilot call is aborted.")
+@click.option("--projects-per-request", default=1, show_default=True,
+              help="How many projects Copilot should return in one generation response.")
+@click.option("--single-request", is_flag=True, default=False,
+              help="Use local intent so each iteration uses only one Copilot generation call.")
 @click.option("--convergence-only", is_flag=True, default=False,
               help="Print historical convergence report and exit.")
-def main(count, pause, model, seed_every, dry_run, verbose, timeout, convergence_only):
+def main(count, pause, model, seed_every, dry_run, verbose, timeout, projects_per_request, single_request, convergence_only):
     """
     Continuously prompt GitHub Copilot CLI to design new FactDB projects.
 
@@ -1805,6 +2025,11 @@ def main(count, pause, model, seed_every, dry_run, verbose, timeout, convergence
     if convergence_only:
         print_convergence_report()
         return
+
+    if projects_per_request < 1:
+        raise click.BadParameter("--projects-per-request must be >= 1")
+
+    effective_single_request = single_request or projects_per_request > 1
 
     click.echo(
         click.style(
@@ -1866,6 +2091,8 @@ def main(count, pause, model, seed_every, dry_run, verbose, timeout, convergence
                 dry_run=dry_run,
                 verbose=verbose,
                 timeout=timeout,
+                projects_per_request=projects_per_request,
+                single_request=effective_single_request,
             )
             completed_iterations += 1
 
@@ -1877,8 +2104,8 @@ def main(count, pause, model, seed_every, dry_run, verbose, timeout, convergence
                     )
                 )
 
-            if summary["title"]:
-                successes += 1
+            if summary["n_projects"] > 0:
+                successes += summary["n_projects"]
                 total_new_facts += summary["n_facts"]
                 total_new_elements += summary["n_elements"]
                 novelty_history.append(float(summary["n_facts"] + summary["n_elements"]))
@@ -1893,7 +2120,9 @@ def main(count, pause, model, seed_every, dry_run, verbose, timeout, convergence
 
                 click.echo(
                     click.style(
-                        f"  ✔  '{summary['title']}' | "
+                        f"  ✔  {summary['n_projects']} project(s)"
+                        + (f" (e.g. '{summary['title']}')" if summary.get("title") else "")
+                        + " | "
                         f"+{summary['n_facts']} facts, +{summary['n_elements']} elements, "
                         f"+{summary['n_relationships']} rels | "
                         f"reuse {reuse_pct} | {score_str}",

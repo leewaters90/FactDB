@@ -1,0 +1,5 @@
+{
+  "title": "LVDT Linear Displacement Sensor Interface",
+  "component_category": "sensing",
+  "selected_approach": "10 mm travel LVDT with AD698 signal conditioner; measures piston displacement vs time for MFI computation; ±0.01 mm resolution; analogue output 0–3.3 V to Arduino ADC"
+}

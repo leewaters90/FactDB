@@ -1,0 +1,5 @@
+{
+  "title": "Adaptive RMS Anomaly Threshold",
+  "component_category": "control",
+  "selected_approach": "Exponential moving average (α=0.01) of dominant bin magnitude forms adaptive baseline; alarm triggered when magnitude >2.5× baseline for 3 consecutive windows."
+}

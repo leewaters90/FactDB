@@ -460,5 +460,523 @@
     "relationship_type": "depends_on",
     "weight": 0.6,
     "description": "Vibration beater mechanism uses eccentric cam to generate 30–50 Hz oscillation."
+  },
+  {
+    "source_title": "Cold-Gas Thruster Dynamics and Pulse-Width Modulation Control",
+    "target_title": "Tsiolkovsky Rocket Equation",
+    "relationship_type": "depends_on",
+    "weight": 0.9,
+    "description": "Cold-gas thruster ΔV budget is computed using the Tsiolkovsky equation with Isp of the propellant."
+  },
+  {
+    "source_title": "Cold-Gas Thruster Dynamics and Pulse-Width Modulation Control",
+    "target_title": "CubeSat Standard Platform (1U–3U)",
+    "relationship_type": "supports",
+    "weight": 0.85,
+    "description": "Cold-gas micro-thrusters are a primary propulsion option for 1U–3U CubeSat attitude and orbit control."
+  },
+  {
+    "source_title": "Fault Detection and Isolation in Embedded Propulsion Controllers",
+    "target_title": "Factor of Safety",
+    "relationship_type": "depends_on",
+    "weight": 0.8,
+    "description": "FDI pressure thresholds are set using Factor of Safety margins to avoid operating near structural limits."
+  },
+  {
+    "source_title": "Fault Detection and Isolation in Embedded Propulsion Controllers",
+    "target_title": "Cold-Gas Thruster Dynamics and Pulse-Width Modulation Control",
+    "relationship_type": "supports",
+    "weight": 0.9,
+    "description": "FDI wraps the cold-gas thruster controller to detect valve failures and enforce safe-hold transitions."
+  },
+  {
+    "source_title": "Three-Axis RCS Thruster Allocation and Torque Mapping",
+    "target_title": "Cold-Gas Thruster Dynamics and Pulse-Width Modulation Control",
+    "relationship_type": "depends_on",
+    "weight": 0.9,
+    "description": "Thruster allocation relies on PWM pulse-width modulation dynamics to convert torque commands into solenoid open-times."
+  },
+  {
+    "source_title": "Three-Axis RCS Thruster Allocation and Torque Mapping",
+    "target_title": "CubeSat Standard Platform (1U–3U)",
+    "relationship_type": "supports",
+    "weight": 0.85,
+    "description": "The thruster allocation scheme is sized for a 1U–3U CubeSat moment-of-inertia envelope, enabling attitude hold maneuvers within the platform's propellant budget."
+  },
+  {
+    "source_title": "Three-Axis RCS Thruster Allocation and Torque Mapping",
+    "target_title": "Factor of Safety",
+    "relationship_type": "depends_on",
+    "weight": 0.7,
+    "description": "Solenoid duty-cycle caps and propellant reserve margins are set using FoS≥1.5 to prevent valve failure and propellant depletion."
+  },
+  {
+    "source_title": "Maximum Power Point Tracking (MPPT) for Photovoltaic Sources",
+    "target_title": "CubeSat Electrical Power System (EPS) Architecture",
+    "relationship_type": "depends_on",
+    "weight": 0.85,
+    "description": "MPPT is a charge-control operating mode of the EPS; it requires the charge regulator, shunt monitors, and battery bus to be present."
+  },
+  {
+    "source_title": "CubeSat Electrical Power System (EPS) Architecture",
+    "target_title": "CubeSat Standard Platform (1U–3U)",
+    "relationship_type": "supports",
+    "weight": 0.9,
+    "description": "The EPS is a mandatory subsystem that powers all other CubeSat subsystems defined by the 1U–3U form-factor standard."
+  },
+  {
+    "source_title": "Maximum Power Point Tracking (MPPT) for Photovoltaic Sources",
+    "target_title": "CubeSat Standard Platform (1U–3U)",
+    "relationship_type": "supports",
+    "weight": 0.8,
+    "description": "MPPT maximises energy harvest from body-mounted panels, extending CubeSat operational lifetime per orbit."
+  },
+  {
+    "source_title": "Rainwater First-Flush Diversion",
+    "target_title": "Solenoid Valve for Pneumatic and Fluid Control",
+    "relationship_type": "depends_on",
+    "weight": 0.85,
+    "description": "Automated first-flush diversion relies on a solenoid valve to switch flow routing between waste drain and storage tank based on sensor feedback."
+  },
+  {
+    "source_title": "Rainwater First-Flush Diversion",
+    "target_title": "Water Quality Multi-Parameter Sensing (pH, TDS, DO)",
+    "relationship_type": "supports",
+    "weight": 0.8,
+    "description": "Diverting the first flush pre-conditions harvested water to a quality range that multi-parameter sensors can accurately characterise and act upon."
+  },
+  {
+    "source_title": "Heat of Reaction and Calorimetry",
+    "target_title": "First Law of Thermodynamics",
+    "relationship_type": "depends_on",
+    "weight": 0.9,
+    "description": "Calorimetry applies the first law: heat released or absorbed equals the change in enthalpy (constant pressure) or internal energy (constant volume), both state functions conserved by the first law."
+  },
+  {
+    "source_title": "Chemical Equilibrium and Le Chatelier's Principle",
+    "target_title": "Heat of Reaction and Calorimetry",
+    "relationship_type": "depends_on",
+    "weight": 0.85,
+    "description": "Equilibrium temperature dependence is driven by the reaction enthalpy quantified by calorimetry."
+  },
+  {
+    "source_title": "Reaction Rate Kinetics — Arrhenius Equation",
+    "target_title": "First Law of Thermodynamics",
+    "relationship_type": "depends_on",
+    "weight": 0.7,
+    "description": "Activation energy and thermal rate expressions are grounded in energy conservation."
+  },
+  {
+    "source_title": "Reaction Rate Kinetics — Arrhenius Equation",
+    "target_title": "Chemical Equilibrium and Le Chatelier's Principle",
+    "relationship_type": "supports",
+    "weight": 0.65,
+    "description": "Arrhenius equation quantifies the rate at which equilibrium is re-established after a temperature perturbation."
+  },
+  {
+    "source_title": "Vapor Pressure and Clausius-Clapeyron Equation",
+    "target_title": "Heat of Reaction and Calorimetry",
+    "relationship_type": "depends_on",
+    "weight": 0.8,
+    "description": "ΔHvap extracted from Clausius-Clapeyron plot is a calorimetric enthalpy quantity."
+  },
+  {
+    "source_title": "Vapor Pressure and Clausius-Clapeyron Equation",
+    "target_title": "Ideal Gas Law",
+    "relationship_type": "depends_on",
+    "weight": 0.75,
+    "description": "Derivation assumes vapour behaves as an ideal gas at low pressures."
+  },
+  {
+    "source_title": "pH and Buffer Chemistry",
+    "target_title": "Chemical Equilibrium and Le Chatelier's Principle",
+    "relationship_type": "depends_on",
+    "weight": 0.8,
+    "description": "Buffer equilibria and pH setpoint shifts with temperature are a direct application of Le Chatelier's principle."
+  },
+  {
+    "source_title": "pH and Buffer Chemistry",
+    "target_title": "Heat of Reaction and Calorimetry",
+    "relationship_type": "supports",
+    "weight": 0.6,
+    "description": "pH monitoring complements calorimetric measurements in aqueous acid-base reactions."
+  },
+  {
+    "source_title": "Adiabatic Processes and Heat Capacity Measurement",
+    "target_title": "First Law of Thermodynamics",
+    "relationship_type": "depends_on",
+    "weight": 0.9,
+    "description": "Adiabatic calorimetry is a direct application of the first law with Q=0 for the surroundings."
+  },
+  {
+    "source_title": "Adiabatic Processes and Heat Capacity Measurement",
+    "target_title": "Heat of Reaction and Calorimetry",
+    "relationship_type": "supports",
+    "weight": 0.85,
+    "description": "Accurate Cp measurement is a prerequisite for quantitative calorimetric heat-of-reaction determination."
+  },
+  {
+    "source_title": "Crystal Nucleation and Growth Kinetics",
+    "target_title": "Second Law of Thermodynamics — Entropy",
+    "relationship_type": "depends_on",
+    "weight": 0.75,
+    "description": "Nucleation free-energy barrier ΔG* is a thermodynamic quantity governed by entropy and enthalpy of the solid-liquid interface."
+  },
+  {
+    "source_title": "Crystal Nucleation and Growth Kinetics",
+    "target_title": "Heat of Reaction and Calorimetry",
+    "relationship_type": "supports",
+    "weight": 0.65,
+    "description": "Latent heat released during crystallisation is measurable by calorimetry and appears as a deviation in the cooling curve."
+  },
+  {
+    "source_title": "Gibbs Free Energy and Chemical Spontaneity",
+    "target_title": "Second Law of Thermodynamics — Entropy",
+    "relationship_type": "depends_on",
+    "weight": 0.9,
+    "description": "Gibbs energy combines enthalpy and entropy (G = H − TS), so it is fundamentally derived from the second law."
+  },
+  {
+    "source_title": "Gibbs Free Energy and Chemical Spontaneity",
+    "target_title": "Ideal Gas Law",
+    "relationship_type": "supports",
+    "weight": 0.75,
+    "description": "Gibbs energy of ideal gas mixtures is expressed in terms of PV = nRT variables, linking gas law to thermodynamic spontaneity."
+  },
+  {
+    "source_title": "Heat Exchanger Effectiveness — NTU Method",
+    "target_title": "First Law of Thermodynamics",
+    "relationship_type": "depends_on",
+    "weight": 0.9,
+    "description": "NTU method is an energy balance derived from the first law applied to both fluid streams."
+  },
+  {
+    "source_title": "Heat Exchanger Effectiveness — NTU Method",
+    "target_title": "Second Law of Thermodynamics — Entropy",
+    "relationship_type": "supports",
+    "weight": 0.6,
+    "description": "Entropy generation in the heat exchanger is inversely related to its effectiveness — a higher NTU yields lower irreversibility."
+  },
+  {
+    "source_title": "Seebeck Effect and Thermoelectric Power Generation",
+    "target_title": "Second Law of Thermodynamics — Entropy",
+    "relationship_type": "depends_on",
+    "weight": 0.85,
+    "description": "Thermoelectric conversion is bounded by Carnot efficiency; the Seebeck effect is a thermodynamic irreversible process."
+  },
+  {
+    "source_title": "Seebeck Effect and Thermoelectric Power Generation",
+    "target_title": "Heat of Reaction and Calorimetry",
+    "relationship_type": "supports",
+    "weight": 0.7,
+    "description": "Seebeck voltage output can be calibrated as a continuous calorimetric proxy for sustained chemical heat flux."
+  },
+  {
+    "source_title": "Combustion Enthalpy and Standard Heat of Formation",
+    "target_title": "Heat of Reaction and Calorimetry",
+    "relationship_type": "depends_on",
+    "weight": 0.95,
+    "description": "Combustion enthalpy is measured directly by calorimetry; bomb calorimeter is the standard instrument."
+  },
+  {
+    "source_title": "Combustion Enthalpy and Standard Heat of Formation",
+    "target_title": "First Law of Thermodynamics",
+    "relationship_type": "depends_on",
+    "weight": 0.9,
+    "description": "Hess's law and heat of formation calculations are direct consequences of energy conservation."
+  },
+  {
+    "source_title": "Distillation Column Mass and Energy Balance",
+    "target_title": "Heat of Reaction and Calorimetry",
+    "relationship_type": "depends_on",
+    "weight": 0.8,
+    "description": "Reboiler duty calculation relies on latent heat measured calorimetrically for the feed mixture."
+  },
+  {
+    "source_title": "Distillation Column Mass and Energy Balance",
+    "target_title": "Vapor Pressure and Clausius-Clapeyron Equation",
+    "relationship_type": "depends_on",
+    "weight": 0.85,
+    "description": "Vapour-liquid equilibrium in the distillation column is governed by the temperature-dependent vapour pressures of each component."
+  },
+  {
+    "source_title": "Structural Resonance and Dynamic Amplification Factor",
+    "target_title": "Beam Bending — Flexure Formula",
+    "relationship_type": "supports",
+    "weight": 0.85,
+    "description": "DAF directly scales the dynamic bending stress computed by the flexure formula sigma = M*c/I"
+  },
+  {
+    "source_title": "Structural Resonance and Dynamic Amplification Factor",
+    "target_title": "Factor of Safety",
+    "relationship_type": "supports",
+    "weight": 0.75,
+    "description": "DAF must be incorporated into FoS calculations under dynamic or cyclic loading conditions"
+  },
+  {
+    "source_title": "Rankine Earth Pressure Theory",
+    "target_title": "Beam Bending — Flexure Formula",
+    "relationship_type": "supports",
+    "weight": 0.85,
+    "description": "Lateral earth pressure is treated as a distributed load on the retaining wall stem, analysed with the flexure formula to size reinforcement."
+  },
+  {
+    "source_title": "Euler Critical Buckling Load with Effective Length Factor",
+    "target_title": "Euler's Column Buckling Formula",
+    "relationship_type": "supports",
+    "weight": 0.95,
+    "description": "Extends the basic Euler formula with effective length factor K to cover real end-restraint conditions found in construction practice."
+  },
+  {
+    "source_title": "Concrete Hydration Exotherm and Thermal Gradient Limits",
+    "target_title": "Beam Bending — Flexure Formula",
+    "relationship_type": "supports",
+    "weight": 0.65,
+    "description": "Thermal gradients through the concrete section create restrained thermal stresses analogous to bending, analysed using transformed-section flexure principles."
+  },
+  {
+    "source_title": "Manning's Equation for Open Channel Flow Capacity",
+    "target_title": "Rainwater First-Flush Diversion",
+    "relationship_type": "supports",
+    "weight": 0.85,
+    "description": "Manning's equation quantifies downstream channel capacity to confirm that first-flush diverted volume can be safely conveyed without overtopping."
+  },
+  {
+    "source_title": "Tuned Mass Damper Optimal Frequency and Damping Ratios",
+    "target_title": "Structural Resonance and Dynamic Amplification Factor",
+    "relationship_type": "depends_on",
+    "weight": 0.92,
+    "description": "TMD sizing requires the primary structure's natural frequency and dynamic amplification factor to correctly set the secondary mass frequency and damping ratio."
+  },
+  {
+    "source_title": "Factor of Safety for Infinite Slope Stability",
+    "target_title": "Beam Bending — Flexure Formula",
+    "relationship_type": "supports",
+    "weight": 0.45,
+    "description": "Retaining structures at slope toes are designed using flexure formula once the driving earth force is known from slope stability analysis."
+  },
+  {
+    "source_title": "ACI 318 Flexural Crack Width Limits and Gergely-Lutz Approximation",
+    "target_title": "Beam Bending — Flexure Formula",
+    "relationship_type": "depends_on",
+    "weight": 0.92,
+    "description": "Crack width is a direct function of tensile steel stress, which is computed from the flexure formula applied to the cracked beam section."
+  },
+  {
+    "source_title": "Joukowsky Water Hammer Pressure Surge in Pipe Flow",
+    "target_title": "Rainwater First-Flush Diversion",
+    "relationship_type": "supports",
+    "weight": 0.62,
+    "description": "First-flush diversion valves must use slow-close actuation to prevent water hammer in the collection pipe network."
+  },
+  {
+    "source_title": "Linear Thermal Expansion of Structural Metals in Civil Applications",
+    "target_title": "Beam Bending — Flexure Formula",
+    "relationship_type": "supports",
+    "weight": 0.78,
+    "description": "Restrained thermal expansion generates secondary moments in continuous beams that are superimposed on live-load moments and analysed with the flexure formula."
+  },
+  {
+    "source_title": "Allowable Angular Distortion and Differential Settlement Limits",
+    "target_title": "Beam Bending — Flexure Formula",
+    "relationship_type": "depends_on",
+    "weight": 0.82,
+    "description": "Angular distortion induces secondary bending moments in frame beams above differentially settling footings, analysed with the flexure formula for cracking risk assessment."
+  },
+  {
+    "source_title": "Maturity Method for Concrete Compressive Strength Estimation",
+    "target_title": "Concrete Hydration Exotherm and Thermal Gradient Limits",
+    "relationship_type": "depends_on",
+    "weight": 0.88,
+    "description": "Maturity index computation depends on accurate temperature history captured from sensors monitoring the hydration exotherm."
+  },
+  {
+    "source_title": "Dielectric Cure Monitoring Ion Viscosity and Degree of Cure",
+    "target_title": "Ashby Material Selection — Property Charts",
+    "relationship_type": "supports",
+    "weight": 0.75,
+    "description": "Real-time degree-of-cure data informs selection of cure schedule to achieve target mechanical properties on the Ashby charts."
+  },
+  {
+    "source_title": "Electroplating Current Density and Hull Cell Deposit Quality",
+    "target_title": "Ashby Material Selection — Property Charts",
+    "relationship_type": "depends_on",
+    "weight": 0.7,
+    "description": "Surface deposit quality and hardness targets are selected from Ashby property charts prior to specifying current density operating window."
+  },
+  {
+    "source_title": "Powder Metallurgy Sintering Kinetics and Densification Modelling",
+    "target_title": "Ashby Material Selection — Property Charts",
+    "relationship_type": "depends_on",
+    "weight": 0.85,
+    "description": "Sintering temperature and atmosphere selection depends on the target material's diffusivity and final property requirements on Ashby charts."
+  },
+  {
+    "source_title": "Nitinol Shape Memory Alloy Transformation Temperature and Actuation Hysteresis",
+    "target_title": "Ashby Material Selection — Property Charts",
+    "relationship_type": "depends_on",
+    "weight": 0.8,
+    "description": "SMA alloy composition (Ni:Ti ratio) is chosen using Ashby charts to target required transformation temperatures and recovery stress."
+  },
+  {
+    "source_title": "Carbon Fibre Prepreg Out-of-Autoclave Cure Cycle Optimisation",
+    "target_title": "Ashby Material Selection — Property Charts",
+    "relationship_type": "depends_on",
+    "weight": 0.8,
+    "description": "Fibre and resin system selection using Ashby charts precedes definition of cure cycle temperature and pressure parameters."
+  },
+  {
+    "source_title": "Linear Polarisation Resistance Corrosion Rate Measurement for Steel",
+    "target_title": "Concrete Hydration Exotherm and Thermal Gradient Limits",
+    "relationship_type": "supports",
+    "weight": 0.65,
+    "description": "Corrosion monitoring is deployed in reinforced concrete; hydration chemistry and moisture content directly affect rebar electrochemical activity."
+  },
+  {
+    "source_title": "Thermal Spray WC-Co Coating Porosity and Adhesion Strength Correlation",
+    "target_title": "Ashby Material Selection — Property Charts",
+    "relationship_type": "depends_on",
+    "weight": 0.75,
+    "description": "WC-Co coating specification (hardness, toughness, porosity limit) is selected from Ashby wear-resistance and hardness charts for target application."
+  },
+  {
+    "source_title": "Miner's Rule Cumulative Fatigue Damage and S-N Curve Life Estimation",
+    "target_title": "Ashby Material Selection — Property Charts",
+    "relationship_type": "depends_on",
+    "weight": 0.85,
+    "description": "S-N curve Basquin constants (C, m) are material-specific and selected from endurance data on Ashby fatigue charts."
+  },
+  {
+    "source_title": "Miner's Rule Cumulative Fatigue Damage and S-N Curve Life Estimation",
+    "target_title": "Fault Detection and Isolation in Embedded Propulsion Controllers",
+    "relationship_type": "supports",
+    "weight": 0.6,
+    "description": "Fatigue damage accumulation provides a materials-based precursor signal for fault detection before structural failure."
+  },
+  {
+    "source_title": "Ceramic Sintering Grain Growth Kinetics and Final Density Evolution",
+    "target_title": "Ashby Material Selection — Property Charts",
+    "relationship_type": "depends_on",
+    "weight": 0.85,
+    "description": "Target ceramic density and hardness are specified from Ashby charts, which then constrain sintering temperature and dwell duration."
+  },
+  {
+    "source_title": "Ceramic Sintering Grain Growth Kinetics and Final Density Evolution",
+    "target_title": "Powder Metallurgy Sintering Kinetics and Densification Modelling",
+    "relationship_type": "depends_on",
+    "weight": 0.7,
+    "description": "Ceramic sintering shares diffusion-driven densification physics with powder metallurgy models; ceramic activation energies are higher."
+  },
+  {
+    "source_title": "Polymer Melt Flow Index and Viscosity Temperature Dependence",
+    "target_title": "Ashby Material Selection — Property Charts",
+    "relationship_type": "supports",
+    "weight": 0.78,
+    "description": "MFI and viscosity data populate polymer processing charts; Ashby selection of polymer type precedes MFI specification."
+  },
+  {
+    "source_title": "Adaptive Gain Scheduling for PID Controllers",
+    "target_title": "Big-O Notation — Time Complexity",
+    "relationship_type": "depends_on",
+    "weight": 0.7,
+    "description": "Gain-region lookup executes in O(1); critical for real-time loop budget compliance."
+  },
+  {
+    "source_title": "Adaptive Gain Scheduling for PID Controllers",
+    "target_title": "Stepper Motor Closed-Loop Control via Magnetic Encoder Feedback",
+    "relationship_type": "supports",
+    "weight": 0.6,
+    "description": "Adaptive gains improve closed-loop tracking under varying motor load, as validated in magnetic-encoder stepper control literature."
+  },
+  {
+    "source_title": "Differential Drive Kinematics and Turning Radius",
+    "target_title": "A* Pathfinding Algorithm",
+    "relationship_type": "depends_on",
+    "weight": 0.8,
+    "description": "A* supplies next-cell direction; kinematics converts it to left/right motor commands."
+  },
+  {
+    "source_title": "Cooperative Task Scheduling on Bare-Metal MCU",
+    "target_title": "Big-O Notation — Time Complexity",
+    "relationship_type": "depends_on",
+    "weight": 0.7,
+    "description": "O(N) scan overhead must remain less than the shortest task period to prevent deadline misses."
+  },
+  {
+    "source_title": "Cooperative Task Scheduling on Bare-Metal MCU",
+    "target_title": "Amdahl's Law — Parallel Speedup",
+    "relationship_type": "depends_on",
+    "weight": 0.5,
+    "description": "Amdahl bounds the concurrency benefit achievable by cooperative scheduling on a single core."
+  },
+  {
+    "source_title": "Complementary Filter for IMU Attitude Estimation",
+    "target_title": "Big-O Notation — Time Complexity",
+    "relationship_type": "depends_on",
+    "weight": 0.6,
+    "description": "O(1) per-axis filter meets 1 kHz loop budget on Cortex-M MCUs without matrix overhead."
+  },
+  {
+    "source_title": "Shape Memory Alloy Nitinol Thermal Actuation Characteristics",
+    "target_title": "Stepper Motor Closed-Loop Control via Magnetic Encoder Feedback",
+    "relationship_type": "supports",
+    "weight": 0.5,
+    "description": "SMA wire offers silent short-stroke actuation as a complement to stepper-based positioning in space-constrained designs."
+  },
+  {
+    "source_title": "Finite State Machine Fault Recovery Patterns",
+    "target_title": "Big-O Notation — Time Complexity",
+    "relationship_type": "depends_on",
+    "weight": 0.5,
+    "description": "State dispatch is O(1) per event; FSM scales to complex systems without timing penalty on MCU."
+  },
+  {
+    "source_title": "Fixed-Point FFT for Embedded Vibration Analysis",
+    "target_title": "Big-O Notation — Time Complexity",
+    "relationship_type": "depends_on",
+    "weight": 0.8,
+    "description": "FFT is O(N log N); Big-O analysis bounds maximum N achievable within a 2 ms real-time window on AVR."
+  },
+  {
+    "source_title": "Fixed-Point FFT for Embedded Vibration Analysis",
+    "target_title": "Amdahl's Law — Parallel Speedup",
+    "relationship_type": "supports",
+    "weight": 0.4,
+    "description": "FFT butterfly stages are partially parallelisable; Amdahl bounds speedup on dual-core hardware."
+  },
+  {
+    "source_title": "Wheel Odometry Dead-Reckoning and Kalman Heading Fusion",
+    "target_title": "A* Pathfinding Algorithm",
+    "relationship_type": "supports",
+    "weight": 0.7,
+    "description": "Accurate dead-reckoning provides current grid cell position for A* replanning after each move."
+  },
+  {
+    "source_title": "Wheel Odometry Dead-Reckoning and Kalman Heading Fusion",
+    "target_title": "Stepper Motor Closed-Loop Control via Magnetic Encoder Feedback",
+    "relationship_type": "depends_on",
+    "weight": 0.6,
+    "description": "Quadrature encoder feedback principle from closed-loop stepper control applies directly to differential drive odometry."
+  },
+  {
+    "source_title": "Multi-Zone Thermal Decoupling in Array Heater Systems",
+    "target_title": "Big-O Notation — Time Complexity",
+    "relationship_type": "depends_on",
+    "weight": 0.5,
+    "description": "Interaction matrix evaluation is O(N²) per cycle; bounded by N≤8 for real-time feasibility on Arduino Mega."
+  },
+  {
+    "source_title": "Run-Length Encoding Efficiency for Embedded Sensor Logs",
+    "target_title": "Big-O Notation — Time Complexity",
+    "relationship_type": "depends_on",
+    "weight": 0.7,
+    "description": "RLE encoder runs in O(N) — verified against Big-O loop-budget constraints for 100 Hz real-time logging."
+  },
+  {
+    "source_title": "Run-Length Encoding Efficiency for Embedded Sensor Logs",
+    "target_title": "Amdahl's Law — Parallel Speedup",
+    "relationship_type": "supports",
+    "weight": 0.4,
+    "description": "RLE reduces the flash-write serial bottleneck, shifting the Amdahl serial fraction toward sensor sampling."
   }
 ]

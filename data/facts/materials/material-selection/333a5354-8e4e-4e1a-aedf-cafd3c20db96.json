@@ -1,0 +1,8 @@
+{
+  "title": "Miner's Rule Cumulative Fatigue Damage and S-N Curve Life Estimation",
+  "domain": "materials",
+  "category": "material selection",
+  "content": "Linear damage accumulation D = Σ(n_i/N_i) where n_i cycles at stress amplitude σ_i and N_i = C/σ_i^m from the Basquin S-N curve. Failure when D ≥ 1.0. For structural steel (S355): Basquin constants C = 10^12, m = 3. Vibration acceleration amplitudes converted to pseudo-stress via σ ≈ E·a·L²/(2π·f_n)² for beam-like structures. Peak extraction via rainflow counting. Real-time embedded damage accumulation allows remaining fatigue life estimation and predictive maintenance alerts.",
+  "detail_level": "intermediate",
+  "id": "333a5354-8e4e-4e1a-aedf-cafd3c20db96"
+}

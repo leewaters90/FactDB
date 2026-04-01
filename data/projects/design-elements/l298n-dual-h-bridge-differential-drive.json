@@ -1,0 +1,5 @@
+{
+  "title": "L298N Dual H-Bridge Differential Drive",
+  "component_category": "actuation",
+  "selected_approach": "L298N dual H-bridge; independent 8-bit PWM left/right on pins 5/6; direction via two logic pins per channel; coast on all-low."
+}

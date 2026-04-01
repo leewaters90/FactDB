@@ -1,0 +1,5 @@
+{
+  "title": "MAX31855 Type-K Thermocouple SPI Amplifier",
+  "component_category": "sensing",
+  "selected_approach": "MAX31855 breakout; Type-K thermocouple 0–1350 °C; 14-bit resolution; SPI; built-in cold-junction compensation; open/short/VCC fault flags; CS=D4"
+}

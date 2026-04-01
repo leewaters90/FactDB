@@ -1,0 +1,5 @@
+{
+  "title": "Cold-Gas Solenoid Valve Driver with Current Sensing",
+  "component_category": "actuation",
+  "selected_approach": "MOSFET gate driver (IRL540N) switches 12 V solenoid valve; 0.1 Ω shunt + INA219 measures coil current as proxy for valve state. PWM signal from MCU timer (5–50 ms pulses). Flyback diode (1N4007) across coil. Current threshold distinguishes open/closed/stuck-fault states."
+}

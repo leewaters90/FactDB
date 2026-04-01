@@ -1,0 +1,8 @@
+{
+  "title": "Linear Thermal Expansion of Structural Metals in Civil Applications",
+  "domain": "civil",
+  "category": "structural engineering",
+  "content": "Thermal expansion coefficient α: structural steel 12×10⁻⁶/°C, concrete 10×10⁻⁶/°C, aluminium 23×10⁻⁶/°C. Free expansion: ΔL=α·L₀·ΔT. In restrained frames, thermal stress σ=E·α·ΔT. Bridge expansion joints are sized for ΔT=50–80 °C seasonal range (temperate climate). A 20 m steel girder expands 12 mm over a 50 °C temperature swing; joint gaps that do not track this model indicate bearing lock or hidden restraint.",
+  "detail_level": "intermediate",
+  "id": "f190017f-d23f-4272-93f0-9e73139b7310"
+}

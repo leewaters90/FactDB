@@ -1,0 +1,5 @@
+{
+  "title": "Triple-Sensor Median Voter",
+  "component_category": "sensing",
+  "selected_approach": "Three analog sensors polled per cycle; median selected as process value; if any sensor deviates >10% from median, fault event generated."
+}

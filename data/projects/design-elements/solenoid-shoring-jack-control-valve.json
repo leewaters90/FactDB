@@ -1,0 +1,5 @@
+{
+  "title": "Solenoid Shoring Jack Control Valve",
+  "component_category": "control",
+  "selected_approach": "24 V pneumatic solenoid valve controls air supply to a hydraulic shore jack; Arduino MOSFET gate driver; provides supplementary load path when column reaches 80% of computed Pcr; valve duty cycle modulated by PID."
+}

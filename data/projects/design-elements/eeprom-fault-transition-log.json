@@ -1,0 +1,5 @@
+{
+  "title": "EEPROM Fault Transition Log",
+  "component_category": "processing",
+  "selected_approach": "16-entry ring buffer at EEPROM offset 0; each 4-byte entry: {from_state, to_state, fault_code, time_hi}; read on boot for forensics."
+}

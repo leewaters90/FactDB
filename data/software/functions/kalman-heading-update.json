@@ -1,0 +1,17 @@
+{
+  "title": "kalman_heading_update",
+  "artifact_type": "function",
+  "language": "arduino",
+  "signature": "float kalman_heading_update(float h_est, float dh_enc, float h_imu, float dt, float* P)",
+  "content": "One-step scalar Kalman filter fusing encoder heading delta and IMU yaw measurement; returns corrected heading estimate.",
+  "code": "float kalman_heading_update(float h,float dh,float h_imu,float dt,float* P){\n  float h_pred=h+dh;\n  float P_pred=*P+0.001f*dt;\n  float K=P_pred/(P_pred+0.05f);\n  float h_new=h_pred+K*(h_imu-h_pred);\n  *P=(1.0f-K)*P_pred;\n  return h_new;\n}",
+  "tags": [
+    "kalman",
+    "heading",
+    "odometry",
+    "imu",
+    "navigation"
+  ],
+  "domain": "software",
+  "category": "function"
+}

@@ -1,0 +1,5 @@
+{
+  "title": "SSR-Controlled Water Cooling Jacket",
+  "component_category": "control",
+  "selected_approach": "FOTEK SSR-25DA solid-state relay switches a 12V DC pump circulating coolant through a copper-coil jacket surrounding a 500 mL reaction vessel. Arduino PWM on the SSR control input (0-5V) modulates effective cooling rate. 5A inline fuse on pump supply. Relay opto-isolated from MCU."
+}

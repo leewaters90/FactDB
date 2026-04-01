@@ -1,0 +1,8 @@
+{
+  "title": "Gibbs Free Energy and Chemical Spontaneity",
+  "domain": "chemical",
+  "category": "thermodynamics",
+  "content": "The Gibbs free energy G = H − TS determines spontaneity of a process at constant T and P: ΔG < 0 spontaneous, ΔG = 0 equilibrium, ΔG > 0 non-spontaneous. For an ideal gas, ΔG = ΔG° + RT·ln Q, where Q is the reaction quotient. Temperature and pressure thus couple through G to dictate whether a chemical process will proceed, making Gibbs energy central to reactor design and gas-phase process control.",
+  "detail_level": "intermediate",
+  "id": "3de2716c-ea5a-4fed-abf2-fd8f39333a99"
+}

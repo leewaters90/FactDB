@@ -1,0 +1,5 @@
+{
+  "title": "LoRa SX1276 Remote Telemetry Node",
+  "component_category": "communication",
+  "selected_approach": "SX1276 LoRa module at 915 MHz transmits JSON status packets every 60 s to a base station up to 5 km away; link budget suitable for forested hillside without cellular coverage; 3.7 V LiPo with 6 W solar charger."
+}

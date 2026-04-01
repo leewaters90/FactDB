@@ -1,0 +1,5 @@
+{
+  "title": "LVDT Displacement Transducer with DC Conditioner",
+  "component_category": "sensing",
+  "selected_approach": "±10 mm stroke LVDT (linear variable differential transformer) with integral DC-DC signal conditioner; 0–5 V analog output to Arduino ADC; 0.01 mm resolution; stainless-steel housing mounted across expansion joint gap with steel bracket anchored to girder flange."
+}

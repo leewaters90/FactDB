@@ -1,0 +1,5 @@
+{
+  "title": "Three-Zone 40A SSR Kiln Power Rail",
+  "component_category": "actuation",
+  "selected_approach": "Three Crydom D2440 SSRs on shared heatsink; independent PWM from Arduino D9/D10/D11; zero-cross firing; 240 VAC/40 A each; powers three 2 kW SiC rod heating elements"
+}

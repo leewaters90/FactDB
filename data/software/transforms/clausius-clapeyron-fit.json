@@ -1,0 +1,17 @@
+{
+  "title": "clausius_clapeyron_fit",
+  "artifact_type": "transform",
+  "language": "arduino",
+  "signature": "float clausius_clapeyron_fit(float* lnP, float* invT, int n, float* slope)",
+  "content": "Linear least-squares fit of ln(P) vs 1/T data points. Writes slope (= -dHvap/R) and returns R² of fit.",
+  "code": "float clausius_clapeyron_fit(float*lnP,float*invT,int n,float*slope){\n  float sx=0,sy=0,sxy=0,sx2=0;\n  for(int i=0;i<n;i++){sx+=invT[i];sy+=lnP[i];sxy+=invT[i]*lnP[i];sx2+=invT[i]*invT[i];}\n  float denom=n*sx2-sx*sx;\n  if(denom==0){*slope=0;return 0;}\n  *slope=(n*sxy-sx*sy)/denom;\n  float b=(sy-*slope*sx)/n;\n  float sstot=0,ssres=0,ymean=sy/n;\n  for(int i=0;i<n;i++){float yhat=*slope*invT[i]+b;ssres+=(lnP[i]-yhat)*(lnP[i]-yhat);sstot+=(lnP[i]-ymean)*(lnP[i]-ymean);}\n  return (sstot>0)?1.0f-ssres/sstot:1.0f;\n}",
+  "tags": [
+    "clausius-clapeyron",
+    "vapor-pressure",
+    "linear-regression",
+    "thermodynamics",
+    "arduino"
+  ],
+  "domain": "software",
+  "category": "transform"
+}

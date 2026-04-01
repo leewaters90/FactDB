@@ -1,0 +1,5 @@
+{
+  "title": "Zone Priority Round-Robin Arbiter",
+  "component_category": "control",
+  "selected_approach": "Selects highest-error zone for each 100 ms SSR activation slot via priority-weighted round-robin; prevents simultaneous multi-relay activation on shared 24 V rail."
+}

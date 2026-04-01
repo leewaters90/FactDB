@@ -1,0 +1,5 @@
+{
+  "title": "HX711 Load Cell Amplifier Array",
+  "component_category": "sensing",
+  "selected_approach": "Four 50 kg S-type load cells wired to individual HX711 24-bit ADC modules on an Arduino Mega; cells embedded in tie-back anchor plates to measure lateral wall force; 10 Hz sampling with 3-reading average."
+}

@@ -1,0 +1,5 @@
+{
+  "title": "SSD1306 128x32 OLED Status Panel",
+  "component_category": "processing",
+  "selected_approach": "I2C SSD1306 128x32; displays setpoint, RPM, PWM duty; refreshed at 5 Hz to limit I2C bus load; Wire.h driver."
+}

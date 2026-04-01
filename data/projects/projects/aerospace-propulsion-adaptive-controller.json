@@ -1,0 +1,62 @@
+{
+  "title": "Aerospace Propulsion Adaptive Controller",
+  "description": "A low-cost closed-loop cold-gas propulsion controller for a 1U CubeSat testbed. An STM32/Arduino-class MCU reads IMU angular rates and tank pressure, runs a cascaded PID attitude controller, and modulates solenoid valve pulse widths to null attitude errors. A five-state fault-detection FSM monitors valve current, pressure drop anomalies, and IMU residuals; on fault it transitions to safe-hold and logs fault codes to EEPROM. ΔV budget is tracked in real time using the Tsiolkovsky equation with measured propellant consumption.",
+  "objective": "Achieve <2 deg steady-state attitude error under 0.01 N·m disturbance torque, log all thruster firings and faults to non-volatile memory, and demonstrate automatic safe-hold on injected fault within 100 ms.",
+  "constraints": "MCU: Arduino Mega / STM32F103 BluePill (<=5 USD). Propellant: CO2 cartridge 12 g, max 60 bar — relief valve limits system to 6 bar operating. Total BOM < 40 USD. No explosive propellants. Watchdog reset within 500 ms. Factor of Safety >= 2 on all pressure-bearing fittings.",
+  "domain": "aerospace",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Tsiolkovsky Rocket Equation",
+    "CubeSat Standard Platform (1U–3U)",
+    "Factor of Safety",
+    "Cold-Gas Thruster Dynamics and Pulse-Width Modulation Control",
+    "Fault Detection and Isolation in Embedded Propulsion Controllers"
+  ],
+  "design_element_titles": [
+    "ICM-42688-P High-Rate IMU via SPI",
+    "Cascaded PID Rate and Attitude Controller",
+    "Cold-Gas Solenoid Valve Driver with Current Sensing",
+    "Tank Pressure Sensor Interface — MPRLS/MPX5700",
+    "Fault-Safe Propulsion State Machine"
+  ],
+  "element_usage_notes": {
+    "ICM-42688-P High-Rate IMU via SPI": "Reads roll/pitch/yaw rates at 1 kHz; feeds inner rate loop of cascaded PID. Angular rate residual used by FDI to detect unexpected rotation after commanded firing.",
+    "Cascaded PID Rate and Attitude Controller": "Outer loop: attitude error (deg) → rate setpoint. Inner loop: rate error (deg/s) → PWM pulse width for valve. Rate loop runs at 500 Hz, attitude loop at 50 Hz.",
+    "Cold-Gas Solenoid Valve Driver with Current Sensing": "Fires +Z thruster valve on positive roll error, −Z valve on negative. Current sense confirms valve opened; stuck-open/closed triggers FSM fault transition.",
+    "Tank Pressure Sensor Interface — MPRLS/MPX5700": "Sampled every 10 ms; pressure drop per firing pulse fed into Tsiolkovsky mass-flow model to track remaining ΔV budget. Low-pressure alarm at 1.5 bar.",
+    "Fault-Safe Propulsion State Machine": "Wraps entire control loop. Transitions to FAULT on: over-pressure, IMU loss, valve stuck, watchdog. All events EEPROM-logged with millis() timestamp."
+  },
+  "element_interactions": [
+    {
+      "from": "ICM-42688-P High-Rate IMU via SPI",
+      "to": "Cascaded PID Rate and Attitude Controller",
+      "data": "angular_rate_dps, attitude_deg",
+      "description": "IMU feeds both loops of the cascaded PID at 500 Hz over SPI."
+    },
+    {
+      "from": "Cascaded PID Rate and Attitude Controller",
+      "to": "Cold-Gas Solenoid Valve Driver with Current Sensing",
+      "data": "pulse_width_ms, valve_select",
+      "description": "PID inner loop outputs PWM pulse width and selects +Z or −Z solenoid valve."
+    },
+    {
+      "from": "Cold-Gas Solenoid Valve Driver with Current Sensing",
+      "to": "Fault-Safe Propulsion State Machine",
+      "data": "current_mA, valve_state_ok",
+      "description": "INA219 current reading confirms valve actuation; fault flag sent to FSM on anomaly."
+    },
+    {
+      "from": "Tank Pressure Sensor Interface — MPRLS/MPX5700",
+      "to": "Fault-Safe Propulsion State Machine",
+      "data": "pressure_bar, dv_remaining_ms",
+      "description": "Tank pressure and derived ΔV budget fed to FSM; low-pressure or over-pressure triggers state transition."
+    },
+    {
+      "from": "Fault-Safe Propulsion State Machine",
+      "to": "Cascaded PID Rate and Attitude Controller",
+      "data": "arm_enable, safe_hold_flag",
+      "description": "FSM enables or inhibits PID output to valves; SAFE_HOLD zeroes all valve commands immediately."
+    }
+  ],
+  "integration_code": "#include <SPI.h>\n#include <Wire.h>\n#include <EEPROM.h>\n\n// === Pin Definitions ===\n#define VALVE_POS 9   // +Z solenoid PWM\n#define VALVE_NEG 10  // -Z solenoid PWM\n#define IMU_CS    7\n#define LED_FAULT 13\n\n// === FSM States ===\nenum State { INIT, ARMED, FIRING, SAFE_HOLD, FAULT };\nState fsmState = INIT;\n\n// === PID State ===\nfloat attErr=0, rateErr=0, prevAttErr=0;\nfloat kpAtt=2.0, kpRate=0.8, kiRate=0.05, kdRate=0.01;\nfloat rateIntegral=0, prevRateErr=0;\nfloat attSetpoint=0.0;\n\n// === Sensor Data ===\nfloat rollRate=0, rollAngle=0, tankBar=0;\nfloat dvBudget=500.0; // ms of total valve open time remaining\n\n// === Fault/Log ===\nint eepromAddr=0;\nvoid logEvent(uint8_t code){\n  if(eepromAddr+5 < 1024){\n    EEPROM.put(eepromAddr, (uint32_t)millis());\n    EEPROM.write(eepromAddr+4, code);\n    eepromAddr+=5;\n  }\n}\n\n// === ICM-42688-P: read gyro Z rate (simplified SPI) ===\nfloat readIMU_RollRate(){\n  // Register 0x25 = GYRO_DATA_X1 (high byte)\n  digitalWrite(IMU_CS, LOW);\n  SPI.transfer(0x25 | 0x80); // read\n  int16_t raw = (int16_t)((SPI.transfer(0)<<8) | SPI.transfer(0));\n  digitalWrite(IMU_CS, HIGH);\n  return raw / 16.4f; // ±2000 dps range\n}\n\n// === MPRLS pressure (I2C) ===\nfloat readPressureBar(){\n  Wire.beginTransmission(0x18);\n  Wire.write(0xAA); Wire.write(0); Wire.write(0);\n  Wire.endTransmission();\n  delay(5);\n  Wire.requestFrom(0x18, 4);\n  uint32_t raw=0;\n  Wire.read(); // status\n  raw  = (uint32_t)Wire.read()<<16;\n  raw |= (uint32_t)Wire.read()<<8;\n  raw |=  Wire.read();\n  // Convert: P_psi = (raw-1677722)*25.0/(15099494-1677722)\n  float psi = (raw - 1677722UL) * 25.0f / 13421772.0f;\n  return psi * 0.0689476f;\n}\n\n// === INA219 valve current (I2C addr 0x40) ===\nfloat readValveCurrent_mA(){\n  Wire.beginTransmission(0x40);\n  Wire.write(0x04); Wire.endTransmission(false);\n  Wire.requestFrom(0x40,2);\n  int16_t raw=(Wire.read()<<8)|Wire.read();\n  return raw * 0.1f; // 100 uA/LSB default\n}\n\n// === Valve fire: pulse width clamped, budget tracked ===\nvoid fireValve(int pin, float pw_ms){\n  pw_ms = constrain(pw_ms, 5.0f, 50.0f);\n  if(dvBudget < pw_ms){ fsmState=FAULT; logEvent(0xF2); return; }\n  digitalWrite(pin, HIGH);\n  delay((int)pw_ms);\n  digitalWrite(pin, LOW);\n  dvBudget -= pw_ms;\n}\n\n// === Integrate rate→angle (simple Euler) ===\nvoid updateAngle(float dt){\n  rollAngle += rollRate * dt;\n}\n\nvoid setup(){\n  Serial.begin(115200);\n  SPI.begin();\n  Wire.begin();\n  pinMode(VALVE_POS, OUTPUT);\n  pinMode(VALVE_NEG, OUTPUT);\n  pinMode(IMU_CS, OUTPUT);\n  pinMode(LED_FAULT, OUTPUT);\n  digitalWrite(VALVE_POS, LOW);\n  digitalWrite(VALVE_NEG, LOW);\n  // IMU: configure ±2000 dps, 1kHz ODR\n  digitalWrite(IMU_CS, LOW);\n  SPI.transfer(0x4F); SPI.transfer(0x0F); // GYRO_CONFIG0\n  digitalWrite(IMU_CS, HIGH);\n  logEvent(0x01); // INIT\n  fsmState = ARMED;\n  Serial.println(\"{\\\"event\\\":\\\"ARMED\\\"}\");\n}\n\nunsigned long lastMs=0, lastAttMs=0;\nvoid loop(){\n  unsigned long now = millis();\n  wdt_reset(); // hardware watchdog (AVR)\n\n  // --- Sensor reads ---\n  rollRate  = readIMU_RollRate();\n  tankBar   = readPressureBar();\n  float iVal= readValveCurrent_mA();\n\n  // --- FDI checks ---\n  if(tankBar > 7.0f){ fsmState=FAULT; logEvent(0xF0); } // over-pressure FS>=2 on 6bar limit\n  if(tankBar < 1.5f && fsmState==ARMED){ fsmState=SAFE_HOLD; logEvent(0xF1); }\n  // valve stuck: current expected only during FIRING\n  if(fsmState!=FIRING && iVal>50.0f){ fsmState=FAULT; logEvent(0xF3); }\n\n  // --- FSM ---\n  if(fsmState==FAULT){\n    digitalWrite(VALVE_POS,LOW); digitalWrite(VALVE_NEG,LOW);\n    digitalWrite(LED_FAULT,HIGH);\n    Serial.println(\"{\\\"state\\\":\\\"FAULT\\\"}\");\n    delay(1000); return;\n  }\n  if(fsmState==SAFE_HOLD){\n    digitalWrite(VALVE_POS,LOW); digitalWrite(VALVE_NEG,LOW);\n    Serial.println(\"{\\\"state\\\":\\\"SAFE_HOLD\\\"}\");\n    delay(100); return;\n  }\n\n  // --- Rate loop (500 Hz) ---\n  float dt = (now - lastMs) / 1000.0f;\n  if(dt >= 0.002f){\n    lastMs = now;\n    updateAngle(dt);\n    // Attitude loop (50 Hz)\n    if(now - lastAttMs >= 20){\n      lastAttMs = now;\n      attErr = attSetpoint - rollAngle;\n      float rateSetpoint = kpAtt * attErr;\n      rateErr = rateSetpoint - rollRate;\n      rateIntegral += rateErr * 0.02f;\n      rateIntegral = constrain(rateIntegral,-10,10);\n      float dRateErr = (rateErr - prevRateErr)/0.02f;\n      float pw = kpRate*rateErr + kiRate*rateIntegral + kdRate*dRateErr;\n      prevRateErr = rateErr;\n      prevAttErr  = attErr;\n      if(abs(pw) > 2.0f && fsmState==ARMED){\n        fsmState = FIRING;\n        if(pw > 0) fireValve(VALVE_POS, abs(pw)*10.0f);\n        else       fireValve(VALVE_NEG, abs(pw)*10.0f);\n        fsmState = ARMED;\n      }\n    }\n    // 1 Hz heartbeat\n    static unsigned long hbMs=0;\n    if(now-hbMs>=1000){\n      hbMs=now;\n      Serial.print(\"{\\\"roll\\\":\"); Serial.print(rollAngle,2);\n      Serial.print(\",\\\"rate\\\":\"); Serial.print(rollRate,2);\n      Serial.print(\",\\\"pBar\\\":\"); Serial.print(tankBar,2);\n      Serial.print(\",\\\"dv\\\":\"); Serial.print(dvBudget,1);\n      Serial.println(\"}\");\n    }\n  }\n}"
+}

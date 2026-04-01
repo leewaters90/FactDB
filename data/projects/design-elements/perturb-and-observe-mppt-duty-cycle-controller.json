@@ -1,0 +1,5 @@
+{
+  "title": "Perturb-and-Observe MPPT Duty-Cycle Controller",
+  "component_category": "control",
+  "selected_approach": "Software P&O loop at 20 Hz. Reads INA219 panel V and I, computes instantaneous power, compares with previous-cycle power. Increments PWM duty by 1 LSB if dP > 0, decrements otherwise. 8-bit duty clamped 10–245 (≈10–95 %) driving a 25 kHz synchronous buck stage. Safety overrides: halt charging if battery > 8.4 V (overcharge) or panel current > 1.5 A (panel short); resume on clearance."
+}

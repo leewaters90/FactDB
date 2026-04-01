@@ -1,0 +1,8 @@
+{
+  "title": "Run-Length Encoding Efficiency for Embedded Sensor Logs",
+  "domain": "software",
+  "category": "algorithms",
+  "content": "Run-length encoding (RLE) represents consecutive identical byte values as (value, count) pairs. For slowly-varying sensor data streams with more than 60% run repetition it achieves 3-8× compression in O(N) time and O(1) space, extending SPI flash page write lifetime. Block CRC32 validation at 4-byte granularity detects storage corruption before data playback.",
+  "detail_level": "intermediate",
+  "id": "7a2698dd-9197-4cc0-86a6-b3e71bcc1e11"
+}

@@ -1,0 +1,8 @@
+{
+  "title": "Cooperative Task Scheduling on Bare-Metal MCU",
+  "domain": "software",
+  "category": "algorithms",
+  "content": "Cooperative schedulers manage periodic tasks using a table of {period, last_run, callback} entries. The main loop scans the table each iteration in O(N) and dispatches any overdue task. Rate-Monotonic priority assigns shorter periods higher priority. A hardware watchdog resets the MCU if no task completes within the watchdog window; reset cause is written to EEPROM for forensic diagnostics.",
+  "detail_level": "intermediate",
+  "id": "2b548356-b39e-4855-ae54-d1a90358c4f2"
+}

@@ -1,0 +1,49 @@
+{
+  "title": "Pedestrian Footbridge Active Tuned Mass Damper Controller",
+  "description": "Detects footbridge vertical vibration via MPU-6050 accelerometer, computes vibration RMS over a sliding window using vibration_rms_window, and drives a DC motor-actuated 500 g mass carriage in anti-phase to cancel resonant excitation at 1.8 Hz — an active strategy distinct from passive damper projects, targeting pedestrian lock-step crowd loading.",
+  "objective": "Reduce peak vertical acceleration from >0.5 m/s² to <0.1 m/s² (ISO 10137 comfort limit) using active TMD; alarm and motor disable at carriage end-stop.",
+  "constraints": "Arduino Mega, MPU-6050 IMU, L298N H-bridge, 500 g carriage, 160 mm rail, linear potentiometer, buzzer; bridge span ≤ 15 m, fn = 1.5–2.5 Hz; 12 V supply.",
+  "domain": "civil",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Structural Resonance and Dynamic Amplification Factor",
+    "Tuned Mass Damper Optimal Frequency and Damping Ratios",
+    "Beam Bending — Flexure Formula"
+  ],
+  "design_element_titles": [
+    "DC Motor Driven Tuned Mass Carriage",
+    "Cascaded PID Rate and Attitude Controller",
+    "Buzzer and LED Fault Annunciator",
+    "HX711 Load Cell Amplifier Array"
+  ],
+  "element_usage_notes": {
+    "DC Motor Driven Tuned Mass Carriage": "Primary actuator; driven in anti-phase to bridge acceleration for active cancellation.",
+    "Cascaded PID Rate and Attitude Controller": "Inner loop: carriage velocity from potentiometer derivative; outer loop: bridge acceleration error vs. 0.05 m/s² setpoint.",
+    "Buzzer and LED Fault Annunciator": "Comfort alarm at RMS >0.5 m/s²; safety disable at carriage end-stop contact.",
+    "HX711 Load Cell Amplifier Array": "Measures rail end-stop contact force to prevent mechanical over-travel damage."
+  },
+  "element_interactions": [
+    {
+      "from": "HX711 Load Cell Amplifier Array",
+      "to": "DC Motor Driven Tuned Mass Carriage",
+      "data": "endstop_force_N",
+      "description": "End-stop force >5 N forces motor off to prevent carriage over-travel."
+    },
+    {
+      "from": "DC Motor Driven Tuned Mass Carriage",
+      "to": "Cascaded PID Rate and Attitude Controller",
+      "data": "carriage_pos_mm",
+      "description": "Carriage position derivative gives velocity for inner PID loop."
+    },
+    {
+      "from": "Cascaded PID Rate and Attitude Controller",
+      "to": "Buzzer and LED Fault Annunciator",
+      "data": "accel_rms",
+      "description": "RMS acceleration above comfort and alarm thresholds drives annunciator outputs."
+    }
+  ],
+  "integration_code": "#include <Wire.h>\n#include <MPU6050.h>\n#define MTR_IN1 5\n#define MTR_IN2 6\n#define MTR_ENA 7\n#define POT_PIN A0\n#define BUZZER 8\n#define LED 9\n#define BUF_N 64\n#define DT 0.02f\nMPU6050 mpu;\nfloat vbuf[BUF_N]={0};\nint vidx=0;\nfloat intg=0,lastE=0;\nfloat lastPos=0;\n\nfloat vibration_rms_window(float sample,float*buf,int*idx,int n){\n  buf[(*idx)%n]=sample;(*idx)++;\n  float s=0;for(int i=0;i<n;i++)s+=buf[i]*buf[i];\n  return sqrt(s/n);\n}\n\nvoid drive_motor(int pwm){\n  if(pwm>0){digitalWrite(MTR_IN1,HIGH);digitalWrite(MTR_IN2,LOW);analogWrite(MTR_ENA,min(abs(pwm),255));}\n  else if(pwm<0){digitalWrite(MTR_IN1,LOW);digitalWrite(MTR_IN2,HIGH);analogWrite(MTR_ENA,min(abs(pwm),255));}\n  else{digitalWrite(MTR_IN1,LOW);digitalWrite(MTR_IN2,LOW);analogWrite(MTR_ENA,0);}\n}\n\nvoid run_pid(float accel){\n  float pos=(analogRead(POT_PIN)/1023.0f)*160.0f;\n  float vel=(pos-lastPos)/DT; lastPos=pos;\n  float sp=0.05f,e=fabs(accel)-sp;\n  intg+=e*DT; intg=constrain(intg,-10,10);\n  float d=(e-lastE)/DT; lastE=e;\n  int out=(int)(80.0f*e+20.0f*intg+5.0f*d);\n  drive_motor(-out*(accel>0?1:-1));\n}\n\nvoid run_alarm(float rms){\n  if(rms>0.5f){tone(BUZZER,1500);analogWrite(LED,255);}\n  else{noTone(BUZZER);analogWrite(LED,(int)(rms/0.5f*180));}\n}\n\nvoid setup(){Wire.begin();mpu.initialize();Serial.begin(115200);pinMode(MTR_IN1,OUTPUT);pinMode(MTR_IN2,OUTPUT);pinMode(MTR_ENA,OUTPUT);pinMode(BUZZER,OUTPUT);pinMode(LED,OUTPUT);}\n\nvoid loop(){\n  int16_t ax,ay,az,gx,gy,gz;\n  mpu.getMotion6(&ax,&ay,&az,&gx,&gy,&gz);\n  float a=(az/16384.0f)*9.81f;\n  float rms=vibration_rms_window(a,vbuf,&vidx,BUF_N);\n  run_pid(a);\n  run_alarm(rms);\n  Serial.print(\"rms=\");Serial.println(rms);\n  delay(20);\n}",
+  "software_artifact_titles": [
+    "vibration_rms_window"
+  ]
+}

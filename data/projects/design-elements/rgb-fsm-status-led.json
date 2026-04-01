@@ -1,0 +1,5 @@
+{
+  "title": "RGB FSM Status LED",
+  "component_category": "control",
+  "selected_approach": "Three PWM LEDs R/G/B on pins 9/10/11; GREEN=NORMAL, YELLOW=DETECT, RED=ISOLATE, BLUE=RECOVER; blink rate encodes fault severity."
+}

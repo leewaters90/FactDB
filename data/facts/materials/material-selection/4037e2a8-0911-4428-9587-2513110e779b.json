@@ -1,0 +1,8 @@
+{
+  "title": "Dielectric Cure Monitoring Ion Viscosity and Degree of Cure",
+  "domain": "materials",
+  "category": "material selection",
+  "content": "Dielectric analysis (DEA) tracks epoxy cure state by measuring ion viscosity (IV) via interdigitated sensors excited at 1–10 kHz. Degree of cure α = (log IV_max − log IV) / (log IV_max − log IV_min). Gelation occurs at α ≈ 0.55 (steep IV rise); vitrification at α ≈ 0.85 (IV plateau). Full cure threshold α ≥ 0.95 triggers controlled cool-down. Sensor signal correlates with DSC-measured conversion with R² > 0.97 for standard epoxy-amine systems.",
+  "detail_level": "intermediate",
+  "id": "4037e2a8-0911-4428-9587-2513110e779b"
+}

@@ -1,0 +1,5 @@
+{
+  "title": "5-Channel TCRT5000 IR Wall Sensor Array",
+  "component_category": "sensing",
+  "selected_approach": "Five TCRT5000 sensors at 0°/±45°/±90°; analog reads threshold-compared at 400; wall bitmap built each 100 ms scan cycle."
+}

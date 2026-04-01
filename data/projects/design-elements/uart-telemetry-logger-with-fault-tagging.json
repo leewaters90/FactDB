@@ -1,0 +1,5 @@
+{
+  "title": "UART Telemetry Logger with Fault Tagging",
+  "component_category": "processing",
+  "selected_approach": "Structured CSV lines emitted over UART at 115200 baud: header token (DATA or FAULT), timestamp_ms, attX, attY, attZ, cmdX, cmdY, cmdZ, pressure_kPa. FAULT lines include state-machine transition reason. Compatible with direct SD-card serial capture or ground-station USB receiver. No blocking I/O — uses Serial.print non-blocking path in Arduino."
+}

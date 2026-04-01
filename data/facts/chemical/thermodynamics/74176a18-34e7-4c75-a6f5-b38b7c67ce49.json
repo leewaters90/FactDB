@@ -1,0 +1,8 @@
+{
+  "title": "Distillation Column Mass and Energy Balance",
+  "domain": "chemical",
+  "category": "thermodynamics",
+  "content": "A continuous distillation column separates mixtures by vapour-liquid equilibrium differences. Overall mass balance: F = D + B (feed = distillate + bottoms). Energy balance: Q_reboiler = Q_condenser + heat losses + ΔH_separation. The McCabe-Thiele method uses equilibrium stages to relate reflux ratio R = L/D to theoretical plates. Reboiler duty Q_reb = λ·(L+D) where λ is latent heat. Monitoring reboiler and condenser temperatures enables on-line estimation of separation efficiency.",
+  "detail_level": "intermediate",
+  "id": "74176a18-34e7-4c75-a6f5-b38b7c67ce49"
+}

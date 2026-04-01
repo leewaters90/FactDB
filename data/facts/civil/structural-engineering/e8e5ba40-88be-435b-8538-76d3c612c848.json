@@ -1,0 +1,8 @@
+{
+  "title": "Concrete Hydration Exotherm and Thermal Gradient Limits",
+  "domain": "civil",
+  "category": "structural engineering",
+  "content": "Portland cement hydration is strongly exothermic; in mass concrete (sections >0.5 m), core temperatures can exceed 70 °C within 12–36 hours. ACI 305R requires the core-to-surface temperature differential ΔT ≤ 20 °C to prevent thermal cracking from restrained differential expansion. Active water cooling via embedded pipes or surface cooling blankets is used to manage the exotherm and maintain uniform temperature gradients.",
+  "detail_level": "intermediate",
+  "id": "e8e5ba40-88be-435b-8538-76d3c612c848"
+}

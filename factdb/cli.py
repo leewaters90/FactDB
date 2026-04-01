@@ -1631,6 +1631,18 @@ def web_cmd(ctx, host, port, debug):
     help="Seconds before a single Copilot call is aborted.",
 )
 @click.option(
+    "--projects-per-request",
+    default=1,
+    show_default=True,
+    help="How many projects Copilot should return in one generation response.",
+)
+@click.option(
+    "--single-request",
+    is_flag=True,
+    default=False,
+    help="Use local intent so each iteration uses only one Copilot generation call.",
+)
+@click.option(
     "--convergence-only",
     is_flag=True,
     default=False,
@@ -1638,7 +1650,7 @@ def web_cmd(ctx, host, port, debug):
 )
 @click.pass_context
 def seed_copilot_cmd(ctx, count, pause, model, seed_every, dry_run, verbose,
-                     timeout, convergence_only):
+                     timeout, projects_per_request, single_request, convergence_only):
     """
     Continuously prompt GitHub Copilot CLI to design new FactDB projects.
 
@@ -1658,6 +1670,7 @@ def seed_copilot_cmd(ctx, count, pause, model, seed_every, dry_run, verbose,
         factdb seed-copilot --count 5          # generate 5 projects then stop
         factdb seed-copilot --dry-run          # preview prompts only
         factdb seed-copilot --model gpt-5.2 --count 10
+        factdb seed-copilot --projects-per-request 3 --single-request
         factdb seed-copilot --convergence-only # show convergence report
     """
     import importlib.util
@@ -1684,10 +1697,14 @@ def seed_copilot_cmd(ctx, count, pause, model, seed_every, dry_run, verbose,
         args += ["--seed-every", str(seed_every)]
     if timeout != 300:
         args += ["--timeout", str(timeout)]
+    if projects_per_request != 1:
+        args += ["--projects-per-request", str(projects_per_request)]
     if dry_run:
         args.append("--dry-run")
     if verbose:
         args.append("--verbose")
+    if single_request:
+        args.append("--single-request")
     if convergence_only:
         args.append("--convergence-only")
 

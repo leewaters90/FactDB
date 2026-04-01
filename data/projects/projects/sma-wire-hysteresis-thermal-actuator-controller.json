@@ -1,0 +1,55 @@
+{
+  "title": "SMA Wire Hysteresis Thermal Actuator Controller",
+  "description": "Nitinol SMA wire actuator with MAX31855 thermocouple feedback driving sma_hysteresis_pid, NTC thermistor fallback on thermocouple fault, MOSFET Joule heating, piezo alarm, and UART CSV telemetry with over-temperature shutdown.",
+  "objective": "Control SMA wire temperature to 68°C setpoint within ±2°C; switch to NTC on thermocouple fault; halt and alarm on >80°C.",
+  "constraints": "Arduino Nano; 5 V logic; SMA wire ≤1 A; MAX31855 SPI CS=10; NTC on A0; piezo on pin 8.",
+  "domain": "software",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Shape Memory Alloy Nitinol Thermal Actuation Characteristics",
+    "Stepper Motor Closed-Loop Control via Magnetic Encoder Feedback"
+  ],
+  "design_element_titles": [
+    "MAX31855 K-Type Thermocouple Amplifier",
+    "IRLB8721 N-MOSFET SMA Current Driver",
+    "NTC Thermistor Backup Sensor",
+    "Piezo Buzzer Fault Alarm"
+  ],
+  "element_usage_notes": {
+    "MAX31855 K-Type Thermocouple Amplifier": "Primary feedback; fault bits trigger NTC fallback; CS=10 SPI.",
+    "IRLB8721 N-MOSFET SMA Current Driver": "PWM from sma_hysteresis_pid controls Joule heating current through Nitinol.",
+    "NTC Thermistor Backup Sensor": "Substitutes for thermocouple when fault flag is asserted; Steinhart-Hart computation.",
+    "Piezo Buzzer Fault Alarm": "Audible 880/1760 Hz tones for sensor/over-temperature faults."
+  },
+  "element_interactions": [
+    {
+      "from": "MAX31855 K-Type Thermocouple Amplifier",
+      "to": "IRLB8721 N-MOSFET SMA Current Driver",
+      "data": "wire temp → PID → PWM",
+      "description": "Thermocouple reading drives hysteresis PID output to MOSFET gate."
+    },
+    {
+      "from": "NTC Thermistor Backup Sensor",
+      "to": "IRLB8721 N-MOSFET SMA Current Driver",
+      "data": "backup temperature",
+      "description": "NTC substitutes in PID loop on thermocouple fault."
+    },
+    {
+      "from": "MAX31855 K-Type Thermocouple Amplifier",
+      "to": "Piezo Buzzer Fault Alarm",
+      "data": "fault bits",
+      "description": "Open/short fault bits trigger 880 Hz sensor alarm tone."
+    },
+    {
+      "from": "IRLB8721 N-MOSFET SMA Current Driver",
+      "to": "Piezo Buzzer Fault Alarm",
+      "data": "wire temperature",
+      "description": "Over-temperature >80°C triggers 1760 Hz alarm and PWM cutoff."
+    }
+  ],
+  "integration_code": "#include <SPI.h>\nextern int sma_hysteresis_pid(float,float,float,float,float*,float*);\nextern bool thermal_fault_check(float,float,int);\n#define TC_CS 10\n#define FET_PIN 9\n#define BUZ_PIN 8\n#define NTC_PIN A0\nvoid spi_setup(){\n  SPI.begin();\n  pinMode(TC_CS,OUTPUT);\n  digitalWrite(TC_CS,HIGH);}\nfloat read_tc(){\n  SPI.beginTransaction(SPISettings(5000000,MSBFIRST,SPI_MODE0));\n  digitalWrite(TC_CS,LOW);delayMicroseconds(1);\n  uint32_t d=0;\n  for(int i=0;i<4;i++)d=(d<<8)|SPI.transfer(0);\n  digitalWrite(TC_CS,HIGH);\n  SPI.endTransaction();\n  if(d&0x07)return -999.0f;\n  return((int32_t)(d&0xFFFC0000)>>18)*0.25f;}\nfloat read_ntc(){\n  int raw=analogRead(NTC_PIN);\n  float r=10000.0f*raw/(1023.0f-raw);\n  return 1.0f/(log(r/10000.0f)/3950.0f+1.0f/298.15f)-273.15f;}\nvoid fet_setup(){pinMode(FET_PIN,OUTPUT);}\nvoid fet_set(int v){analogWrite(FET_PIN,constrain(v,0,255));}\nstatic float ig=0,le=0;\nfloat SP=68.0f;\nunsigned long pt=0;\nvoid setup(){\n  Serial.begin(115200);\n  spi_setup();fet_setup();\n  pinMode(BUZ_PIN,OUTPUT);}\nvoid loop(){\n  unsigned long n=millis();\n  float dt=(n-pt)/1000.0f;\n  if(dt<0.1f)return;pt=n;\n  float temp=read_tc();\n  if(temp<-100.0f){temp=read_ntc();tone(BUZ_PIN,880,100);}\n  if(thermal_fault_check(temp,80.0f,BUZ_PIN)){fet_set(0);return;}\n  int pw=sma_hysteresis_pid(SP,temp,dt,temp,&ig,&le);\n  fet_set(pw);\n  Serial.print(temp,2);Serial.print(',');Serial.println(pw);}",
+  "software_artifact_titles": [
+    "sma_hysteresis_pid",
+    "thermal_fault_check"
+  ]
+}

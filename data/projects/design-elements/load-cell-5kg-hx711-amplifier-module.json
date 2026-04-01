@@ -1,0 +1,5 @@
+{
+  "title": "Load Cell 5kg HX711 Amplifier Module",
+  "component_category": "sensing",
+  "selected_approach": "5 kg load cell with HX711 24-bit ADC; measures applied piston weight (2.16 kg standard mass); calibrated to ±0.5 g; 10 Hz sample rate; SPI-compatible serial output"
+}

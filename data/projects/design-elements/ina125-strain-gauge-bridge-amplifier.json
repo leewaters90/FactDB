@@ -1,0 +1,5 @@
+{
+  "title": "INA125 Strain Gauge Bridge Amplifier",
+  "component_category": "sensing",
+  "selected_approach": "INA125 instrumentation amp; 350 Ω full-bridge strain gauge; gain 40 V/V set by 1.5 kΩ resistor; CMRR > 80 dB; output 0–3.3 V at ±1000 µε; shielded cable"
+}

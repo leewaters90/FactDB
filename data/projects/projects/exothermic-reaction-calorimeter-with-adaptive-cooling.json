@@ -1,0 +1,47 @@
+{
+  "title": "Exothermic Reaction Calorimeter with Adaptive Cooling",
+  "description": "Closed-loop calorimeter monitoring an exothermic chemical reaction in a jacketed 500 mL vessel. DS18B20 array tracks spatial temperature at three heights; NTC thermistor measures jacket wall temperature. Cascaded PID drives SSR cooling pump to maintain vessel temperature within ±2°C of setpoint. Real-time enthalpy accumulation logged to serial CSV with over-temperature safety cutoff at 80°C.",
+  "objective": "Measure instantaneous heat of reaction, maintain reactor temperature within ±2°C of setpoint, compute cumulative ΔH profile, and trigger emergency cooling halt on over-temperature fault.",
+  "constraints": "Arduino Mega, 12V DC cooling pump, SSR-25DA, NTC 10 kΩ, DS18B20 ×3, max reaction vessel 500 mL, USB serial CSV logging, temperature cutoff at 80°C, 12V 3A supply.",
+  "domain": "chemical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Heat of Reaction and Calorimetry",
+    "First Law of Thermodynamics",
+    "Second Law of Thermodynamics — Entropy"
+  ],
+  "design_element_titles": [
+    "DS18B20 1-Wire Temperature Probe Array",
+    "Cascaded PID Rate and Attitude Controller",
+    "SSR-Controlled Water Cooling Jacket",
+    "NTC Thermistor Calorimeter Jacket Sensor"
+  ],
+  "element_usage_notes": {
+    "DS18B20 1-Wire Temperature Probe Array": "Three probes at vessel bottom, middle, and top to detect thermal gradients and compute mean reactor temperature.",
+    "Cascaded PID Rate and Attitude Controller": "Outer loop tracks vessel temperature setpoint; inner loop controls cooling pump PWM duty cycle via SSR.",
+    "SSR-Controlled Water Cooling Jacket": "Actuates 12V pump based on PID output to circulate coolant through copper-coil jacket.",
+    "NTC Thermistor Calorimeter Jacket Sensor": "Monitors jacket temperature to estimate instantaneous heat removal rate dQ/dt for enthalpy integration."
+  },
+  "element_interactions": [
+    {
+      "from": "DS18B20 1-Wire Temperature Probe Array",
+      "to": "Cascaded PID Rate and Attitude Controller",
+      "data": "vessel_avg_temp_C",
+      "description": "Array average feeds outer PID loop as process variable for temperature control."
+    },
+    {
+      "from": "Cascaded PID Rate and Attitude Controller",
+      "to": "SSR-Controlled Water Cooling Jacket",
+      "data": "pwm_duty_0_255",
+      "description": "PID output drives SSR PWM to modulate cooling pump speed and heat removal rate."
+    },
+    {
+      "from": "NTC Thermistor Calorimeter Jacket Sensor",
+      "to": "Cascaded PID Rate and Attitude Controller",
+      "data": "jacket_temp_C",
+      "description": "Jacket temperature differential used to estimate heat flux for inner-loop rate control."
+    }
+  ],
+  "integration_code": "#include <OneWire.h>\n#include <DallasTemperature.h>\n\n#define ONE_WIRE_BUS 2\n#define SSR_PIN 9\n#define NTC_PIN A0\n#define TEMP_CUTOFF 80.0f\n#define SETPOINT 45.0f\n#define CP_J_G 4.18f\n#define MASS_G 500.0f\n\nOneWire oneWire(ONE_WIRE_BUS);\nDallasTemperature sensors(&oneWire);\n\nfloat Kp=5.0f,Ki=0.12f,Kd=0.6f;\nfloat intg=0,prevErr=0,cumHeat=0;\nunsigned long lastTime=0,lastLog=0;\n\nfloat readVesselTemp(){\n  sensors.requestTemperatures();\n  float s=0; int n=sensors.getDeviceCount();\n  for(int i=0;i<n;i++) s+=sensors.getTempCByIndex(i);\n  return n>0?s/n:25.0f;\n}\n\nfloat readJacketTemp(){\n  int r=analogRead(NTC_PIN);\n  float R=10000.0f*r/(1023.0f-r);\n  return 1.0f/(log(R/10000.0f)/3950.0f+1.0f/298.15f)-273.15f;\n}\n\nvoid checkFault(float t){\n  if(t>=TEMP_CUTOFF){\n    analogWrite(SSR_PIN,255);\n    Serial.println(\"FAULT:OVER_TEMP\");\n    while(1);\n  }\n}\n\nint computePID(float sp,float pv){\n  unsigned long now=millis();\n  float dt=(now-lastTime)/1000.0f;\n  if(dt<0.01f) dt=0.01f;\n  float e=sp-pv;\n  intg=constrain(intg+e*dt,-150.0f,150.0f);\n  float d=(e-prevErr)/dt;\n  prevErr=e; lastTime=now;\n  return (int)constrain(Kp*e+Ki*intg+Kd*d,0,255);\n}\n\nvoid accumulateEnthalpy(float vT,float jT){\n  float dT=vT-jT;\n  float dQ=CP_J_G*MASS_G*dT/1000.0f;\n  cumHeat+=dQ;\n}\n\nvoid logData(float vT,float jT,int pwm){\n  if(millis()-lastLog<500) return;\n  lastLog=millis();\n  Serial.print(millis()); Serial.print(',');\n  Serial.print(vT,2); Serial.print(',');\n  Serial.print(jT,2); Serial.print(',');\n  Serial.print(pwm); Serial.print(',');\n  Serial.println(cumHeat,3);\n}\n\nvoid setup(){\n  Serial.begin(115200);\n  sensors.begin();\n  pinMode(SSR_PIN,OUTPUT);\n  lastTime=lastLog=millis();\n  Serial.println(\"ms,vessel_T,jacket_T,pwm,cumH_kJ\");\n}\n\nvoid loop(){\n  float vT=readVesselTemp();\n  float jT=readJacketTemp();\n  checkFault(vT);\n  int pwm=computePID(SETPOINT,vT);\n  analogWrite(SSR_PIN,pwm);\n  accumulateEnthalpy(vT,jT);\n  logData(vT,jT,pwm);\n  delay(200);\n}",
+  "software_artifact_titles": []
+}

@@ -1,0 +1,5 @@
+{
+  "title": "Hall-Effect Flow Rate Sensor",
+  "component_category": "sensing",
+  "selected_approach": "YF-S201 Hall-effect turbine flow sensor (1–30 L/min, 7.5 pulses/(L/min)/s). Output pin to Arduino interrupt pin. Pulse count in 1 s window converted to L/min. Suitable for water-based fluids at 0–60 °C. Two units used for hot and cold loops."
+}

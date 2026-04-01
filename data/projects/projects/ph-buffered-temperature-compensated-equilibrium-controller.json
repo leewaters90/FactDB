@@ -1,0 +1,57 @@
+{
+  "title": "pH-Buffered Temperature-Compensated Equilibrium Controller",
+  "description": "Maintains a target pH (e.g., 7.0) in a stirred buffer solution across varying temperatures (20–50 °C) using temperature-compensated pH control. Acid and base are dispensed in timed micro-pulses via solenoid valves. A DS18B20 probe provides the temperature correction term. All pH, temperature, and dosing events are logged to SD card. pH fault interlock (< 3 or > 11) cuts valves immediately.",
+  "objective": "Hold pH within ±0.05 units of setpoint across a 30 °C operating range using automatic temperature compensation and bang-bang dosing control, with fault-safe valve shutdown.",
+  "constraints": "Arduino Uno, pH-4502C module, DS18B20, two solenoid valves, relay stirrer, SD logger; dilute HCl (0.1 M) and NaOH (0.1 M) only; pH OOR fault < 3 or > 11.",
+  "domain": "chemical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "pH and Buffer Chemistry",
+    "Chemical Equilibrium and Le Chatelier's Principle",
+    "Heat of Reaction and Calorimetry"
+  ],
+  "design_element_titles": [
+    "DS18B20 1-Wire Temperature Probe Array",
+    "pH Sensor Module with Automatic Temperature Compensation",
+    "Solenoid Micro-Dosing Valve",
+    "Relay-Switched Magnetic Stirrer",
+    "SD Card Data Logger Module"
+  ],
+  "element_usage_notes": {
+    "DS18B20 1-Wire Temperature Probe Array": "Provides temperature reading for pH electrode compensation and logging.",
+    "pH Sensor Module with Automatic Temperature Compensation": "Reads bulk pH every 2 s; corrected for temperature before comparing to setpoint.",
+    "Solenoid Micro-Dosing Valve": "Acid valve pulsed when pH > setpoint+0.05; base valve pulsed when pH < setpoint−0.05.",
+    "Relay-Switched Magnetic Stirrer": "Continuous mixing ensures rapid homogenisation after each dose event.",
+    "SD Card Data Logger Module": "Logs t, T, pH, acid_pulse, base_pulse for post-experiment analysis."
+  },
+  "element_interactions": [
+    {
+      "from": "DS18B20 1-Wire Temperature Probe Array",
+      "to": "pH Sensor Module with Automatic Temperature Compensation",
+      "data": "temperature_C",
+      "description": "Temperature reading used to compute corrected pH setpoint"
+    },
+    {
+      "from": "pH Sensor Module with Automatic Temperature Compensation",
+      "to": "Solenoid Micro-Dosing Valve",
+      "data": "ph_error",
+      "description": "pH deviation from compensated setpoint triggers acid or base pulse"
+    },
+    {
+      "from": "Solenoid Micro-Dosing Valve",
+      "to": "SD Card Data Logger Module",
+      "data": "dose_event",
+      "description": "Dosing pulses logged with timestamp for mass balance audit"
+    },
+    {
+      "from": "Relay-Switched Magnetic Stirrer",
+      "to": "pH Sensor Module with Automatic Temperature Compensation",
+      "data": "mixing_state",
+      "description": "Stirrer homogenises dose before next pH reading to avoid overshoot"
+    }
+  ],
+  "integration_code": "#include <OneWire.h>\n#include <DallasTemperature.h>\n#include <SD.h>\n#define PH_PIN A0\n#define ACID_VALVE 6\n#define BASE_VALVE 5\n#define STIRRER_PIN 8\n#define OW_PIN 2\n#define SD_CS 10\n#define PH_SETPOINT 7.0f\n#define DEADBAND 0.05f\n#define PULSE_MS 200\n#define FAULT_PH_LO 3.0f\n#define FAULT_PH_HI 11.0f\nOneWire ow(OW_PIN); DallasTemperature ds(&ow); File lg;\nfloat ph_compensated_setpoint(float sp, float T){\n  return sp - 0.003f*(T-25.0f);\n}\nvoid initHardware(){\n  pinMode(ACID_VALVE,OUTPUT); pinMode(BASE_VALVE,OUTPUT); pinMode(STIRRER_PIN,OUTPUT);\n  ds.begin(); SD.begin(SD_CS);\n  lg=SD.open(\"ph.csv\",FILE_WRITE);\n  if(lg) lg.println(\"t_s,T_C,pH,sp,acid,base\");\n  digitalWrite(STIRRER_PIN,HIGH); Serial.begin(9600);\n}\nfloat readTemperatureSensor(){\n  ds.requestTemperatures(); return ds.getTempCByIndex(0);\n}\nfloat readPhSensor(float T){\n  float v=analogRead(PH_PIN)*5.0f/1023.0f;\n  float pH_raw=7.0f+(2.5f-v)/0.18f;\n  return pH_raw;\n}\nvoid dosingControl(float pH, float sp){\n  if(pH>sp+DEADBAND){ digitalWrite(ACID_VALVE,HIGH); delay(PULSE_MS); digitalWrite(ACID_VALVE,LOW); }\n  else if(pH<sp-DEADBAND){ digitalWrite(BASE_VALVE,HIGH); delay(PULSE_MS); digitalWrite(BASE_VALVE,LOW); }\n}\nvoid logDataSD(unsigned long t,float T,float pH,float sp,int acid,int base){\n  if(lg){lg.print(t);lg.print(',');lg.print(T,2);lg.print(',');lg.print(pH,3);lg.print(',');lg.print(sp,3);lg.print(',');lg.print(acid);lg.print(',');lg.println(base);lg.flush();}\n  Serial.print(\"T=\");Serial.print(T,1);Serial.print(\" pH=\");Serial.println(pH,3);\n}\nvoid checkFaultSafety(float pH){\n  if(pH<FAULT_PH_LO||pH>FAULT_PH_HI){\n    digitalWrite(ACID_VALVE,LOW); digitalWrite(BASE_VALVE,LOW); digitalWrite(STIRRER_PIN,LOW);\n    Serial.println(\"FAULT:pH_OOR\"); if(lg)lg.println(\"FAULT:pH_OOR\"); while(1);\n  }\n}\nvoid setup(){ initHardware(); }\nvoid loop(){\n  static unsigned long prev=0; unsigned long now=millis();\n  if(now-prev<2000) return; prev=now;\n  float T=readTemperatureSensor();\n  float pH=readPhSensor(T); checkFaultSafety(pH);\n  float sp=ph_compensated_setpoint(PH_SETPOINT,T);\n  int acid=(pH>sp+DEADBAND)?1:0, base=(pH<sp-DEADBAND)?1:0;\n  dosingControl(pH,sp); logDataSD(now/1000,T,pH,sp,acid,base);\n}",
+  "software_artifact_titles": [
+    "ph_compensated_setpoint"
+  ]
+}

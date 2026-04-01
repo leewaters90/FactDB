@@ -1,0 +1,5 @@
+{
+  "title": "RC PPM Receiver Decoder",
+  "component_category": "communication",
+  "selected_approach": "PPM-sum on single INT4 pin; ISR measures rising-edge intervals; 8-channel decode; ch1-ch4 map to roll/pitch/yaw/throttle; 50 Hz frame rate."
+}

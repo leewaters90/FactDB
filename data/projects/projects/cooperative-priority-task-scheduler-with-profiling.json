@@ -1,0 +1,56 @@
+{
+  "title": "Cooperative Priority Task Scheduler with Profiling",
+  "description": "Bare-metal cooperative task scheduler on Arduino Uno managing 4 periodic tasks with per-slot worst-case latency profiling, AVR hardware watchdog, and JSON telemetry over UART. Demonstrates Rate-Monotonic scheduling with measurable deadline compliance.",
+  "objective": "Schedule 4 tasks at 50/100/200/500 ms; measure max latency per slot; reset on hang via WDT; stream telemetry at 2 Hz.",
+  "constraints": "Arduino Uno R3; AVR WDT 1 s; 115200 baud UART; tasks must not block more than 40 ms each.",
+  "domain": "software",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Cooperative Task Scheduling on Bare-Metal MCU",
+    "Amdahl's Law — Parallel Speedup",
+    "Big-O Notation — Time Complexity"
+  ],
+  "design_element_titles": [
+    "Static Task Table Dispatcher",
+    "AVR Hardware Watchdog Supervisor",
+    "UART JSON Telemetry Sink",
+    "Cycle-Count Latency Profiler"
+  ],
+  "element_usage_notes": {
+    "Static Task Table Dispatcher": "Core dispatch; period-based cooperative multitasking for all subsystems via scheduler_tick.",
+    "AVR Hardware Watchdog Supervisor": "1 s WDT; wdt_reset() after each dispatch; logs fault cause to EEPROM on reset.",
+    "UART JSON Telemetry Sink": "Streams per-slot worst-case latency JSON every 500 ms to host.",
+    "Cycle-Count Latency Profiler": "micros() delta per task; rolling max in task entry; reset on telemetry flush."
+  },
+  "element_interactions": [
+    {
+      "from": "Static Task Table Dispatcher",
+      "to": "Cycle-Count Latency Profiler",
+      "data": "task start/end times",
+      "description": "Scheduler measures micros() execution delta per dispatched task."
+    },
+    {
+      "from": "Cycle-Count Latency Profiler",
+      "to": "UART JSON Telemetry Sink",
+      "data": "max latency per slot",
+      "description": "Worst-case latency included in 500 ms telemetry JSON frame."
+    },
+    {
+      "from": "Static Task Table Dispatcher",
+      "to": "AVR Hardware Watchdog Supervisor",
+      "data": "wdt_reset() call",
+      "description": "Watchdog reset issued after each successful task dispatch."
+    },
+    {
+      "from": "AVR Hardware Watchdog Supervisor",
+      "to": "UART JSON Telemetry Sink",
+      "data": "reset cause on boot",
+      "description": "WDT reset cause read from EEPROM and reported in boot telemetry message."
+    }
+  ],
+  "integration_code": "#include <avr/wdt.h>\n#include <EEPROM.h>\nextern uint8_t scheduler_tick(unsigned long);\nextern int pid_heater_control(float,float,float,float,float,float,float*,float*);\ntypedef void(*TFn)();\nstruct TEntry{uint32_t per;uint32_t last;TFn fn;uint32_t mxL;};\nstatic float sv=0;\nstatic float ig=0,le=0;\nstatic int pout=0;\nvoid t_sensor(){sv=analogRead(A0)*5.0f/1023.0f;}\nvoid t_control(){pout=pid_heater_control(2.5f,sv,0.05f,1.5f,0.1f,0.02f,&ig,&le);analogWrite(6,constrain(pout,0,255));}\nvoid t_display(){Serial.print(\"V:\");Serial.println(sv,3);}\nvoid t_telem(){\n  Serial.print(\"{\\\"t\\\":\");Serial.print(millis());\n  for(uint8_t i=0;i<4;i++){\n    Serial.print(\",\\\"l\");Serial.print(i);Serial.print(\"\\\":\");\n    Serial.print(tasks[i].mxL);tasks[i].mxL=0;}\n  Serial.println(\"}\");}\nTEntry tasks[]={{50,0,t_sensor,0},{100,0,t_control,0},{200,0,t_display,0},{500,0,t_telem,0}};\nuint8_t ntasks=4;\nvoid setup(){\n  Serial.begin(115200);\n  if(MCUSR&(1<<WDRF)){EEPROM.write(0,0xAB);}\n  MCUSR=0;\n  wdt_enable(WDTO_1S);\n  pinMode(6,OUTPUT);}\nvoid loop(){scheduler_tick(millis());}",
+  "software_artifact_titles": [
+    "scheduler_tick",
+    "pid_heater_control"
+  ]
+}

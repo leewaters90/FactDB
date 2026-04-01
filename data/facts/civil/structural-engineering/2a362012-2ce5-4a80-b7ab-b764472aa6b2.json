@@ -1,0 +1,8 @@
+{
+  "title": "Allowable Angular Distortion and Differential Settlement Limits",
+  "domain": "civil",
+  "category": "structural engineering",
+  "content": "Differential settlement δ between adjacent footings at spacing L causes angular distortion θ=δ/L. Skempton & MacDonald limits: θ<1/500 to avoid structural damage in frame buildings; θ<1/300 for cracking in brittle infill walls; θ<1/150 for severe frame distress. Settlements are measured over time with settlement plates, digital levels, or resistive gauges anchored to deep stable benchmarks. Settlement rate >5 mm/month indicates active consolidation requiring monitoring escalation.",
+  "detail_level": "intermediate",
+  "id": "2a362012-2ce5-4a80-b7ab-b764472aa6b2"
+}

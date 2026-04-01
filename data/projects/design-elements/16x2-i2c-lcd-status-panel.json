@@ -1,0 +1,5 @@
+{
+  "title": "16x2 I2C LCD Status Panel",
+  "component_category": "processing",
+  "selected_approach": "PCF8574 at 0x27; row 0 shows live RMS-g; row 1 shows damper duty and fault banner; 2 Hz blink on threshold breach; auto-dim backlight after 60 s idle"
+}

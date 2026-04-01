@@ -1,0 +1,8 @@
+{
+  "title": "Nitinol Shape Memory Alloy Transformation Temperature and Actuation Hysteresis",
+  "domain": "materials",
+  "category": "material selection",
+  "content": "Ni₅₀Ti₅₀ Nitinol exhibits martensite→austenite transformation on heating (Austenite start As = 70 °C, finish Af = 90 °C) and austenite→martensite on cooling (Martensite start Ms = 60 °C, Mf = 40 °C). Recovery strain 4–8%; peak recovery stress 600 MPa. Electrical resistance drops 15% through transformation. Joule-heating via PWM current is the standard actuation method. Cycling above 150 °C degrades transformation temperature stability. Hysteresis compensation requires asymmetric heating/cooling PID gains.",
+  "detail_level": "intermediate",
+  "id": "5b37441a-a0c1-4f50-aa70-68feb501d59a"
+}

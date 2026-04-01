@@ -1,0 +1,5 @@
+{
+  "title": "USB-UART CP2102 Serial Data Bridge",
+  "component_category": "processing",
+  "selected_approach": "CP2102 USB-UART module; logs comma-delimited alpha, temperature, PWM, fault to host PC at 115200 baud; powered from USB; no SD required"
+}

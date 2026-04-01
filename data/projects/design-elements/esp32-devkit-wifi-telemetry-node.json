@@ -1,0 +1,5 @@
+{
+  "title": "ESP32 DevKit WiFi Telemetry Node",
+  "component_category": "communication",
+  "selected_approach": "ESP32 DevKit V1; receives damage accumulation data from Arduino over UART at 9600 baud; formats JSON; publishes to MQTT broker on 802.11n WiFi; OTA firmware update via ArduinoOTA"
+}

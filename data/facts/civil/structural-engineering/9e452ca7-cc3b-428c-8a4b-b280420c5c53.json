@@ -1,0 +1,8 @@
+{
+  "title": "ACI 318 Flexural Crack Width Limits and Gergely-Lutz Approximation",
+  "domain": "civil",
+  "category": "structural engineering",
+  "content": "ACI 318 limits maximum flexural crack widths in reinforced concrete: 0.33 mm for exterior exposure (aggressive environment) and 0.41 mm for interior exposure. The Gergely-Lutz formula estimates crack width: w=0.076·β·fs·∛(dc·A) (imperial), where β is the ratio of distances from neutral axis to tension face and steel centroid, fs is steel stress, dc is cover depth, and A is the concrete area per bar. Crack growth rate distinguishes arrested (stable) from propagating (active distress) cracks.",
+  "detail_level": "intermediate",
+  "id": "9e452ca7-cc3b-428c-8a4b-b280420c5c53"
+}

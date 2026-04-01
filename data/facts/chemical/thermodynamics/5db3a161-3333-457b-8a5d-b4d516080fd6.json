@@ -1,0 +1,8 @@
+{
+  "title": "Combustion Enthalpy and Standard Heat of Formation",
+  "domain": "chemical",
+  "category": "thermodynamics",
+  "content": "The standard enthalpy of combustion ΔH°comb is the heat released when one mole of a substance is completely burned in O₂ at 25 °C, 1 atm. Measured in a bomb calorimeter: q_rxn = −(m·Cp_water + C_v_bomb)·ΔT. Hess's law: ΔH°f(compound) = Σ ΔH°comb(elements) − ΔH°comb(compound). Tabulated values serve as benchmarks for fuel energy content and thermochemical database construction.",
+  "detail_level": "intermediate",
+  "id": "5db3a161-3333-457b-8a5d-b4d516080fd6"
+}

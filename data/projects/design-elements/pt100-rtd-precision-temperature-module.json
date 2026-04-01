@@ -1,0 +1,5 @@
+{
+  "title": "PT100 RTD Precision Temperature Module",
+  "component_category": "sensing",
+  "selected_approach": "PT100 RTD with MAX31865 SPI amplifier board. Resolution 0.03 °C, accuracy ±0.1 °C. SPI connection to Arduino. Adafruit_MAX31865 library. 3-wire mode with 430 Ω reference resistor. Suitable for 0–150 °C range; preferred over DS18B20 where sub-0.1 °C precision is required."
+}

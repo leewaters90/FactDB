@@ -1,0 +1,8 @@
+{
+  "title": "Multi-Zone Thermal Decoupling in Array Heater Systems",
+  "domain": "software",
+  "category": "algorithms",
+  "content": "Adjacent heating zones exhibit thermal crosstalk with time constant τ=RC_thermal. An interaction matrix adjusts each zone's effective PID setpoint: SP_i_eff = SP_i - Σ k_ij*(T_j - SP_j). Priority round-robin arbitration prevents simultaneous SSR switching events that would overload a shared power bus and cause voltage droop.",
+  "detail_level": "intermediate",
+  "id": "4f8b221b-3fb3-43d5-8108-5e929df0db6c"
+}

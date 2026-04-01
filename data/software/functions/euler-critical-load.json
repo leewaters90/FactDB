@@ -1,0 +1,17 @@
+{
+  "title": "euler_critical_load",
+  "artifact_type": "function",
+  "language": "arduino",
+  "signature": "float euler_critical_load(float E_GPa, float I_cm4, float L_m, float K)",
+  "content": "Returns Euler critical buckling load in kN for a column given elastic modulus (GPa), second moment of area (cm⁴), unsupported length (m), and effective length factor K.",
+  "code": "float euler_critical_load(float E_GPa, float I_cm4, float L_m, float K) {\n  float E = E_GPa * 1e6f;\n  float I = I_cm4 * 1e-8f;\n  float KL = K * L_m;\n  return (PI * PI * E * I) / (KL * KL) / 1000.0f;\n}",
+  "tags": [
+    "civil",
+    "structural",
+    "buckling",
+    "euler",
+    "column"
+  ],
+  "domain": "software",
+  "category": "function"
+}

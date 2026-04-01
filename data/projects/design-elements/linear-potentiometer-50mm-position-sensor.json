@@ -1,0 +1,5 @@
+{
+  "title": "Linear Potentiometer 50mm Position Sensor",
+  "component_category": "sensing",
+  "selected_approach": "10 kΩ wirewound linear potentiometer; 50 mm travel; voltage divider to Arduino ADC; ±0.3 mm resolution after 10-sample moving average; mechanically coupled to SMA output link"
+}

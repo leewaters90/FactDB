@@ -1,0 +1,5 @@
+{
+  "title": "4-Channel SSR-40DA Heater Bank",
+  "component_category": "actuation",
+  "selected_approach": "Four SSR-40DA solid-state relays; 3-32 V DC control from Arduino digital pins 2-5; zero-crossing switching; only one relay active per arbitration slot to respect 20 A rail limit."
+}

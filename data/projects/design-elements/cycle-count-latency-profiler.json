@@ -1,0 +1,5 @@
+{
+  "title": "Cycle-Count Latency Profiler",
+  "component_category": "processing",
+  "selected_approach": "micros() delta bracketing each task call; rolling maximum per slot stored in task entry; reset each telemetry report interval."
+}

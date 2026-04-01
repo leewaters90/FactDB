@@ -1,0 +1,5 @@
+{
+  "title": "IRLB8721 N-MOSFET SMA Current Driver",
+  "component_category": "actuation",
+  "selected_approach": "IRLB8721 N-channel MOSFET; PWM Joule heating of Nitinol wire; 0.5 Ω current-sense shunt; 5 V logic gate drive; 100 Ω gate resistor."
+}

@@ -1,0 +1,5 @@
+{
+  "title": "MPX5700AP Pipe Pressure Transducer",
+  "component_category": "sensing",
+  "selected_approach": "Freescale MPX5700AP piezoresistive pressure sensor (0–700 kPa, ±2.5% accuracy) on a pipe tee fitting; sampled at 1 kHz via 10-bit ADC with an RC anti-alias filter (fc=200 Hz) to capture transient surge waveforms."
+}

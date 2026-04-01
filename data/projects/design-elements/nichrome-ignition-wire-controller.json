@@ -1,0 +1,5 @@
+{
+  "title": "Nichrome Ignition Wire Controller",
+  "component_category": "control",
+  "selected_approach": "1 cm Nichrome wire (30 AWG, ~1 Ω) connecting sample pellet inside bomb vessel. Energised by a capacitor discharge circuit (1000 μF, 12 V) triggered by Arduino digital pin via MOSFET. Single-shot ignition; wire fuses on firing. Optical isolation between Arduino and high-current discharge path."
+}

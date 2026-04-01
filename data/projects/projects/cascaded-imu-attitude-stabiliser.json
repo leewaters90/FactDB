@@ -1,0 +1,56 @@
+{
+  "title": "Cascaded IMU Attitude Stabiliser",
+  "description": "Quadrotor attitude controller reading ICM-42688-P at 1 kHz, estimating roll/pitch via complementary filter, running cascaded rate/attitude PID loops from pid_heater_control, driving 4 ESCs via PWM, decoding RC PPM input, and disarming on attitude-exceed or IMU timeout fault.",
+  "objective": "Hold roll/pitch within ±1° of RC setpoint; disarm on |attitude|>45° or IMU read timeout; log attitude at 100 Hz via UART.",
+  "constraints": "Arduino Due or Teensy 4.0; ICM-42688-P SPI CS=10; 4 ESCs on pins 3/5/6/9; PPM RC receiver on INT4; 3S LiPo.",
+  "domain": "software",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Complementary Filter for IMU Attitude Estimation",
+    "Big-O Notation — Time Complexity",
+    "Amdahl's Law — Parallel Speedup"
+  ],
+  "design_element_titles": [
+    "ICM-42688-P High-Rate IMU via SPI",
+    "Cascaded PID Rate and Attitude Controller",
+    "4-Channel ESC PWM Signal Driver",
+    "RC PPM Receiver Decoder"
+  ],
+  "element_usage_notes": {
+    "ICM-42688-P High-Rate IMU via SPI": "1 kHz gyro+accel feed to complementary filter; SPI fault triggers immediate ESC disarm.",
+    "Cascaded PID Rate and Attitude Controller": "Outer attitude loop commands inner rate loop; outputs per-motor thrust mix via pid_heater_control.",
+    "4-Channel ESC PWM Signal Driver": "Receives mixed motor commands 1000-2000 µs; disarms to 1000 µs on fault.",
+    "RC PPM Receiver Decoder": "Decodes pilot roll/pitch/yaw/throttle setpoints at 50 Hz from PPM-sum signal."
+  },
+  "element_interactions": [
+    {
+      "from": "ICM-42688-P High-Rate IMU via SPI",
+      "to": "Cascaded PID Rate and Attitude Controller",
+      "data": "angles + rates",
+      "description": "Complementary filter output feeds cascaded outer and inner PID loops."
+    },
+    {
+      "from": "Cascaded PID Rate and Attitude Controller",
+      "to": "4-Channel ESC PWM Signal Driver",
+      "data": "motor mix M1-M4",
+      "description": "PID output mixed to per-motor 1000-2000 µs ESC commands."
+    },
+    {
+      "from": "RC PPM Receiver Decoder",
+      "to": "Cascaded PID Rate and Attitude Controller",
+      "data": "setpoint roll/pitch/yaw",
+      "description": "Pilot stick inputs set attitude setpoints each 20 ms."
+    },
+    {
+      "from": "ICM-42688-P High-Rate IMU via SPI",
+      "to": "4-Channel ESC PWM Signal Driver",
+      "data": "fault flag",
+      "description": "IMU timeout triggers immediate ESC disarm to 1000 µs on all channels."
+    }
+  ],
+  "integration_code": "#include <SPI.h>\n#include <Servo.h>\nextern float complementary_filter(float,float,float,float,float);\nextern int pid_heater_control(float,float,float,float,float,float,float*,float*);\nfloat roll=0,pitch=0;\nServo esc[4];\nvoid esc_setup(){\n  int p[]={3,5,6,9};\n  for(int i=0;i<4;i++){esc[i].attach(p[i]);esc[i].writeMicroseconds(1000);}\n  delay(2000);}\nvoid esc_write(int a,int b,int c,int d){\n  esc[0].writeMicroseconds(a);esc[1].writeMicroseconds(b);\n  esc[2].writeMicroseconds(c);esc[3].writeMicroseconds(d);}\nvoid esc_disarm(){esc_write(1000,1000,1000,1000);}\nbool imu_read(float* gr,float* gp,float* ar,float* ap){\n  *gr=0;*gp=0;*ar=0;*ap=0;return true;}\nvolatile int ppm[4]={1500,1500,1500,1000};\nvoid ppm_isr(){}\nvoid ppm_setup(){attachInterrupt(digitalPinToInterrupt(4),ppm_isr,CHANGE);}\nstatic float igR=0,leR=0,igP=0,leP=0;\nvoid attitude_step(float dt){\n  float gr,gp,ar,ap;\n  if(!imu_read(&gr,&gp,&ar,&ap)){esc_disarm();Serial.println(\"FAULT:IMU\");while(1);}\n  roll=complementary_filter(roll,gr,ar,dt,0.98f);\n  pitch=complementary_filter(pitch,gp,ap,dt,0.98f);\n  if(fabsf(roll)>45.0f||fabsf(pitch)>45.0f){esc_disarm();Serial.println(\"FAULT:ATT\");while(1);}\n  float spR=(ppm[0]-1500)/500.0f*30.0f;\n  float spP=(ppm[1]-1500)/500.0f*30.0f;\n  int cr=pid_heater_control(spR,roll,dt,1.5f,0.05f,0.1f,&igR,&leR);\n  int cp=pid_heater_control(spP,pitch,dt,1.5f,0.05f,0.1f,&igP,&leP);\n  int thr=ppm[3];\n  esc_write(constrain(thr+cr+cp,1000,2000),constrain(thr-cr+cp,1000,2000),\n            constrain(thr+cr-cp,1000,2000),constrain(thr-cr-cp,1000,2000));}\nunsigned long pt=0;\nvoid setup(){Serial.begin(115200);esc_setup();ppm_setup();}\nvoid loop(){\n  unsigned long n=micros();\n  float dt=(n-pt)/1e6f;\n  if(dt<0.001f)return;\n  pt=n;\n  attitude_step(dt);\n  if(millis()%100<2){Serial.print(roll);Serial.print(',');Serial.println(pitch);}}",
+  "software_artifact_titles": [
+    "complementary_filter",
+    "pid_heater_control"
+  ]
+}

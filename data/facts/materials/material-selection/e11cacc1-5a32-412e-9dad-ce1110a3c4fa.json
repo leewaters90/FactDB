@@ -1,0 +1,8 @@
+{
+  "title": "Polymer Melt Flow Index and Viscosity Temperature Dependence",
+  "domain": "materials",
+  "category": "material selection",
+  "content": "Melt flow index (MFI, g/10 min) characterises thermoplastic processability under ASTM D1238: 2.16 kg load at material-specific temperature (190 °C for PE, 230 °C for PP). Viscosity follows Arrhenius relationship: η = A·exp(E_a/RT) with E_a = 40–80 kJ/mol for commodity polymers. MFI < 2 indicates high viscosity (sheet/pipe extrusion); MFI > 20 indicates low viscosity (injection moulding). Thermal degradation onset detectable as colour change (yellowindex) above critical temperature; for PP onset at 260 °C.",
+  "detail_level": "intermediate",
+  "id": "e11cacc1-5a32-412e-9dad-ce1110a3c4fa"
+}

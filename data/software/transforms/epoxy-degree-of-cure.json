@@ -1,0 +1,16 @@
+{
+  "title": "epoxy_degree_of_cure",
+  "artifact_type": "transform",
+  "language": "arduino",
+  "signature": "float epoxy_degree_of_cure(float log_iv, float log_iv_min, float log_iv_max)",
+  "content": "Returns degree of cure alpha [0,1] from measured log-ion-viscosity value and calibrated min/max bounds.",
+  "code": "float epoxy_degree_of_cure(float log_iv,float log_iv_min,float log_iv_max){\n  float range=log_iv_max-log_iv_min;\n  if(range<0.001f)return 0.0f;\n  return constrain((log_iv_max-log_iv)/range,0.0f,1.0f);\n}",
+  "tags": [
+    "epoxy",
+    "cure",
+    "dielectric",
+    "materials"
+  ],
+  "domain": "software",
+  "category": "transform"
+}

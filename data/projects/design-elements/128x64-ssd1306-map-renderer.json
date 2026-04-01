@@ -1,0 +1,5 @@
+{
+  "title": "128x64 SSD1306 Map Renderer",
+  "component_category": "processing",
+  "selected_approach": "I2C SSD1306 128x64; 8x8 pixel grid cells; robot rendered as 4x4 filled square; trail drawn at 1 Hz update rate via Wire.h driver."
+}

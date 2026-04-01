@@ -1,0 +1,8 @@
+{
+  "id": "fact-rcs-thruster-allocation-001",
+  "title": "Three-Axis RCS Thruster Allocation and Torque Mapping",
+  "domain": "aerospace",
+  "category": "propulsion",
+  "content": "A reaction control system (RCS) for a 3-axis spacecraft uses paired cold-gas nozzles aligned with each body axis. Torque commands (Tx, Ty, Tz) from a controller are mapped to individual thruster pulse widths via a thruster allocation matrix: each axis pair fires the +axis thruster for positive torque and the -axis thruster for negative torque. Pulse width scales with |command| * dt to respect minimum impulse bit constraints. The allocation must respect factor-of-safety margins on propellant mass and solenoid duty-cycle limits (<5% average) to prevent valve overheating. Residual cross-coupling torques are rejected by the inner rate loop of a cascaded PID controller.",
+  "detail_level": "intermediate"
+}

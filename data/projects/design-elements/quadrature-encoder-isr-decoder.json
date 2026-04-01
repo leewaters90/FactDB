@@ -1,0 +1,5 @@
+{
+  "title": "Quadrature Encoder ISR Decoder",
+  "component_category": "sensing",
+  "selected_approach": "Two 600 PPR quadrature encoders; left on INT0/INT1, right on INT2/INT3; ISR increments signed 32-bit counters; direction from XOR of A/B phase edges."
+}

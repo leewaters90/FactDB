@@ -1,0 +1,8 @@
+{
+  "title": "Rankine Earth Pressure Theory",
+  "domain": "civil",
+  "category": "structural engineering",
+  "content": "Rankine's theory provides active (Ka) and passive (Kp) lateral earth pressure coefficients: Ka=(1-sinφ)/(1+sinφ), Kp=1/Ka, where φ is the internal friction angle. Active pressure at depth z: σa=Ka·γ·z−2c·√Ka, where γ is soil unit weight and c is cohesion. Used to design retaining walls for overturning and sliding stability.",
+  "detail_level": "intermediate",
+  "id": "8fa8d306-381e-45d8-8fe5-62a556b571ab"
+}

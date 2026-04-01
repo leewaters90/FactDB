@@ -1,0 +1,8 @@
+{
+  "title": "Chemical Equilibrium and Le Chatelier's Principle",
+  "domain": "chemical",
+  "category": "thermodynamics",
+  "content": "A reversible reaction at equilibrium shifts to oppose external perturbations in temperature, pressure, or concentration. Quantified by the van't Hoff equation: d(ln K)/dT = ΔH°/(RT²). Temperature increase shifts equilibrium toward the endothermic direction; decrease toward exothermic. Governs set-point selection and stability analysis in thermally regulated chemical reactors.",
+  "detail_level": "intermediate",
+  "id": "a6fbc390-4b8a-4dcc-879c-79144ff2949e"
+}

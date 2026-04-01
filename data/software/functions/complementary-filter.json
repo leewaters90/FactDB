@@ -1,0 +1,17 @@
+{
+  "title": "complementary_filter",
+  "artifact_type": "function",
+  "language": "arduino",
+  "signature": "float complementary_filter(float angle, float gyro_rate, float accel_angle, float dt, float alpha)",
+  "content": "Single-axis complementary filter fusing gyro integration and accelerometer tilt estimate in O(1).",
+  "code": "float complementary_filter(float angle,float gyro_rate,float accel_angle,float dt,float alpha){\n  return alpha*(angle+gyro_rate*dt)+(1.0f-alpha)*accel_angle;\n}",
+  "tags": [
+    "imu",
+    "filter",
+    "attitude",
+    "complementary",
+    "o1"
+  ],
+  "domain": "software",
+  "category": "function"
+}

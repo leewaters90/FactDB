@@ -1,0 +1,5 @@
+{
+  "title": "CRC32 Block Integrity Validator",
+  "component_category": "processing",
+  "selected_approach": "CRC32 ISO 3309 polynomial 0xEDB88320 computed over each compressed block; 4-byte CRC appended before flash write; verified on read-back; corrupt blocks skipped with UART warning."
+}

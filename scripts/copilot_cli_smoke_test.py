@@ -38,11 +38,21 @@ def find_copilot() -> str | None:
     return None
 
 
-def build_cmd(exe: str, prompt: str) -> list[str]:
+def build_cmds(exe: str, prompt: str) -> list[list[str]]:
     base = os.path.basename(exe).lower()
     if base.startswith("gh"):
-        return [exe, "copilot", "suggest", "-t", "shell", prompt]
-    return [exe, "suggest", "-t", "shell", prompt]
+        # New Copilot CLI prompt mode (supported by current releases).
+        return [
+            [exe, "copilot", "--", "-p", prompt, "--allow-all", "--no-ask-user"],
+            # Legacy fallback retained for older installations.
+            [exe, "copilot", "suggest", "-t", "shell", prompt],
+        ]
+    return [
+        # New Copilot CLI prompt mode (supported by current releases).
+        [exe, "-p", prompt, "--allow-all", "--no-ask-user"],
+        # Legacy fallback retained for older installations.
+        [exe, "suggest", "-t", "shell", prompt],
+    ]
 
 
 def main() -> int:
@@ -56,45 +66,48 @@ def main() -> int:
         return 1
 
     prompt = f"Reply with EXACTLY: {EXPECTED}"
-    cmd = build_cmd(exe, prompt)
-
     print(f"Using executable: {exe}")
-    print("Running command:", " ".join(cmd[:4]), "<prompt>")
+    cmds = build_cmds(exe, prompt)
 
-    try:
-        completed = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=max(10, args.timeout),
-            env=os.environ.copy(),
-        )
-    except subprocess.TimeoutExpired:
-        print(f"FAIL: Timed out after {args.timeout}s")
-        return 3
-    except Exception as exc:  # pragma: no cover
-        print(f"FAIL: Exception launching Copilot CLI: {exc}")
-        return 2
+    saw_failure = False
+    for idx, cmd in enumerate(cmds, start=1):
+        print(f"Attempt {idx}/{len(cmds)}:", " ".join(cmd[:4]), "<prompt>")
+        try:
+            completed = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=max(10, args.timeout),
+                env=os.environ.copy(),
+            )
+        except subprocess.TimeoutExpired:
+            print(f"FAIL: Timed out after {args.timeout}s")
+            return 3
+        except Exception as exc:  # pragma: no cover
+            print(f"FAIL: Exception launching Copilot CLI: {exc}")
+            return 2
 
-    stdout = completed.stdout or ""
-    stderr = completed.stderr or ""
+        stdout = completed.stdout or ""
+        stderr = completed.stderr or ""
 
-    print(f"Return code: {completed.returncode}")
-    if stdout.strip():
-        print("--- STDOUT ---")
-        print(stdout.strip())
-    if stderr.strip():
-        print("--- STDERR ---")
-        print(stderr.strip())
+        print(f"Return code: {completed.returncode}")
+        if stdout.strip():
+            print("--- STDOUT ---")
+            print(stdout.strip())
+        if stderr.strip():
+            print("--- STDERR ---")
+            print(stderr.strip())
 
-    if completed.returncode != 0:
+        if EXPECTED in stdout or EXPECTED in stderr:
+            print("PASS: Copilot CLI responded with expected marker")
+            return 0
+
+        if completed.returncode != 0:
+            saw_failure = True
+
+    if saw_failure:
         print("FAIL: Copilot CLI command failed")
         return 2
-
-    if EXPECTED in stdout or EXPECTED in stderr:
-        print("PASS: Copilot CLI responded with expected marker")
-        return 0
-
     print("FAIL: Expected marker not found in output")
     return 4
 

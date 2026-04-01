@@ -1,0 +1,8 @@
+{
+  "title": "Powder Metallurgy Sintering Kinetics and Densification Modelling",
+  "domain": "materials",
+  "category": "material selection",
+  "content": "Sintering of metal powders proceeds through initial (neck growth x/r < 0.3, surface diffusion), intermediate (grain-boundary diffusion), and final (pore closure) stages. Density evolution follows ρ(t) = ρ_f − (ρ_f − ρ_0)·exp(−k·t^n) with activation energy Q. For 316L stainless steel (D50 = 25 µm): optimal 1320 °C for 2 h in 95% N₂/5% H₂ achieving 97–99% theoretical density. Heating rate ≤ 5 °C/min below 600 °C avoids binder burnout cracking; ramp ≤ 10 °C/min above 900 °C avoids thermal shock.",
+  "detail_level": "intermediate",
+  "id": "2c133706-3203-4a25-becb-05d6b6d69315"
+}

@@ -1,0 +1,8 @@
+{
+  "title": "Structural Resonance and Dynamic Amplification Factor",
+  "domain": "civil",
+  "category": "structural engineering",
+  "content": "When excitation frequency approaches a structure's natural frequency fn, the dynamic amplification factor DAF = 1/sqrt((1-(f/fn)^2)^2 + (2*zeta*f/fn)^2), where zeta is damping ratio. For lightly damped bridges (zeta~0.02), DAF can exceed 25 near resonance, multiplying static bending stresses by the same factor. Active dampers target reduction of effective zeta to keep DAF below 1.5 for all anticipated loading frequencies.",
+  "detail_level": "intermediate",
+  "id": "b4d1cb2f-ab52-423a-bae1-8df3c47a952c"
+}

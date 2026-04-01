@@ -1,0 +1,5 @@
+{
+  "title": "Multi-Point 1-Wire Temperature Array for Column Profiling",
+  "component_category": "sensing",
+  "selected_approach": "Six DS18B20 sensors on a single 1-Wire bus distributed along the column height (reboiler, plate 1, plate 2, plate 3, condenser inlet, distillate). Each sensor addressed by unique ROM ID pre-stored in EEPROM. Parasitic power mode; 4.7 kΩ pull-up. Polled at 0.2 Hz for complete axial temperature profile."
+}

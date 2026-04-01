@@ -1,0 +1,49 @@
+{
+  "title": "Building Foundation Differential Settlement Logger with Angular Distortion Alert",
+  "description": "Monitors settlement at three adjacent column footings using Bowden-cable resistive gauges, computes pairwise angular distortions, compares to Skempton & MacDonald thresholds, transmits daily summaries via LoRa to a building manager's receiver, and triggers an on-site alarm when θ exceeds 1/500 — focused on foundation geotechnics rather than superstructure dynamics.",
+  "objective": "Detect differential settlement events breaching θ=1/500 threshold; daily LoRa telemetry of settlement trends; alarm escalation at θ=1/300; seasonal thermal heave correction.",
+  "constraints": "Arduino Mega, three 100 mm potentiometer gauges, DS18B20 ground temperature, LoRa SX1276, SD card, buzzer; column spacing 4.5 m; 2-storey RC frame; 5 V USB or solar 12 V.",
+  "domain": "civil",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Allowable Angular Distortion and Differential Settlement Limits",
+    "Beam Bending — Flexure Formula",
+    "Euler's Column Buckling Formula"
+  ],
+  "design_element_titles": [
+    "Resistive Settlement Gauge — Bowden Cable Potentiometer",
+    "LoRa SX1276 Remote Telemetry Node",
+    "Buzzer and LED Fault Annunciator",
+    "DS18B20 1-Wire Temperature Probe Array"
+  ],
+  "element_usage_notes": {
+    "Resistive Settlement Gauge — Bowden Cable Potentiometer": "Three gauges at footings A, B, C; differential settlement pairs AB and BC computed every 30 min.",
+    "LoRa SX1276 Remote Telemetry Node": "Daily LoRa packet contains settlement array, angular distortions, and soil temperature.",
+    "Buzzer and LED Fault Annunciator": "Warning tone at θ>1/500; fast alarm at θ>1/300; LED brightness scales with worst-case distortion.",
+    "DS18B20 1-Wire Temperature Probe Array": "Ground temperature correction applied to remove seasonal heave artefact (~0.01 mm/°C/m)."
+  },
+  "element_interactions": [
+    {
+      "from": "Resistive Settlement Gauge — Bowden Cable Potentiometer",
+      "to": "Buzzer and LED Fault Annunciator",
+      "data": "angular_distortion",
+      "description": "Worst-case pairwise angular distortion triggers alarm when threshold exceeded."
+    },
+    {
+      "from": "DS18B20 1-Wire Temperature Probe Array",
+      "to": "Resistive Settlement Gauge — Bowden Cable Potentiometer",
+      "data": "ground_temp_C",
+      "description": "Temperature correction applied to raw settlement readings to remove seasonal heave component."
+    },
+    {
+      "from": "Resistive Settlement Gauge — Bowden Cable Potentiometer",
+      "to": "LoRa SX1276 Remote Telemetry Node",
+      "data": "settlement_mm[3]",
+      "description": "Settlement array and angular distortion values included in daily LoRa telemetry packet."
+    }
+  ],
+  "integration_code": "#include <OneWire.h>\n#include <DallasTemperature.h>\n#include <SPI.h>\n#include <LoRa.h>\n#include <SD.h>\n#define GA A0\n#define GB A1\n#define GC A2\n#define BUZZER 8\n#define LED 9\n#define SD_CS 10\n#define ONE_WIRE_BUS 2\n#define SPAN_AB 4500.0f\n#define SPAN_BC 4500.0f\n#define LIMIT_1_500 0.002f\n#define LIMIT_1_300 0.00333f\n#define GAUGE_RANGE 100.0f\nOneWire ow(ONE_WIRE_BUS); DallasTemperature ds(&ow);\nfloat zero[3]={0,0,0};\n\nfloat angular_distortion(float d,float span){return span>0?d/span:0;}\n\nfloat read_settlement(int pin){return (analogRead(pin)/1023.0f)*GAUGE_RANGE;}\n\nvoid check_distortion(float*s){\n  float dAB=fabs(s[0]-s[1]),dBC=fabs(s[1]-s[2]);\n  float tAB=angular_distortion(dAB,SPAN_AB);\n  float tBC=angular_distortion(dBC,SPAN_BC);\n  float worst=max(tAB,tBC);\n  if(worst>LIMIT_1_300){tone(BUZZER,2000);analogWrite(LED,255);}\n  else if(worst>LIMIT_1_500){tone(BUZZER,1000);analogWrite(LED,128);}\n  else{noTone(BUZZER);analogWrite(LED,(int)(worst/LIMIT_1_500*100));}\n}\n\nvoid send_lora(float*s,float tAB,float tBC){\n  LoRa.beginPacket();\n  for(int i=0;i<3;i++){LoRa.print(s[i]);LoRa.print(',');}\n  LoRa.print(tAB);LoRa.print(',');LoRa.print(tBC);\n  LoRa.endPacket();\n}\n\nvoid log_sd(float*s,float T){\n  File f=SD.open(\"settle.csv\",FILE_WRITE);\n  if(f){f.print(millis());f.print(',');f.print(T);for(int i=0;i<3;i++){f.print(',');f.print(s[i]);}f.println();f.close();}\n}\n\nvoid setup(){\n  Serial.begin(115200);ds.begin();SD.begin(SD_CS);LoRa.begin(915E6);\n  pinMode(BUZZER,OUTPUT);pinMode(LED,OUTPUT);\n  for(int i=0;i<3;i++) zero[i]=read_settlement(GA+i);\n}\n\nvoid loop(){\n  float s[3];\n  ds.requestTemperatures();\n  float T=ds.getTempCByIndex(0);\n  float tc=(T-20.0f)*0.01f;\n  for(int i=0;i<3;i++) s[i]=read_settlement(GA+i)-zero[i]-tc;\n  float tAB=angular_distortion(fabs(s[0]-s[1]),SPAN_AB);\n  float tBC=angular_distortion(fabs(s[1]-s[2]),SPAN_BC);\n  check_distortion(s);\n  log_sd(s,T);\n  static unsigned long lastLora=0;\n  if(millis()-lastLora>86400000UL){send_lora(s,tAB,tBC);lastLora=millis();}\n  Serial.print(\"s0=\");Serial.print(s[0]);Serial.print(\" tAB=\");Serial.println(tAB);\n  delay(1800000);\n}",
+  "software_artifact_titles": [
+    "angular_distortion"
+  ]
+}

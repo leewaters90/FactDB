@@ -1,0 +1,5 @@
+{
+  "title": "ADXL345 3-Axis I2C Accelerometer Module",
+  "component_category": "sensing",
+  "selected_approach": "SparkFun ADXL345 breakout; I2C address 0x53; ±16 g full-scale; 10-bit 100 Hz ODR; INT1 shock-detect interrupt; bolted to structural member with M4 stainless screws"
+}

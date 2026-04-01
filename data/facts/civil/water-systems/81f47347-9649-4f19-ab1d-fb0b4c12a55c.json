@@ -1,0 +1,8 @@
+{
+  "title": "Manning's Equation for Open Channel Flow Capacity",
+  "domain": "civil",
+  "category": "water systems",
+  "content": "Manning's equation gives mean flow velocity in a prismatic open channel: V = (1/n)·R^(2/3)·S^(1/2), where n is the Manning roughness coefficient (0.011 concrete, 0.025 excavated earth), R is hydraulic radius (A/P, area/wetted perimeter in metres), and S is longitudinal channel slope (m/m). Volumetric flow Q = V·A. Used to size storm drains so design-storm runoff is conveyed without surcharging.",
+  "detail_level": "intermediate",
+  "id": "81f47347-9649-4f19-ab1d-fb0b4c12a55c"
+}

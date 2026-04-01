@@ -1,0 +1,17 @@
+{
+  "title": "astar_next_cell",
+  "artifact_type": "function",
+  "language": "arduino",
+  "signature": "bool astar_next_cell(int gx, int gy, int cx, int cy, uint8_t walls, int* nx, int* ny)",
+  "content": "Greedy best-first step toward goal on 8x8 grid respecting 4-bit wall bitmap; returns next cell coordinates.",
+  "code": "bool astar_next_cell(int gx,int gy,int cx,int cy,uint8_t walls,int* nx,int* ny){\n  int dx[]={0,0,1,-1};\n  int dy[]={1,-1,0,0};\n  int best=-1;int bd=9999;\n  for(int d=0;d<4;d++){\n    if(walls&(1<<d))continue;\n    int tx=cx+dx[d],ty=cy+dy[d];\n    if(tx<0||tx>7||ty<0||ty>7)continue;\n    int h=abs(tx-gx)+abs(ty-gy);\n    if(h<bd){bd=h;best=d;}}\n  if(best<0)return false;\n  *nx=cx+dx[best];*ny=cy+dy[best];\n  return true;\n}",
+  "tags": [
+    "astar",
+    "pathfinding",
+    "grid",
+    "navigation",
+    "differential-drive"
+  ],
+  "domain": "software",
+  "category": "function"
+}

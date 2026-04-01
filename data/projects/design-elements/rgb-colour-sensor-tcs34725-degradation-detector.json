@@ -1,0 +1,5 @@
+{
+  "title": "RGB Colour Sensor TCS34725 Degradation Detector",
+  "component_category": "sensing",
+  "selected_approach": "TCS34725 I2C RGB sensor with IR filter; measures yellowness index of extrudate strand as degradation indicator; threshold: yellow_index > 20 triggers fault; address 0x29"
+}

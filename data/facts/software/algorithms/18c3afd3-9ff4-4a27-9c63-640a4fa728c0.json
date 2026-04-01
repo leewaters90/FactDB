@@ -1,0 +1,8 @@
+{
+  "title": "Differential Drive Kinematics and Turning Radius",
+  "domain": "software",
+  "category": "algorithms",
+  "content": "A two-wheeled differential robot turns by varying left/right wheel speeds. Turning radius R = L*(vR+vL)/(2*(vR-vL)) where L is the wheelbase. A* cell transitions map to (turn, forward) motor command sequences. Heading integrates encoder delta-counts: Δθ = (ΔR-ΔL)/wheel_base_ticks.",
+  "detail_level": "intermediate",
+  "id": "18c3afd3-9ff4-4a27-9c63-640a4fa728c0"
+}

@@ -1,0 +1,8 @@
+{
+  "title": "Rainwater First-Flush Diversion",
+  "domain": "civil",
+  "category": "water systems",
+  "content": "The first-flush diverter discards the initial volume of roof runoff (typically 1–2 L per m² of catchment area) which carries the highest concentration of bird droppings, dust, and atmospheric pollutants. A float-sealed chamber or timed solenoid valve automatically diverts this slug to waste and then routes subsequent cleaner water to the storage tank. Proper sizing of the diversion chamber is critical to achieving acceptable turbidity (<5 NTU) and pH (6.5–8.5) in harvested water without chemical dosing.",
+  "detail_level": "intermediate",
+  "id": "8d27aafc-d047-4046-9d3f-7985a6ba931a"
+}

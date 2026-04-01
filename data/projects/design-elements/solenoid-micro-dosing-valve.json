@@ -1,0 +1,5 @@
+{
+  "title": "Solenoid Micro-Dosing Valve",
+  "component_category": "actuation",
+  "selected_approach": "Normally-closed 12 V solenoid micro-valve (e.g., U-BCLE or Parker 003-0171-900) for acid and base dosing lines. Arduino digital pin drives 2N2222 transistor + flyback diode to energise valve coil for programmable pulse durations (50–500 ms). Two separate valves for acid and base reagent lines."
+}

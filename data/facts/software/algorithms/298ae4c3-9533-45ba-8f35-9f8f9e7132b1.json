@@ -1,0 +1,8 @@
+{
+  "title": "Adaptive Gain Scheduling for PID Controllers",
+  "domain": "software",
+  "category": "algorithms",
+  "content": "Gain scheduling adjusts PID Kp/Ki/Kd based on error magnitude or operating region. Three-region lookup tables select gains in O(1) time: large-error region uses high Kp for fast response, near-setpoint region uses lower gains for stability. Enables a single controller to handle nonlinear plants without model identification.",
+  "detail_level": "intermediate",
+  "id": "298ae4c3-9533-45ba-8f35-9f8f9e7132b1"
+}

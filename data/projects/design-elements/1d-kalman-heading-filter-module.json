@@ -1,0 +1,5 @@
+{
+  "title": "1D Kalman Heading Filter Module",
+  "component_category": "processing",
+  "selected_approach": "Scalar Kalman: predict θ from encoder Δθ, correct with IMU yaw; Q=0.001 rad²/s, R=0.05 rad²; update at 50 Hz; output used for pose integration."
+}

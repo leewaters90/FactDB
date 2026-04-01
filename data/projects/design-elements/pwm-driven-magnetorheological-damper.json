@@ -1,0 +1,5 @@
+{
+  "title": "PWM-Driven Magnetorheological Damper",
+  "component_category": "control",
+  "selected_approach": "MR damper coil driven by L298N H-bridge at 20 kHz PWM; 0-2 A controlled by PID output; flyback diode on coil; soft-start 500 ms ramp on power-on to prevent shock loading"
+}

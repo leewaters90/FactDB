@@ -1,0 +1,8 @@
+{
+  "title": "Shape Memory Alloy Nitinol Thermal Actuation Characteristics",
+  "domain": "electrical",
+  "category": "actuation",
+  "content": "Nitinol SMA wire contracts ~4% when Joule-heated above austenite start (~70°C) and relaxes below martensite finish (~40°C). The thermal hysteresis between heating and cooling curves demands hysteresis-band PID control to prevent actuator chatter. Current density 200-300 mA/mm² produces full actuation in 0.5-2 s depending on wire diameter and ambient cooling.",
+  "detail_level": "intermediate",
+  "id": "d1dc3969-3fef-439c-b084-bf845f06e4dc"
+}

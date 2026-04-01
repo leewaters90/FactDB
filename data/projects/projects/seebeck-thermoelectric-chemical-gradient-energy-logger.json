@@ -1,0 +1,55 @@
+{
+  "title": "Seebeck Thermoelectric Chemical Gradient Energy Logger",
+  "description": "Harvests and characterises thermoelectric energy from a sustained chemical temperature gradient. A Peltier module operated in reverse (TEG mode) bridges the hot side of an exothermic chemical reaction vessel and a water-cooled cold plate. An MT3608 MPPT boost converter maximises power extraction. Arduino monitors hot/cold temperatures via two DS18B20 probes, TEG open-circuit voltage, and boost converter output, computing Seebeck coefficient and instantaneous power. All data logged to SD card.",
+  "objective": "Measure Seebeck coefficient S (μV/K), instantaneous power P (mW), and cumulative harvested energy (mWh) from a chemical temperature gradient over a 2-hour experiment.",
+  "constraints": "Arduino Uno, two DS18B20, Peltier TEC1-12706 as TEG, MT3608 boost, SD logger; ΔT range 10–60 °C; max hot-side temperature 85 °C; no corrosive fluids on TEG surface.",
+  "domain": "chemical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Seebeck Effect and Thermoelectric Power Generation",
+    "Second Law of Thermodynamics — Entropy",
+    "Heat of Reaction and Calorimetry"
+  ],
+  "design_element_titles": [
+    "DS18B20 1-Wire Temperature Probe Array",
+    "Peltier TEC Module with H-Bridge Driver",
+    "TEG Module with MPPT Boost Converter",
+    "SD Card Data Logger Module"
+  ],
+  "element_usage_notes": {
+    "DS18B20 1-Wire Temperature Probe Array": "Two probes: one on TEG hot face (reaction vessel side), one on TEG cold face (heat sink side).",
+    "Peltier TEC Module with H-Bridge Driver": "Operated with H-bridge disabled — module used passively as TEG; H-bridge wiring not energised.",
+    "TEG Module with MPPT Boost Converter": "Boost converter extracts power at MPPT voltage (50 % Voc); output charges LiPo buffer.",
+    "SD Card Data Logger Module": "Logs t, Th, Tc, ΔT, Voc, Seebeck coefficient S, power P_mW, cumulative energy mWh every 10 s."
+  },
+  "element_interactions": [
+    {
+      "from": "DS18B20 1-Wire Temperature Probe Array",
+      "to": "TEG Module with MPPT Boost Converter",
+      "data": "delta_T_K",
+      "description": "ΔT drives Seebeck EMF; used to compute expected Voc for MPPT voltage reference"
+    },
+    {
+      "from": "TEG Module with MPPT Boost Converter",
+      "to": "SD Card Data Logger Module",
+      "data": "Voc_V, power_mW",
+      "description": "Open-circuit voltage and harvested power logged for Seebeck coefficient computation"
+    },
+    {
+      "from": "DS18B20 1-Wire Temperature Probe Array",
+      "to": "SD Card Data Logger Module",
+      "data": "Th_Tc_C",
+      "description": "Hot and cold face temperatures logged every cycle"
+    },
+    {
+      "from": "Peltier TEC Module with H-Bridge Driver",
+      "to": "TEG Module with MPPT Boost Converter",
+      "data": "thermal_gradient",
+      "description": "TEC module body conducts temperature gradient from hot reaction side to TEG terminals"
+    }
+  ],
+  "integration_code": "#include <OneWire.h>\n#include <DallasTemperature.h>\n#include <SD.h>\n#define OW_PIN 2\n#define SD_CS 10\n#define TEG_V_PIN A0\n#define LOG_INTERVAL 10000UL\nOneWire ow(OW_PIN); DallasTemperature ds(&ow); File lg;\nfloat cumEnergyMWh=0;\nfloat mppt_tracker(float Voc){return Voc*0.50f;}\nvoid initHardware(){\n  ds.begin();SD.begin(SD_CS);\n  lg=SD.open(\"teg.csv\",FILE_WRITE);\n  if(lg)lg.println(\"t_s,Th,Tc,dT,Voc,S_uVK,P_mW,E_mWh\");\n  Serial.begin(9600);\n}\nfloat readTemperatureSensor(int idx){ds.requestTemperatures();return ds.getTempCByIndex(idx);}\nfloat readTEGVoltage(){return analogRead(TEG_V_PIN)*5.0f/1023.0f;}\nvoid logSeebeckData(unsigned long t,float Th,float Tc,float Voc,float dt_s){\n  float dT=Th-Tc;\n  float S_uVK=(dT>0.5f)?Voc/dT*1e6f:0;\n  float Vmpp=mppt_tracker(Voc);\n  float R_int=1.5f;\n  float P_mW=(Vmpp*Vmpp/R_int)*1000.0f;\n  cumEnergyMWh+=P_mW*(dt_s/3600.0f);\n  if(lg){lg.print(t);lg.print(',');lg.print(Th,2);lg.print(',');lg.print(Tc,2);lg.print(',');\n  lg.print(dT,2);lg.print(',');lg.print(Voc,4);lg.print(',');lg.print(S_uVK,1);lg.print(',');\n  lg.print(P_mW,3);lg.print(',');lg.println(cumEnergyMWh,4);lg.flush();}\n  Serial.print(\"dT=\");Serial.print(dT,1);Serial.print(\" S=\");Serial.print(S_uVK,1);Serial.print(\"uV/K P=\");Serial.print(P_mW,2);Serial.println(\"mW\");\n}\nvoid checkFaultSafety(float Th){\n  if(Th>88.0f){Serial.println(\"FAULT:HOT_SIDE_OVERTEMP\");lg.close();while(1);}\n}\nvoid setup(){initHardware();}\nvoid loop(){\n  static unsigned long prev=0;unsigned long now=millis();\n  if(now-prev<LOG_INTERVAL)return;float dt=(now-prev)/1000.0f;prev=now;\n  float Th=readTemperatureSensor(0);float Tc=readTemperatureSensor(1);\n  checkFaultSafety(Th);\n  float Voc=readTEGVoltage();\n  logSeebeckData(now/1000,Th,Tc,Voc,dt);\n}",
+  "software_artifact_titles": [
+    "mppt_tracker"
+  ]
+}

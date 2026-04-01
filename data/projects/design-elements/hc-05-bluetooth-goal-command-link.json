@@ -1,0 +1,5 @@
+{
+  "title": "HC-05 Bluetooth Goal Command Link",
+  "component_category": "communication",
+  "selected_approach": "HC-05 on Serial1 at 9600 baud; 'G x,y\\n' sets goal; streams JSON status every 500 ms."
+}

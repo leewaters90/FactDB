@@ -1,0 +1,5 @@
+{
+  "title": "Crydom 40A SSR AC Heater Driver",
+  "component_category": "actuation",
+  "selected_approach": "Crydom D2440 solid-state relay; zero-cross switching; 240 VAC/40 A resistive; opto-isolated 3–32 VDC control from Arduino PWM; mounted to 100×50 mm heatsink"
+}

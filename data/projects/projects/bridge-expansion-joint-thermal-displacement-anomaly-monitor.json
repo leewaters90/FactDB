@@ -1,0 +1,48 @@
+{
+  "title": "Bridge Expansion Joint Thermal Displacement Anomaly Monitor",
+  "description": "Measures bridge expansion joint gap displacement with an LVDT sensor while simultaneously monitoring deck temperature with DS18B20 probes, predicts expected gap via the thermal expansion model, flags anomalies where actual gap deviates >3 mm from prediction (indicating bearing seizure or hidden restraint), and logs daily trend data to SD — differentiated from vibration damper projects by targeting thermal-mechanical joint health rather than dynamic response.",
+  "objective": "Detect expansion joint anomalies (measured vs. predicted gap deviation >3 mm) with daily SD logging and relay alert output; seasonal trend analysis of bearing condition.",
+  "constraints": "Arduino Uno, ±10 mm LVDT with conditioner, two DS18B20 sensors (top/bottom flange), relay for SMS modem, SD card; 20 m steel girder span (α=12e-6/°C); solar powered.",
+  "domain": "civil",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Linear Thermal Expansion of Structural Metals in Civil Applications",
+    "Beam Bending — Flexure Formula"
+  ],
+  "design_element_titles": [
+    "LVDT Displacement Transducer with DC Conditioner",
+    "DS18B20 1-Wire Temperature Probe Array",
+    "Buzzer and LED Fault Annunciator",
+    "Cascaded PID Rate and Attitude Controller"
+  ],
+  "element_usage_notes": {
+    "LVDT Displacement Transducer with DC Conditioner": "Directly measures actual joint gap displacement in mm with 0.01 mm resolution.",
+    "DS18B20 1-Wire Temperature Probe Array": "Top and bottom flange temperatures averaged for representative deck thermal state; T_ref=installation temperature.",
+    "Buzzer and LED Fault Annunciator": "Alerts when measured gap deviates >3 mm from thermal model (bearing fault indicator).",
+    "Cascaded PID Rate and Attitude Controller": "Rate-of-change monitor: inner loop tracks gap velocity; outer loop flags anomalous rate events beyond seasonal model."
+  },
+  "element_interactions": [
+    {
+      "from": "DS18B20 1-Wire Temperature Probe Array",
+      "to": "LVDT Displacement Transducer with DC Conditioner",
+      "data": "T_deck_C",
+      "description": "Deck temperature used to compute predicted expansion gap for comparison with LVDT measurement."
+    },
+    {
+      "from": "LVDT Displacement Transducer with DC Conditioner",
+      "to": "Cascaded PID Rate and Attitude Controller",
+      "data": "gap_mm",
+      "description": "Actual gap fed to rate monitor to detect sudden bearing release or lock events."
+    },
+    {
+      "from": "Cascaded PID Rate and Attitude Controller",
+      "to": "Buzzer and LED Fault Annunciator",
+      "data": "deviation_mm",
+      "description": "Deviation >3 mm from thermal model triggers alarm and relay output."
+    }
+  ],
+  "integration_code": "#include <OneWire.h>\n#include <DallasTemperature.h>\n#include <SD.h>\n#define LVDT_PIN A0\n#define RELAY_PIN 7\n#define BUZZER 8\n#define LED 9\n#define SD_CS 10\n#define ONE_WIRE_BUS 2\n#define SPAN_M 20.0f\n#define ALPHA 12e-6f\n#define DEV_LIMIT 3.0f\n#define LVDT_SCALE 20.0f\n#define LVDT_OFFSET 10.0f\nOneWire ow(ONE_WIRE_BUS); DallasTemperature ds(&ow);\nfloat T_ref=20.0f, gap_ref=15.0f;\nfloat intg=0,lastE=0,lastGap=0;\n\nfloat thermal_expansion_gap(float a,float L,float dT){return a*L*dT*1000.0f;}\n\nfloat read_gap_mm(){return (analogRead(LVDT_PIN)/1023.0f)*LVDT_SCALE-LVDT_OFFSET;}\n\nfloat read_temp(){\n  ds.requestTemperatures();\n  return (ds.getTempCByIndex(0)+ds.getTempCByIndex(1))/2.0f;\n}\n\nvoid check_anomaly(float gap,float T){\n  float dT=T-T_ref;\n  float pred=gap_ref+thermal_expansion_gap(ALPHA,SPAN_M,dT);\n  float dev=fabs(gap-pred);\n  float rate=(gap-lastGap)/3600.0f;\n  float expected_rate=thermal_expansion_gap(ALPHA,SPAN_M,0.5f)/3600.0f;\n  if(dev>DEV_LIMIT||fabs(rate)>expected_rate*2.5f){\n    tone(BUZZER,1500);analogWrite(LED,255);\n    digitalWrite(RELAY_PIN,HIGH);delay(200);digitalWrite(RELAY_PIN,LOW);\n  }else{noTone(BUZZER);analogWrite(LED,(int)(dev/DEV_LIMIT*100));}\n  lastGap=gap;\n}\n\nvoid log_sd(float gap,float T){\n  File f=SD.open(\"joint.csv\",FILE_WRITE);\n  float pred=gap_ref+thermal_expansion_gap(ALPHA,SPAN_M,T-T_ref);\n  if(f){f.print(millis());f.print(',');f.print(T);f.print(',');f.print(gap);f.print(',');f.println(pred);f.close();}\n}\n\nvoid setup(){Serial.begin(115200);ds.begin();SD.begin(SD_CS);pinMode(RELAY_PIN,OUTPUT);pinMode(BUZZER,OUTPUT);pinMode(LED,OUTPUT);}\n\nvoid loop(){float gap=read_gap_mm();float T=read_temp();check_anomaly(gap,T);log_sd(gap,T);Serial.print(\"gap=\");Serial.print(gap);Serial.print(\" T=\");Serial.println(T);delay(3600000);}",
+  "software_artifact_titles": [
+    "thermal_expansion_gap"
+  ]
+}

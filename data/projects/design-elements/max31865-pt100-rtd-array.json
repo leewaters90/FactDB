@@ -1,0 +1,5 @@
+{
+  "title": "MAX31865 PT100 RTD Array",
+  "component_category": "sensing",
+  "selected_approach": "Four MAX31865 RTD amplifiers; individual SPI CS pins 6/7/8/9; PT100 3-wire configuration; 0.03°C resolution; fault register polled per read cycle."
+}

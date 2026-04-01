@@ -1,0 +1,5 @@
+{
+  "title": "LM317 Galvanostatic Plating Current Source",
+  "component_category": "control",
+  "selected_approach": "LM317 constant-current regulator with 0.1 Ω sense shunt; setpoint 0–5 A from Arduino PWM+RC DAC; INA169 current monitor feeds ADC for closed-loop current feedback"
+}

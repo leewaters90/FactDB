@@ -1,0 +1,5 @@
+{
+  "title": "AT24C32 EEPROM Profile Scheduler",
+  "component_category": "processing",
+  "selected_approach": "AT24C32 I2C EEPROM; stores up to 20 profile segments (target_temp, ramp_rate_per_min, dwell_s) as packed bytes; reloaded at power-on; address 0x57"
+}

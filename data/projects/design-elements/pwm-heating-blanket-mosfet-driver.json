@@ -1,0 +1,5 @@
+{
+  "title": "PWM Heating Blanket MOSFET Driver",
+  "component_category": "actuation",
+  "selected_approach": "IRF540N MOSFET switching 12 V/10 A electric blanket at 490 Hz from Arduino PWM pin D9; gate via 10 Ω + 10 kΩ pull-down; 1N5822 freewheeling diode"
+}

@@ -1,0 +1,5 @@
+{
+  "title": "Slow-Close Motorised Ball Valve",
+  "component_category": "control",
+  "selected_approach": "24 V motorised ball valve with adjustable close time 5–60 s; controlled by Arduino relay output; close time computed from Joukowsky model to limit ΔP<200 kPa; relay latches for slow closure on flow-stop command."
+}

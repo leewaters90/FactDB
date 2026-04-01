@@ -1,0 +1,5 @@
+{
+  "title": "Peltier TEC Module with H-Bridge Driver",
+  "component_category": "control",
+  "selected_approach": "40 W Peltier TEC1-12706 module driven by L298N dual H-bridge. Direction pin sets heating/cooling mode; PWM enable pin controls power level 0–255. Heatsink + fan on hot side. Arduino can cool to ambient −15 °C or heat to ambient +30 °C. Enables precise bidirectional thermal control."
+}

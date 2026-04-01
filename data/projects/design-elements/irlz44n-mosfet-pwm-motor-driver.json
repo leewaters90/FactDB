@@ -1,0 +1,5 @@
+{
+  "title": "IRLZ44N MOSFET PWM Motor Driver",
+  "component_category": "actuation",
+  "selected_approach": "N-channel IRLZ44N switching at 20 kHz; 8-bit PWM via analogWrite pin 9; 1N4007 flyback diode; 0.1 Ω current-sense shunt for over-current detection."
+}

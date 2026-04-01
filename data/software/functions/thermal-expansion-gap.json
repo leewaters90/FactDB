@@ -1,0 +1,17 @@
+{
+  "title": "thermal_expansion_gap",
+  "artifact_type": "function",
+  "language": "arduino",
+  "signature": "float thermal_expansion_gap(float alpha, float L0_m, float delta_T)",
+  "content": "Computes predicted thermal expansion gap change in mm for a structural member given the linear expansion coefficient, span length (m), and temperature change (°C).",
+  "code": "float thermal_expansion_gap(float alpha, float L0_m, float delta_T) {\n  return alpha * L0_m * delta_T * 1000.0f;\n}",
+  "tags": [
+    "civil",
+    "structural",
+    "thermal-expansion",
+    "expansion-joint",
+    "bridge"
+  ],
+  "domain": "software",
+  "category": "function"
+}

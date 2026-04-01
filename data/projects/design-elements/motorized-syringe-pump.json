@@ -1,0 +1,5 @@
+{
+  "title": "Motorized Syringe Pump",
+  "component_category": "actuation",
+  "selected_approach": "20 mL glass syringe driven by a NEMA 17 stepper motor via lead screw (2 mm pitch). A4988 driver controlled from Arduino DIR/STEP pins. AccelStepper library. 0.01 mL/step resolution. Used for precise gas volume displacement in P-V-T experiments or reagent delivery."
+}

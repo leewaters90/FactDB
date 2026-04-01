@@ -1,0 +1,8 @@
+{
+  "title": "Carbon Fibre Prepreg Out-of-Autoclave Cure Cycle Optimisation",
+  "domain": "materials",
+  "category": "material selection",
+  "content": "Out-of-autoclave (OOA) CFRP cure of Hexply M21/T800: ramp 2 °C/min to 120 °C under vacuum ≥ 0.85 bar absolute; dwell 60 min; ramp 2 °C/min to 180 °C; dwell 120 min; cool ≤ 3 °C/min to 60 °C then vent. Exothermic peak at 135–145 °C can cause thermal runaway if ramp exceeds 3 °C/min. Void content < 1% requires continuous vacuum throughout heat-up. Pressure cascade control: outer loop tracks temperature ramp profile; inner loop maintains vacuum setpoint.",
+  "detail_level": "intermediate",
+  "id": "d599004c-874a-4be3-9962-5644a8bc077a"
+}

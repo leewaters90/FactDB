@@ -1,0 +1,5 @@
+{
+  "title": "CRC16-CCITT Command Validator",
+  "component_category": "processing",
+  "selected_approach": "CRC16-CCITT over command payload; reject corrupt frames and increment error counter; trigger DETECT state after 3 consecutive CRC errors."
+}

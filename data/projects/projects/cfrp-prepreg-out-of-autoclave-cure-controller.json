@@ -1,0 +1,56 @@
+{
+  "title": "CFRP Prepreg Out-of-Autoclave Cure Controller",
+  "description": "Cascade closed-loop cure controller for carbon-fibre prepreg laminate. Outer loop tracks a multi-segment temperature ramp profile via SSR furnace using PID; inner loop maintains vacuum bag pressure; exotherm runaway detection halts ramp; all data logged to serial.",
+  "objective": "Execute OOA cure profile (ramp→dwell→ramp→dwell→cool) with ±3 °C tracking; maintain vacuum ≥ 0.85 bar throughout; detect exotherm runaway (dT/dt > 5 °C/min) and hold temperature; fault-cut on overtemperature.",
+  "constraints": "Arduino Mega; 240 V SSR furnace; 0-10 bar transducer; 24 V solenoid; cascaded PID architecture; BOM < $90.",
+  "domain": "materials",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Carbon Fibre Prepreg Out-of-Autoclave Cure Cycle Optimisation",
+    "Ashby Material Selection — Property Charts"
+  ],
+  "design_element_titles": [
+    "MAX31855 Type-K Thermocouple SPI Amplifier",
+    "Crydom 40A SSR AC Heater Driver",
+    "0-10 bar Stainless Pressure Transducer Module",
+    "24VDC Vacuum Solenoid Valve Driver",
+    "Cascaded PID Rate and Attitude Controller"
+  ],
+  "element_usage_notes": [
+    "Type-K TC reads laminate surface temperature as primary PID process variable",
+    "SSR duty cycle controlled by outer PID loop for temperature",
+    "Vacuum level monitored every 500 ms; triggers alarm below 0.85 bar absolute",
+    "Solenoid modulated by inner pressure loop to maintain bag vacuum setpoint",
+    "Cascade architecture: outer ramp profiler → inner temperature PID → SSR, outer vacuum SP → inner pressure bang-bang → solenoid"
+  ],
+  "element_interactions": [
+    {
+      "from": "MAX31855 Type-K Thermocouple SPI Amplifier",
+      "to": "Crydom 40A SSR AC Heater Driver",
+      "data": "temperature_C",
+      "description": "Temperature PID process variable drives SSR duty for outer cure loop"
+    },
+    {
+      "from": "0-10 bar Stainless Pressure Transducer Module",
+      "to": "24VDC Vacuum Solenoid Valve Driver",
+      "data": "pressure_bar",
+      "description": "Pressure reading drives bang-bang inner vacuum control loop"
+    },
+    {
+      "from": "Cascaded PID Rate and Attitude Controller",
+      "to": "Crydom 40A SSR AC Heater Driver",
+      "data": "profile_setpoint_C",
+      "description": "Outer ramp profile feeds temperature setpoint to inner PID for cascade control"
+    },
+    {
+      "from": "MAX31855 Type-K Thermocouple SPI Amplifier",
+      "to": "0-10 bar Stainless Pressure Transducer Module",
+      "data": "exotherm_flag",
+      "description": "Exotherm runaway detected from TC triggers hold stage before pressure log"
+    }
+  ],
+  "integration_code": "#include <SPI.h>\n#include <Adafruit_MAX31855.h>\n\nextern int pid_heater_control(float sp,float pv,float dt,float kp,float ki,float kd,float* intg,float* lastE);\n\nAdafruit_MAX31855 tc(4);\nconst int SSR_PIN=9,SOL_PIN=7,PRES_PIN=A0;\nconst float KP=2.0f,KI=0.05f,KD=2.0f;\nconst float VAC_SP=0.85f;\nfloat intg=0,lastE=0;\nfloat prev_temp=25.0f;\n\nstruct Seg{float temp;float ramp;unsigned long dwell_s;};\nSeg profile[]={{120,2,3600},{180,2,7200},{60,-3,0}};\nconst int N_SEG=3;\nint seg=0;float seg_sp=25;unsigned long dwell_start=0;bool in_dwell=false;\n\n// === Thermocouple ===\nfloat tc_read(){double v=tc.readCelsius();return isnan(v)?-999.0f:(float)v;}\n\n// === SSR Actuator ===\nvoid ssr_init(){pinMode(SSR_PIN,OUTPUT);analogWrite(SSR_PIN,0);}\nvoid ssr_set(int p){analogWrite(SSR_PIN,constrain(p,0,255));}\n\n// === Pressure ===\nvoid pressure_init(){pinMode(PRES_PIN,INPUT);}\nfloat pressure_read(){return analogRead(PRES_PIN)*10.0f/1023.0f;}\nvoid vacuum_ctrl(float p_bar){pinMode(SOL_PIN,OUTPUT);digitalWrite(SOL_PIN,(p_bar<VAC_SP)?HIGH:LOW);}\n\n// === Ramp Profile ===\nvoid profile_advance(float pv,unsigned long now,float dt_s){\n  if(seg>=N_SEG)return;\n  if(!in_dwell){seg_sp+=profile[seg].ramp*dt_s/60.0f;bool reached=(profile[seg].ramp>=0)?(seg_sp>=profile[seg].temp):(seg_sp<=profile[seg].temp);if(reached){seg_sp=profile[seg].temp;in_dwell=true;dwell_start=now;}}\n  else if(now-dwell_start>profile[seg].dwell_s*1000UL){seg++;in_dwell=false;}}\n\n// === Exotherm Runaway ===\nbool exotherm_check(float pv,float dt_s){float rate=(pv-prev_temp)/dt_s*60.0f;prev_temp=pv;if(rate>5.0f){Serial.println(\"WARN:EXOTHERM\");return true;}return false;}\n\n// === Fault Handler ===\nbool fault_check(float t){if(t>200.0f||t<-100.0f){ssr_set(0);Serial.println(\"FAULT:TC\");return true;}return false;}\n\nvoid setup(){\n  Serial.begin(115200);tc.begin();\n  ssr_init();pressure_init();\n  Serial.println(\"t_s,sp,pv,pres_bar,pwm,seg\");\n}\n\nunsigned long lastMs=0;\nvoid loop(){\n  unsigned long now=millis();\n  float dt=(now-lastMs)/1000.0f;\n  if(dt<0.5f)return;lastMs=now;\n  float pv=tc_read(),pres=pressure_read();\n  if(fault_check(pv))return;\n  bool hold=exotherm_check(pv,dt);\n  if(!hold)profile_advance(pv,now,dt);\n  int pwm=pid_heater_control(seg_sp,pv,dt,KP,KI,KD,&intg,&lastE);\n  ssr_set(pwm);\n  vacuum_ctrl(pres);\n  Serial.print(now/1000);Serial.print(',');Serial.print(seg_sp,0);Serial.print(',');Serial.print(pv,1);Serial.print(',');Serial.print(pres,2);Serial.print(',');Serial.print(pwm);Serial.print(',');Serial.println(seg);\n}",
+  "software_artifact_titles": [
+    "pid_heater_control"
+  ]
+}

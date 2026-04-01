@@ -1,0 +1,17 @@
+{
+  "title": "sma_hysteresis_pid",
+  "artifact_type": "function",
+  "language": "arduino",
+  "signature": "int sma_hysteresis_pid(float sp, float pv, float dt, float wire_temp, float* intg, float* lastE)",
+  "content": "Applies asymmetric PID gains for SMA Nitinol position control to compensate for heating/cooling hysteresis. Cuts output if wire temperature exceeds 120 C.",
+  "code": "int sma_hysteresis_pid(float sp,float pv,float dt,float wire_temp,float* intg,float* lastE){\n  if(wire_temp>120.0f){*intg=0.0f;*lastE=0.0f;return 0;}\n  bool heating=(sp>pv);\n  float kp=heating?4.0f:1.8f;\n  float ki=heating?0.25f:0.08f;\n  float kd=heating?0.4f:0.15f;\n  return pid_heater_control(sp,pv,dt,kp,ki,kd,intg,lastE);\n}",
+  "tags": [
+    "SMA",
+    "nitinol",
+    "hysteresis",
+    "position-control",
+    "materials"
+  ],
+  "domain": "software",
+  "category": "function"
+}

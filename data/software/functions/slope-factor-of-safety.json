@@ -1,0 +1,17 @@
+{
+  "title": "slope_factor_of_safety",
+  "artifact_type": "function",
+  "language": "arduino",
+  "signature": "float slope_factor_of_safety(float c_kPa, float gamma, float gammaw, float z_m, float beta_deg, float phi_deg)",
+  "content": "Computes the factor of safety for an infinite slope under saturated conditions given effective cohesion, bulk and water unit weights, depth, slope angle, and friction angle.",
+  "code": "float slope_factor_of_safety(float c_kPa,float gamma,float gammaw,float z_m,float beta_deg,float phi_deg){\n  float b=beta_deg*PI/180.0f, p=phi_deg*PI/180.0f;\n  float num=c_kPa+(gamma-gammaw)*z_m*cos(b)*cos(b)*tan(p);\n  float den=gamma*z_m*sin(b)*cos(b);\n  return (den>0.0f)?num/den:99.0f;\n}",
+  "tags": [
+    "civil",
+    "geotechnical",
+    "slope-stability",
+    "factor-of-safety",
+    "landslide"
+  ],
+  "domain": "software",
+  "category": "function"
+}

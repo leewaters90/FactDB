@@ -1,0 +1,5 @@
+{
+  "title": "INA219 Bidirectional Current/Power Monitor (I2C)",
+  "component_category": "sensing",
+  "selected_approach": "Texas Instruments INA219 12-bit I2C power monitor with 10 mΩ shunt on each rail. Configured for 32 V / 2 A range (config register 0x3FFF). Bus voltage accuracy ±0.5 %; shunt voltage resolution 10 μV. Two devices at I2C addresses 0x40 (solar panel rail) and 0x41 (battery rail). Polled at 20 Hz; four-sample average before each MPPT update step."
+}

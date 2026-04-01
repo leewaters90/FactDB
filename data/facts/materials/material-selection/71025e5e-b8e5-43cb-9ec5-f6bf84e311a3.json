@@ -1,0 +1,8 @@
+{
+  "title": "Ceramic Sintering Grain Growth Kinetics and Final Density Evolution",
+  "domain": "materials",
+  "category": "material selection",
+  "content": "Al₂O₃ sintering densification: dρ/dt = A·D_gb·γ/(G³·T) where G is grain size and D_gb grain-boundary diffusivity. Grain growth: G² − G₀² = K·t·exp(−Q_g/RT) with Q_g = 480 kJ/mol for alumina. Target: 1550–1600 °C for 2 h yields > 99% theoretical density. Rapid cooling below 1000 °C at ≤ 10 °C/min suppresses abnormal grain growth. Multi-zone kiln enables ≤ ±5 °C uniformity across 500 mm length. Heating rate during binder burnout (300–600 °C) must remain ≤ 1 °C/min to avoid crack formation.",
+  "detail_level": "intermediate",
+  "id": "71025e5e-b8e5-43cb-9ec5-f6bf84e311a3"
+}

@@ -1,0 +1,8 @@
+{
+  "title": "Adiabatic Processes and Heat Capacity Measurement",
+  "domain": "chemical",
+  "category": "thermodynamics",
+  "content": "In an adiabatic process no heat is exchanged with surroundings (Q = 0). Adding a known electrical energy Q = V·I·t to an insulated sample of mass m raises its temperature by ΔT, giving Cp = Q/(m·ΔT) in J/(g·K). Practical adiabatic calorimeters use Dewar flasks and guard heaters to minimise parasitic losses. Correction for heat capacity of the vessel (Cv_vessel) is applied: Q = (m·Cp + Cv_vessel)·ΔT.",
+  "detail_level": "intermediate",
+  "id": "d3471039-3fc7-4fa6-ae94-3c78d579f530"
+}

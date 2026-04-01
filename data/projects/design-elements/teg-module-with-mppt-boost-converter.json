@@ -1,0 +1,5 @@
+{
+  "title": "TEG Module with MPPT Boost Converter",
+  "component_category": "power",
+  "selected_approach": "TEC1-12706 operated as TEG (generator mode). Output connected to MT3608 boost converter configured for MPPT at ~50 % of open-circuit voltage. Boost output charges 3.7 V LiPo via TP4056. Arduino ADC monitors TEG terminal voltage and open-circuit voltage via analog switch for Seebeck coefficient calculation."
+}

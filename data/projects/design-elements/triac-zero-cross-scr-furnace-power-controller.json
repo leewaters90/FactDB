@@ -1,0 +1,5 @@
+{
+  "title": "TRIAC Zero-Cross SCR Furnace Power Controller",
+  "component_category": "actuation",
+  "selected_approach": "BTA16 TRIAC + MOC3021 zero-cross optocoupler; controls 230 V resistive tube furnace element 0–100% power; gate resistor 360 Ω; snubber RC 100 Ω/100 nF"
+}

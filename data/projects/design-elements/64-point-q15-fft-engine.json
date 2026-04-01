@@ -1,0 +1,5 @@
+{
+  "title": "64-Point Q15 FFT Engine",
+  "component_category": "processing",
+  "selected_approach": "Radix-2 DIT FFT; 16-bit Q15 arithmetic; bit-reversal permutation; simplified twiddle factors; magnitude via L1 norm approximation; runs in <2 ms at 16 MHz."
+}

@@ -1,0 +1,5 @@
+{
+  "title": "SMA Nitinol Wire DRV8833 H-Bridge Driver",
+  "component_category": "actuation",
+  "selected_approach": "DRV8833 dual H-bridge; drives 0.5 mm Nitinol wire at 0–1.5 A via PWM; 2 Ω current-limiting series resistor; thermal cutout relay at 130 °C wire temperature"
+}

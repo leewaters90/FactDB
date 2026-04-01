@@ -1,0 +1,8 @@
+{
+  "title": "Maturity Method for Concrete Compressive Strength Estimation",
+  "domain": "civil",
+  "category": "structural engineering",
+  "content": "The Nurse-Saul maturity index M = Σ(T − T₀)·Δt (°C·h), where T₀ = −10°C for ordinary Portland cement, integrates temperature history to estimate compressive strength. Strength follows S = S∞ · log(M/M₀) calibrated per mix design. Embedded thermocouples enable real-time maturity tracking, allowing form-stripping decisions and heated-curing optimisation. Typical target: M ≥ 420 °C·h for 70% characteristic strength.",
+  "detail_level": "intermediate",
+  "id": "962ab465-8d18-4ff7-819e-74784ef7e009"
+}

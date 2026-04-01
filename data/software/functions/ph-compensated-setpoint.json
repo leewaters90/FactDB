@@ -1,0 +1,17 @@
+{
+  "title": "ph_compensated_setpoint",
+  "artifact_type": "function",
+  "language": "arduino",
+  "signature": "float ph_compensated_setpoint(float nominal_sp, float T_C)",
+  "content": "Adjusts nominal pH setpoint for electrode temperature coefficient. Returns temperature-corrected pH target.",
+  "code": "float ph_compensated_setpoint(float nominal_sp, float T_C){\n  return nominal_sp - 0.003f*(T_C - 25.0f);\n}",
+  "tags": [
+    "pH",
+    "temperature-compensation",
+    "buffer",
+    "chemical",
+    "arduino"
+  ],
+  "domain": "software",
+  "category": "function"
+}

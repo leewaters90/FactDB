@@ -1,0 +1,8 @@
+{
+  "id": "fact-cold-gas-thruster-dynamics",
+  "title": "Cold-Gas Thruster Dynamics and Pulse-Width Modulation Control",
+  "domain": "aerospace",
+  "category": "propulsion",
+  "content": "Cold-gas thrusters expel pressurised inert gas (N2, CO2) through a solenoid valve to generate micro-Newton to milli-Newton thrust. Impulse bit I_bit = F * t_pulse. Thrust is modulated by varying pulse width (PWM duty on solenoid) or pulse repetition frequency. Minimum pulse width is limited by valve response time (~5 ms). Specific impulse Isp ~65 s for N2. Total ΔV budget from Tsiolkovsky: ΔV = Isp * g0 * ln(m0/mf). Used on CubeSats for attitude and orbit control.",
+  "detail_level": "intermediate"
+}

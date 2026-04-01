@@ -1,0 +1,8 @@
+{
+  "title": "Reaction Rate Kinetics — Arrhenius Equation",
+  "domain": "chemical",
+  "category": "kinetics",
+  "content": "The rate constant k depends exponentially on temperature: k = A·exp(−Ea/RT), where A is the pre-exponential factor, Ea the activation energy (J/mol), R the gas constant, and T absolute temperature (K). A 10 °C rise approximately doubles most reaction rates (Q10 rule). Sets hard upper temperature limits for safe reactor operation and informs PID setpoint selection.",
+  "detail_level": "intermediate",
+  "id": "2a563544-3679-4f29-b04e-b9ebd25f7f26"
+}

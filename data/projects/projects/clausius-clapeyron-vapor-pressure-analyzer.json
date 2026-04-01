@@ -1,0 +1,57 @@
+{
+  "title": "Clausius-Clapeyron Vapor Pressure Analyzer",
+  "description": "Stepped-temperature experiment that measures vapor pressure at 8 discrete temperatures (30–65 °C in 5 °C steps) inside a sealed borosilicate vessel. A BMP280 barometric sensor reads headspace pressure; a DS18B20 measures bulk liquid temperature. A resistance heater steps temperature and allows 5-minute equilibration per point. On-board Arduino performs a Clausius-Clapeyron linear regression (ln P vs 1/T) and reports ΔHvap to Serial and SD card.",
+  "objective": "Determine the enthalpy of vaporization ΔHvap of a pure liquid (e.g., ethanol or water) from 8 stepped-temperature pressure measurements and a least-squares Clausius-Clapeyron fit.",
+  "constraints": "Arduino Uno, DS18B20, BMP280, sealed glass vessel ≤ 3 bar, 12V resistance heater; no volatile flammable solvents near open flame; max vessel temperature 70 °C.",
+  "domain": "chemical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Vapor Pressure and Clausius-Clapeyron Equation",
+    "Ideal Gas Law",
+    "Heat of Reaction and Calorimetry"
+  ],
+  "design_element_titles": [
+    "DS18B20 1-Wire Temperature Probe Array",
+    "BMP280 Barometric Pressure Sensor Module",
+    "Sealed Glass Reaction Vessel with Pressure Port",
+    "Resistance Heater with PWM Control",
+    "SD Card Data Logger Module"
+  ],
+  "element_usage_notes": {
+    "DS18B20 1-Wire Temperature Probe Array": "Immersed in liquid to confirm equilibrated temperature before pressure is recorded.",
+    "BMP280 Barometric Pressure Sensor Module": "Reads headspace pressure after thermal equilibration at each temperature step.",
+    "Sealed Glass Reaction Vessel with Pressure Port": "Maintains fixed liquid volume; pressure port connects BMP280 to headspace.",
+    "Resistance Heater with PWM Control": "Bang-bang control steps temperature to each target; held until equilibration.",
+    "SD Card Data Logger Module": "Logs all (T, P, ln P, 1/T) rows plus final ΔHvap result."
+  },
+  "element_interactions": [
+    {
+      "from": "Resistance Heater with PWM Control",
+      "to": "Sealed Glass Reaction Vessel with Pressure Port",
+      "data": "heat_flux_W",
+      "description": "Heater warms liquid in sealed vessel to each target temperature step"
+    },
+    {
+      "from": "DS18B20 1-Wire Temperature Probe Array",
+      "to": "BMP280 Barometric Pressure Sensor Module",
+      "data": "equilibrium_flag",
+      "description": "Pressure sampled only after temperature drift < 0.1 °C/min"
+    },
+    {
+      "from": "BMP280 Barometric Pressure Sensor Module",
+      "to": "SD Card Data Logger Module",
+      "data": "pressure_Pa",
+      "description": "Equilibrated pressure logged with corresponding temperature"
+    },
+    {
+      "from": "DS18B20 1-Wire Temperature Probe Array",
+      "to": "SD Card Data Logger Module",
+      "data": "temperature_C",
+      "description": "Temperature logged alongside pressure for regression dataset"
+    }
+  ],
+  "integration_code": "#include <OneWire.h>\n#include <DallasTemperature.h>\n#include <Wire.h>\n#include <Adafruit_BMP280.h>\n#include <SD.h>\n#define HEATER_PIN 9\n#define OW_PIN 2\n#define SD_CS 10\n#define T_START 30.0f\n#define T_STEP 5.0f\n#define N_STEPS 8\n#define EQUIL_MS 300000UL\n#define FAULT_TEMP 75.0f\nOneWire ow(OW_PIN); DallasTemperature ds(&ow);\nAdafruit_BMP280 bmp; File lg;\nfloat lnPArr[N_STEPS], invTArr[N_STEPS];\nint stepIdx=0; unsigned long stepStart=0;\nfloat clausius_clapeyron_fit(float*lnP,float*invT,int n,float*slope){\n  float sx=0,sy=0,sxy=0,sx2=0;\n  for(int i=0;i<n;i++){sx+=invT[i];sy+=lnP[i];sxy+=invT[i]*lnP[i];sx2+=invT[i]*invT[i];}\n  float denom=n*sx2-sx*sx; if(denom==0){*slope=0;return 0;}\n  *slope=(n*sxy-sx*sy)/denom;\n  float b=(sy-*slope*sx)/n,sstot=0,ssres=0,ymean=sy/n;\n  for(int i=0;i<n;i++){float yh=*slope*invT[i]+b;ssres+=(lnP[i]-yh)*(lnP[i]-yh);sstot+=(lnP[i]-ymean)*(lnP[i]-ymean);}\n  return (sstot>0)?1.0f-ssres/sstot:1.0f;\n}\nvoid initHardware(){\n  pinMode(HEATER_PIN,OUTPUT); ds.begin(); bmp.begin();\n  SD.begin(SD_CS); lg=SD.open(\"pvt.csv\",FILE_WRITE);\n  if(lg) lg.println(\"step,T_C,P_Pa,lnP,invT\");\n  Serial.begin(9600); stepStart=millis();\n}\nfloat readTemperatureSensor(){ ds.requestTemperatures(); return ds.getTempCByIndex(0); }\nfloat readPressureSensor(){ return bmp.readPressure(); }\nvoid setHeaterBangBang(float sp, float pv){\n  analogWrite(HEATER_PIN,(pv<sp-0.5f)?200:0);\n}\nvoid logStepData(int s, float T, float P){\n  float lnP=log(P), invT=1.0f/(T+273.15f);\n  lnPArr[s]=lnP; invTArr[s]=invT;\n  if(lg){lg.print(s);lg.print(',');lg.print(T,2);lg.print(',');lg.print(P,1);lg.print(',');lg.print(lnP,5);lg.print(',');lg.println(invT,7);lg.flush();}\n  Serial.print(\"S=\");Serial.print(s);Serial.print(\" T=\");Serial.print(T,2);Serial.print(\" P=\");Serial.println(P,1);\n}\nvoid checkFaultSafety(float T){ if(T>FAULT_TEMP){analogWrite(HEATER_PIN,0);Serial.println(\"FAULT:OVERTEMP\");while(1);} }\nvoid setup(){ initHardware(); }\nvoid loop(){\n  if(stepIdx>=N_STEPS){\n    float slope=0;\n    float r2=clausius_clapeyron_fit(lnPArr,invTArr,N_STEPS,&slope);\n    float dHvap=-slope*8.314f;\n    Serial.print(\"dHvap=\");Serial.print(dHvap/1000.0f,2);Serial.print(\"kJ/mol R2=\");Serial.println(r2,4);\n    if(lg){lg.print(\"dHvap_kJ=\");lg.print(dHvap/1000.0f,2);lg.print(\" R2=\");lg.println(r2,4);lg.close();}\n    analogWrite(HEATER_PIN,0); while(1);\n  }\n  float sp=T_START+stepIdx*T_STEP;\n  float T=readTemperatureSensor(); checkFaultSafety(T);\n  setHeaterBangBang(sp,T);\n  if(millis()-stepStart>EQUIL_MS){\n    float P=readPressureSensor(); logStepData(stepIdx,T,P);\n    stepIdx++; stepStart=millis();\n  }\n  delay(500);\n}",
+  "software_artifact_titles": [
+    "clausius_clapeyron_fit"
+  ]
+}

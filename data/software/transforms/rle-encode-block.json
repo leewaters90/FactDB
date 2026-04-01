@@ -1,0 +1,17 @@
+{
+  "title": "rle_encode_block",
+  "artifact_type": "transform",
+  "language": "arduino",
+  "signature": "uint16_t rle_encode_block(uint8_t* in, uint16_t in_len, uint8_t* out, uint16_t out_max)",
+  "content": "RLE-encodes a byte buffer into (value,count) pairs in O(N) time; returns compressed output length; stops early if output would exceed out_max.",
+  "code": "uint16_t rle_encode_block(uint8_t* in,uint16_t n,uint8_t* out,uint16_t om){\n  if(n==0)return 0;\n  uint16_t oi=0;\n  uint8_t cv=in[0],cc=1;\n  for(uint16_t i=1;i<n;i++){\n    if(in[i]==cv&&cc<255){cc++;}\n    else{\n      if(oi+2>om)break;\n      out[oi++]=cv;out[oi++]=cc;\n      cv=in[i];cc=1;}}\n  if(oi+2<=om){out[oi++]=cv;out[oi++]=cc;}\n  return oi;\n}",
+  "tags": [
+    "rle",
+    "compression",
+    "logging",
+    "flash",
+    "embedded"
+  ],
+  "domain": "software",
+  "category": "transform"
+}

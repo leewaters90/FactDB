@@ -1,0 +1,18 @@
+{
+  "title": "lpr_corrosion_rate",
+  "artifact_type": "transform",
+  "language": "arduino",
+  "signature": "float lpr_corrosion_rate(float delta_V_mV, float delta_I_uA, float area_cm2, float B_mV)",
+  "content": "Computes steel corrosion rate in mm/year from LPR polarisation scan using the Stern-Geary equation.",
+  "code": "float lpr_corrosion_rate(float delta_V_mV,float delta_I_uA,float area_cm2,float B_mV){\n  if(delta_I_uA<0.001f)return -1.0f;\n  float Rp=(delta_V_mV*1e-3f)/(delta_I_uA*1e-6f)*area_cm2;\n  float i_corr=B_mV*1e-3f/Rp;\n  return 0.00327f*i_corr*55.85f/(2.0f*7.87f);\n}",
+  "tags": [
+    "corrosion",
+    "LPR",
+    "Stern-Geary",
+    "steel",
+    "materials",
+    "electrochemistry"
+  ],
+  "domain": "software",
+  "category": "transform"
+}

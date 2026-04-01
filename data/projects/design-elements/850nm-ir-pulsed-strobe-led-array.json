@@ -1,0 +1,5 @@
+{
+  "title": "850nm IR Pulsed Strobe LED Array",
+  "component_category": "sensing",
+  "selected_approach": "4× OSRAM SFH4550 850 nm IR LEDs in oblique-incidence fixture; pulsed at 1 ms via MOSFET from Arduino D6 to freeze motion; provides uniform grazing illumination for delamination contrast enhancement"
+}

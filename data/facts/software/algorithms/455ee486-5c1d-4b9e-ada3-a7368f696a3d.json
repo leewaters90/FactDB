@@ -1,0 +1,8 @@
+{
+  "title": "Finite State Machine Fault Recovery Patterns",
+  "domain": "software",
+  "category": "algorithms",
+  "content": "Safety-critical FSMs define hierarchical recovery states: NORMAL → DETECT (fault observed) → ISOLATE (subsystem halted) → RECOVER (safe restart). Transitions are guarded by CRC-validated commands to prevent corruption-driven misbehaviour. An EEPROM ring-buffer logs the last 16 transitions as {from, to, fault_code, time_hi} records for post-mortem analysis after unexpected resets.",
+  "detail_level": "intermediate",
+  "id": "455ee486-5c1d-4b9e-ada3-a7368f696a3d"
+}

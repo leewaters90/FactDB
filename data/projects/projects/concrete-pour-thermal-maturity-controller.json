@@ -1,0 +1,54 @@
+{
+  "title": "Concrete Pour Thermal Maturity Controller",
+  "description": "Closed-loop heating-blanket controller that monitors four embedded PT100 probes in fresh concrete, enforces hydration thermal-gradient limits, computes the Nurse-Saul maturity index in real time, and logs all data to SD card for structural compliance reporting.",
+  "objective": "Hold cure temperature at 65 °C setpoint, limit cross-section gradient to ≤15 °C, accumulate maturity index every second, trigger safe shutdown on overtemperature or excessive gradient.",
+  "constraints": "Arduino Uno; 12 V 10 A blanket; four embedded PT100s; SD card logging; hardware fault shutdown; BOM < $40.",
+  "domain": "materials",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Concrete Hydration Exotherm and Thermal Gradient Limits",
+    "Maturity Method for Concrete Compressive Strength Estimation"
+  ],
+  "design_element_titles": [
+    "PT100 RTD Four-Channel Temperature Array",
+    "PWM Heating Blanket MOSFET Driver",
+    "MicroSD SPI Logging Shield",
+    "DS3231 I2C Real-Time Clock Module"
+  ],
+  "element_usage_notes": [
+    "Four probes at pour corners and centre-top; gradient = max − min channel",
+    "Duty cycle set by PID output 0-255; hardware OCP via MOSFET Rdson",
+    "CSV row: epoch, T0-T3, avg, gradient, pwm, maturity, fault",
+    "Provides epoch seconds for each log row for compliance traceability"
+  ],
+  "element_interactions": [
+    {
+      "from": "PT100 RTD Four-Channel Temperature Array",
+      "to": "PWM Heating Blanket MOSFET Driver",
+      "data": "average_temperature_C",
+      "description": "PID controller uses average RTD reading as process variable to set blanket PWM duty"
+    },
+    {
+      "from": "PT100 RTD Four-Channel Temperature Array",
+      "to": "MicroSD SPI Logging Shield",
+      "data": "four_channel_readings",
+      "description": "All channel values written to CSV each second"
+    },
+    {
+      "from": "DS3231 I2C Real-Time Clock Module",
+      "to": "MicroSD SPI Logging Shield",
+      "data": "unix_epoch_s",
+      "description": "RTC supplies absolute timestamp for each log row"
+    },
+    {
+      "from": "PWM Heating Blanket MOSFET Driver",
+      "to": "MicroSD SPI Logging Shield",
+      "data": "pwm_duty_0_255",
+      "description": "Actuator state co-logged with sensor data for audit trail"
+    }
+  ],
+  "integration_code": "#include <SPI.h>\n#include <SD.h>\n\nextern int pid_heater_control(float sp,float pv,float dt,float kp,float ki,float kd,float* intg,float* lastE);\n\nconst float SP=65.0f,KP=2.0f,KI=0.1f,KD=0.5f,GRAD_MAX=15.0f,TEMP_MAX=80.0f;\nconst int HEAT_PIN=9,SD_CS=10,N=4;\nconst int SPINS[4]={A0,A1,A2,A3};\nfloat intg=0,lastE=0,maturity=0;\nbool sd_ok=false;\n\n// === PT100 Array ===\nvoid sensors_init(){for(int i=0;i<N;i++)pinMode(SPINS[i],INPUT);}\nfloat sensors_avg(){float s=0;for(int i=0;i<N;i++)s+=analogRead(SPINS[i])*0.4883f;return s/N;}\nfloat sensors_gradient(){int mx=0,mn=1023;for(int i=0;i<N;i++){int v=analogRead(SPINS[i]);if(v>mx)mx=v;if(v<mn)mn=v;}return(mx-mn)*0.4883f;}\n\n// === Heating Blanket ===\nvoid blanket_init(){pinMode(HEAT_PIN,OUTPUT);analogWrite(HEAT_PIN,0);}\nvoid blanket_set(int p){analogWrite(HEAT_PIN,constrain(p,0,255));}\n\n// === SD Logger ===\nvoid logger_init(){sd_ok=SD.begin(SD_CS);if(sd_ok){File f=SD.open(\"cure.csv\",FILE_WRITE);if(f){f.println(\"epoch,t0,t1,t2,t3,avg,grad,pwm,maturity,fault\");f.close();}}}\nvoid logger_write(unsigned long ep,float avg,float grad,int pwm,float mat,bool fa){\n  if(!sd_ok)return;\n  File f=SD.open(\"cure.csv\",FILE_WRITE);\n  if(f){f.print(ep);f.print(',');f.print(avg,2);f.print(',');f.print(grad,2);f.print(',');f.print(pwm);f.print(',');f.print(mat,1);f.print(',');f.println(fa?1:0);f.close();}}\n\n// === Maturity ===\nvoid maturity_update(float t,float dt_s){if(t>-10.0f)maturity+=(t+10.0f)*dt_s/3600.0f;}\n\n// === Fault Handler ===\nbool fault_check(float t,float g){if(t>TEMP_MAX||t<-5.0f){blanket_set(0);Serial.println(\"FAULT:TEMP\");return true;}if(g>GRAD_MAX){blanket_set(0);Serial.println(\"FAULT:GRAD\");return true;}return false;}\n\nvoid setup(){\n  Serial.begin(115200);\n  sensors_init();blanket_init();logger_init();\n  Serial.println(\"Concrete Cure Controller Ready\");\n}\n\nunsigned long lastMs=0;\nvoid loop(){\n  unsigned long now=millis();\n  float dt=(now-lastMs)/1000.0f;\n  if(dt<1.0f)return;\n  lastMs=now;\n  float pv=sensors_avg(),grad=sensors_gradient();\n  bool fault=fault_check(pv,grad);\n  int pwm=0;\n  if(!fault)pwm=pid_heater_control(SP,pv,dt,KP,KI,KD,&intg,&lastE);\n  blanket_set(pwm);\n  maturity_update(pv,dt);\n  logger_write(now/1000,pv,grad,pwm,maturity,fault);\n  Serial.print(\"T=\");Serial.print(pv,1);Serial.print(\" M=\");Serial.print(maturity,0);Serial.print(\" G=\");Serial.println(grad,1);\n}",
+  "software_artifact_titles": [
+    "pid_heater_control"
+  ]
+}

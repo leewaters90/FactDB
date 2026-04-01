@@ -1,0 +1,17 @@
+{
+  "title": "distillation_reflux_controller",
+  "artifact_type": "function",
+  "language": "arduino",
+  "signature": "void distillation_reflux_controller(float R_target, unsigned long period_ms, int reflux_valve_pin, int distillate_valve_pin)",
+  "content": "Controls reflux ratio by timed switching of two solenoid valves over a fixed period. R_target = reflux/(reflux+distillate).",
+  "code": "void distillation_reflux_controller(float R,unsigned long period,int rv,int dv){\n  unsigned long t_reflux=(unsigned long)(R*period);\n  unsigned long t_dist=period-t_reflux;\n  digitalWrite(rv,HIGH);digitalWrite(dv,LOW);delay(t_reflux);\n  digitalWrite(rv,LOW);digitalWrite(dv,HIGH);delay(t_dist);\n  digitalWrite(dv,LOW);\n}",
+  "tags": [
+    "distillation",
+    "reflux-ratio",
+    "separation",
+    "chemical",
+    "arduino"
+  ],
+  "domain": "software",
+  "category": "function"
+}

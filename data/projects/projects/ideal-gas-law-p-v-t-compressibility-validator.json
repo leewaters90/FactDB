@@ -1,0 +1,57 @@
+{
+  "title": "Ideal Gas Law P-V-T Compressibility Validator",
+  "description": "Validates PV = nRT for a fixed air sample by stepping a motorized syringe pump through 6 volume positions (20–50 mL in 6 mL steps) at two temperatures (25 °C and 50 °C) while reading headspace pressure with a BMP280. The Arduino computes the compressibility factor Z = PV/nRT at each point and logs deviations from ideal behaviour. An over-pressure fault trips at 200 kPa.",
+  "objective": "Measure compressibility factor Z at 12 P-V-T operating points and verify Z within ±2 % of unity for air at near-ambient conditions.",
+  "constraints": "Arduino Uno, BMP280, DS18B20, NEMA17 stepper, A4988 driver, 20 mL syringe; max pressure 200 kPa gauge; max temperature 55 °C; no reactive gases.",
+  "domain": "chemical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Gibbs Free Energy and Chemical Spontaneity",
+    "Ideal Gas Law",
+    "First Law of Thermodynamics"
+  ],
+  "design_element_titles": [
+    "BMP280 Barometric Pressure Sensor Module",
+    "DS18B20 1-Wire Temperature Probe Array",
+    "Motorized Syringe Pump",
+    "Resistance Heater with PWM Control",
+    "SD Card Data Logger Module"
+  ],
+  "element_usage_notes": {
+    "BMP280 Barometric Pressure Sensor Module": "Reads headspace pressure after each volume step; sampled after 30 s equilibration.",
+    "DS18B20 1-Wire Temperature Probe Array": "Monitors gas temperature to compute T_K for Z calculation; heater maintains temperature setpoints.",
+    "Motorized Syringe Pump": "Steps through six volume positions; each step displaces ~6 mL and waits for pressure equilibration.",
+    "Resistance Heater with PWM Control": "Warms vessel to second temperature set-point (50 °C) for the second sweep series.",
+    "SD Card Data Logger Module": "Logs V_cm3, P_Pa, T_K, Z at every measurement point."
+  },
+  "element_interactions": [
+    {
+      "from": "Motorized Syringe Pump",
+      "to": "BMP280 Barometric Pressure Sensor Module",
+      "data": "volume_cm3",
+      "description": "Volume step causes pressure change; BMP280 reads new equilibrium pressure"
+    },
+    {
+      "from": "DS18B20 1-Wire Temperature Probe Array",
+      "to": "Resistance Heater with PWM Control",
+      "data": "temperature_C",
+      "description": "Bang-bang heater holds vessel at target temperature during each sweep"
+    },
+    {
+      "from": "BMP280 Barometric Pressure Sensor Module",
+      "to": "SD Card Data Logger Module",
+      "data": "pressure_Pa",
+      "description": "Pressure logged with corresponding volume and temperature"
+    },
+    {
+      "from": "DS18B20 1-Wire Temperature Probe Array",
+      "to": "SD Card Data Logger Module",
+      "data": "temperature_K",
+      "description": "Gas temperature logged for compressibility factor computation"
+    }
+  ],
+  "integration_code": "#include <OneWire.h>\n#include <DallasTemperature.h>\n#include <Wire.h>\n#include <Adafruit_BMP280.h>\n#include <AccelStepper.h>\n#include <SD.h>\n#define OW_PIN 2\n#define HEATER_PIN 9\n#define SD_CS 10\n#define STEP_PIN 4\n#define DIR_PIN 5\n#define N_VOL 6\n#define N_TEMP 2\n#define EQUIL_MS 30000UL\n#define FAULT_P 200000.0f\n#define N_MOL 0.00082f\nOneWire ow(OW_PIN); DallasTemperature ds(&ow);\nAdafruit_BMP280 bmp; AccelStepper stp(1,STEP_PIN,DIR_PIN);\nFile lg;\nfloat vols[N_VOL]={20,26,32,38,44,50};\nfloat temps[N_TEMP]={25.0f,50.0f};\nfloat ideal_gas_validator(float P,float V,float T,float n){\n  float V_m3=V*1e-6f; float nRT=n*8.314f*T;\n  return (nRT>0)?(P*V_m3)/nRT:-1.0f;\n}\nvoid initHardware(){\n  ds.begin();bmp.begin();stp.setMaxSpeed(200);stp.setAcceleration(100);\n  pinMode(HEATER_PIN,OUTPUT);SD.begin(SD_CS);\n  lg=SD.open(\"pvt.csv\",FILE_WRITE);\n  if(lg)lg.println(\"T_C,V_cm3,P_Pa,Z\");\n  Serial.begin(9600);\n}\nfloat readTemperatureSensor(){ds.requestTemperatures();return ds.getTempCByIndex(0);}\nfloat readPressureSensor(){return bmp.readPressure();}\nvoid heaterBangBang(float sp,float pv){analogWrite(HEATER_PIN,(pv<sp-0.5f)?180:0);}\nvoid moveSyringe(float target_mL,float*cur_mL){\n  float delta=target_mL-*cur_mL;\n  long steps=(long)(delta*1000.0f);\n  stp.move(steps);while(stp.run());*cur_mL=target_mL;\n}\nvoid checkFaultSafety(float P){if(P>FAULT_P){analogWrite(HEATER_PIN,0);Serial.println(\"FAULT:OVERPRESSURE\");while(1);}}\nvoid setup(){initHardware();}\nvoid loop(){\n  static int ti=0,vi=0;static float curML=20.0f;\n  static unsigned long eqStart=0;static bool moving=true;\n  if(ti>=N_TEMP){lg.close();while(1);}\n  float sp=temps[ti];\n  float T=readTemperatureSensor();heaterBangBang(sp,T);\n  float P=readPressureSensor();checkFaultSafety(P);\n  if(moving){moveSyringe(vols[vi],&curML);eqStart=millis();moving=false;}\n  if(millis()-eqStart>EQUIL_MS){\n    T=readTemperatureSensor();P=readPressureSensor();\n    float Z=ideal_gas_validator(P,vols[vi],T+273.15f,N_MOL);\n    if(lg){lg.print(T,2);lg.print(',');lg.print(vols[vi],1);lg.print(',');lg.print(P,1);lg.print(',');lg.println(Z,5);lg.flush();}\n    Serial.print(\"Z=\");Serial.println(Z,5);\n    vi++;if(vi>=N_VOL){vi=0;ti++;moveSyringe(20.0f,&curML);}\n    moving=true;\n  }\n  delay(200);\n}",
+  "software_artifact_titles": [
+    "ideal_gas_validator"
+  ]
+}

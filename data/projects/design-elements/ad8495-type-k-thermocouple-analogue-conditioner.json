@@ -1,0 +1,5 @@
+{
+  "title": "AD8495 Type-K Thermocouple Analogue Conditioner",
+  "component_category": "sensing",
+  "selected_approach": "AD8495 K-type thermocouple amplifier; 5 mV/°C output; cold-junction compensation on-chip; 0–600 °C → 0–3 V; three independent modules for zone 1/2/3; no SPI needed"
+}

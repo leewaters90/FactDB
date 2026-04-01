@@ -1,0 +1,5 @@
+{
+  "title": "Three-Electrode TL072 Potentiostat Circuit",
+  "component_category": "sensing",
+  "selected_approach": "TL072 dual op-amp potentiostat; counter electrode graphite rod; Ag/AgCl reference electrode; working electrode embedded rebar; ±20 mV polarisation from MCP4725 12-bit DAC; current sensed via 100 Ω shunt to INA128"
+}

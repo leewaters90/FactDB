@@ -1,0 +1,5 @@
+{
+  "title": "MAX485 RS-485 MODBUS RTU Slave",
+  "component_category": "communication",
+  "selected_approach": "MAX485 transceiver on UART1; MODBUS RTU slave address 1; holding registers 40001-40008 for setpoints and temperatures; 9600 baud; DE/RE on pin 4."
+}

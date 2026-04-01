@@ -1,0 +1,8 @@
+{
+  "title": "Factor of Safety for Infinite Slope Stability",
+  "domain": "civil",
+  "category": "structural engineering",
+  "content": "For a saturated infinite slope: FS=(c'+(γ−γw)·z·cos²β·tanφ')/(γ·z·sinβ·cosβ), where c' is effective cohesion (kPa), γ and γw are bulk and water unit weights (kN/m³), z is depth to slip plane (m), β is slope angle, and φ' is effective friction angle. FS<1.0 indicates imminent failure; monitoring systems typically issue warnings at FS<1.5. Dynamic triggering from rainfall infiltration rapidly reduces c' and increases γ.",
+  "detail_level": "intermediate",
+  "id": "1dd65b4f-e871-4c6c-a1e4-88be53cb3e1d"
+}

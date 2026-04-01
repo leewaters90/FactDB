@@ -1,0 +1,17 @@
+{
+  "title": "fsm_transition",
+  "artifact_type": "function",
+  "language": "arduino",
+  "signature": "uint8_t fsm_transition(uint8_t state, uint8_t event, uint8_t fault_code)",
+  "content": "Evaluates 4-state transition table; logs new transition to EEPROM ring buffer; returns new state index.",
+  "code": "#include <EEPROM.h>\n#define SN 0\n#define SD 1\n#define SI 2\n#define SR 3\nstatic uint8_t li=0;\nuint8_t fsm_transition(uint8_t s,uint8_t ev,uint8_t fc){\n  uint8_t ns=s;\n  if(s==SN&&ev==1)ns=SD;\n  else if(s==SD&&ev==2)ns=SI;\n  else if(s==SI&&ev==3)ns=SR;\n  else if(s==SR&&ev==0)ns=SN;\n  if(ns!=s){\n    EEPROM.write(li*4,s);\n    EEPROM.write(li*4+1,ns);\n    EEPROM.write(li*4+2,fc);\n    EEPROM.write(li*4+3,(uint8_t)(millis()>>8));\n    li=(li+1)%16;}\n  return ns;\n}",
+  "tags": [
+    "fsm",
+    "state-machine",
+    "fault",
+    "recovery",
+    "eeprom"
+  ],
+  "domain": "software",
+  "category": "function"
+}

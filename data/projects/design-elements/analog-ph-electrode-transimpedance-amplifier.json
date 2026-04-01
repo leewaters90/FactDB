@@ -1,0 +1,5 @@
+{
+  "title": "Analog pH Electrode Transimpedance Amplifier",
+  "component_category": "sensing",
+  "selected_approach": "pH combination electrode connected to LM358 transimpedance amp (10 GΩ input impedance via JFET buffer); pH 0–14 maps to 0–3.3 V; temperature-compensated slope adjustment via NTC trim pot"
+}

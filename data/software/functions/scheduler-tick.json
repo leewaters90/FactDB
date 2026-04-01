@@ -1,0 +1,17 @@
+{
+  "title": "scheduler_tick",
+  "artifact_type": "function",
+  "language": "arduino",
+  "signature": "uint8_t scheduler_tick(unsigned long now_ms)",
+  "content": "Scans task table and dispatches highest-priority overdue task; records worst-case latency; resets WDT; returns dispatched slot index or 0xFF.",
+  "code": "#include <avr/wdt.h>\ntypedef void(*TFn)();\nstruct TEntry{uint32_t per;uint32_t last;TFn fn;uint32_t mxL;};\nextern TEntry tasks[];\nextern uint8_t ntasks;\nuint8_t scheduler_tick(unsigned long now){\n  uint8_t bi=0xFF;\n  for(uint8_t i=0;i<ntasks;i++)\n    if((now-tasks[i].last)>=tasks[i].per)\n      if(bi==0xFF||tasks[i].per<tasks[bi].per)bi=i;\n  if(bi==0xFF)return 0xFF;\n  uint32_t t0=micros();\n  tasks[bi].fn();\n  uint32_t lat=micros()-t0;\n  if(lat>tasks[bi].mxL)tasks[bi].mxL=lat;\n  tasks[bi].last=now;\n  wdt_reset();\n  return bi;\n}",
+  "tags": [
+    "scheduler",
+    "cooperative",
+    "watchdog",
+    "profiler",
+    "rate-monotonic"
+  ],
+  "domain": "software",
+  "category": "function"
+}

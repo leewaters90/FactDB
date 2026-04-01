@@ -1,0 +1,5 @@
+{
+  "title": "SD Card Data Logger Module",
+  "component_category": "processing",
+  "selected_approach": "SPI micro-SD module (Catalex/Adafruit) on Arduino SPI bus with dedicated CS pin. SD.h library writes CSV rows; flush() after each row prevents data loss on power failure. 32 GB FAT32 card; 1 Hz logging typical."
+}

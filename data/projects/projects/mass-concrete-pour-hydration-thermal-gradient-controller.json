@@ -1,0 +1,48 @@
+{
+  "title": "Mass Concrete Pour Hydration Thermal Gradient Controller",
+  "description": "Monitors temperatures at eight depths through a mass concrete pour using DS18B20 probes, computes the core-to-surface differential ΔT, and drives a recirculating water cooling jacket via SSR and PID control to keep ΔT < 20 °C per ACI 305R — preventing thermal cracking during curing of 1–2 m thick sections.",
+  "objective": "Closed-loop thermal management of mass concrete hydration to satisfy ACI 305R ΔT ≤ 20 °C, with alarm at 18 °C and fault at 22 °C, hourly SD log.",
+  "constraints": "Arduino Mega, eight DS18B20 probes on 1-Wire bus at 50–850 mm depths, 25 A SSR, 12 V circulation pump, SD module; section thickness 1.5 m.",
+  "domain": "civil",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Concrete Hydration Exotherm and Thermal Gradient Limits",
+    "Beam Bending — Flexure Formula"
+  ],
+  "design_element_titles": [
+    "DS18B20 1-Wire Temperature Probe Array",
+    "SSR-Controlled Water Cooling Jacket",
+    "Cascaded PID Rate and Attitude Controller",
+    "Buzzer and LED Fault Annunciator"
+  ],
+  "element_usage_notes": {
+    "DS18B20 1-Wire Temperature Probe Array": "Eight probes at graduated depths; index 0 = core, indices 1-7 = surface zone; ΔT = T_core − mean(T_surface).",
+    "SSR-Controlled Water Cooling Jacket": "SSR modulates circulation pump duty cycle to extract heat from concrete core.",
+    "Cascaded PID Rate and Attitude Controller": "Outer loop: ΔT setpoint 15 °C; inner loop: cooling water outlet temperature rate.",
+    "Buzzer and LED Fault Annunciator": "Warning at ΔT = 18 °C, fault alarm at ΔT = 22 °C; both independent of PID loop."
+  },
+  "element_interactions": [
+    {
+      "from": "DS18B20 1-Wire Temperature Probe Array",
+      "to": "Cascaded PID Rate and Attitude Controller",
+      "data": "delta_T_C",
+      "description": "Core-surface differential drives outer PID loop process variable."
+    },
+    {
+      "from": "Cascaded PID Rate and Attitude Controller",
+      "to": "SSR-Controlled Water Cooling Jacket",
+      "data": "ssr_duty",
+      "description": "PID output sets SSR duty cycle to modulate pump flow and cooling rate."
+    },
+    {
+      "from": "DS18B20 1-Wire Temperature Probe Array",
+      "to": "Buzzer and LED Fault Annunciator",
+      "data": "delta_T_C",
+      "description": "Direct threshold comparison triggers alarm independently of PID loop."
+    }
+  ],
+  "integration_code": "#include <OneWire.h>\n#include <DallasTemperature.h>\n#include <SD.h>\n#define ONE_WIRE_BUS 2\n#define SSR_PIN 6\n#define BUZZER 8\n#define LED 9\n#define SD_CS 10\n#define N_SENSORS 8\n#define SP_DT 15.0f\n#define WARN_DT 18.0f\n#define FAULT_DT 22.0f\n#define DT_S 1.0f\nOneWire ow(ONE_WIRE_BUS); DallasTemperature ds(&ow);\nfloat intg=0,lastE=0;\n\nint pid_heater_control(float sp,float pv,float dt,float kp,float ki,float kd,float*intg,float*lastE){\n  float e=pv-sp;\n  *intg+=e*dt; *intg=constrain(*intg,0,255);\n  float d=(e-*lastE)/dt; *lastE=e;\n  return (int)constrain(kp*e+ki*(*intg)+kd*d,0,255);\n}\n\nfloat read_delta_T(){\n  ds.requestTemperatures();\n  float core=ds.getTempCByIndex(0),surf=0;\n  for(int i=1;i<N_SENSORS;i++) surf+=ds.getTempCByIndex(i);\n  return core-surf/(N_SENSORS-1);\n}\n\nvoid run_cooling(float dT){\n  int duty=pid_heater_control(SP_DT,dT,DT_S,12.0f,0.4f,1.0f,&intg,&lastE);\n  analogWrite(SSR_PIN,duty);\n}\n\nvoid run_alarm(float dT){\n  if(dT>=FAULT_DT){tone(BUZZER,2000);analogWrite(LED,255);}\n  else if(dT>=WARN_DT){tone(BUZZER,1000);analogWrite(LED,128);}\n  else{noTone(BUZZER);analogWrite(LED,0);}\n}\n\nvoid log_sd(float dT){\n  File f=SD.open(\"curing.csv\",FILE_WRITE);\n  if(f){f.print(millis());f.print(',');f.println(dT);f.close();}\n}\n\nvoid setup(){Serial.begin(115200);ds.begin();SD.begin(SD_CS);pinMode(SSR_PIN,OUTPUT);pinMode(BUZZER,OUTPUT);pinMode(LED,OUTPUT);}\n\nvoid loop(){float dT=read_delta_T();run_cooling(dT);run_alarm(dT);log_sd(dT);Serial.print(\"dT=\");Serial.println(dT);delay(1000);}",
+  "software_artifact_titles": [
+    "pid_heater_control"
+  ]
+}

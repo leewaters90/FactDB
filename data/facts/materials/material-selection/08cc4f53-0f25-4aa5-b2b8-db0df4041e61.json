@@ -1,0 +1,8 @@
+{
+  "title": "Thermal Spray WC-Co Coating Porosity and Adhesion Strength Correlation",
+  "domain": "materials",
+  "category": "material selection",
+  "content": "HVOF-sprayed WC-12Co coatings (particle size 15–45 µm, gas velocity 700 m/s) exhibit porosity 0.5–2% measured by image analysis of polished cross-sections. Porosity% = (dark_pixel_count / total_pixels) × 100 after grey-level thresholding at 50/255. Coatings with porosity > 2% show bond strength < 65 MPa (ASTM C633) and Vickers hardness < 1100 HV0.3. Real-time surface inspection uses near-IR oblique illumination to detect delamination as thermal contrast anomaly visible in greyscale images.",
+  "detail_level": "intermediate",
+  "id": "08cc4f53-0f25-4aa5-b2b8-db0df4041e61"
+}

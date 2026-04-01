@@ -1,0 +1,5 @@
+{
+  "title": "UART JSON Telemetry Sink",
+  "component_category": "communication",
+  "selected_approach": "115200 baud; scheduler emits {t,slot,lat_us} JSON line per dispatch cycle; 500 ms report interval; host parses for latency analysis."
+}

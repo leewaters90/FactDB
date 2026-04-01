@@ -1,0 +1,55 @@
+{
+  "title": "Shell-and-Tube Heat Exchanger NTU Effectiveness Logger",
+  "description": "Continuously measures and logs the thermal effectiveness and NTU of a small shell-and-tube heat exchanger using four DS18B20 probes (hot inlet/outlet, cold inlet/outlet) and a Hall-effect flow sensor. Arduino computes ε and NTU every 5 s and logs to SD card. A relay-switched pump maintains circulation. Fault triggers if hot-side outlet exceeds cold-side inlet (cross-over). Enables real-time fouling detection over time.",
+  "objective": "Log heat exchanger effectiveness ε and NTU at 5 s intervals, detect fouling-induced ε degradation over a 2-hour run, and flag flow faults.",
+  "constraints": "Arduino Uno, four DS18B20 probes, YF-S201 flow sensor, relay pump control, SD logger; water-only fluid; max temperature 80 °C; max flow 5 L/min.",
+  "domain": "chemical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Heat Exchanger Effectiveness — NTU Method",
+    "First Law of Thermodynamics",
+    "Second Law of Thermodynamics — Entropy"
+  ],
+  "design_element_titles": [
+    "DS18B20 1-Wire Temperature Probe Array",
+    "Hall-Effect Flow Rate Sensor",
+    "Relay-Switched Magnetic Stirrer",
+    "SD Card Data Logger Module"
+  ],
+  "element_usage_notes": {
+    "DS18B20 1-Wire Temperature Probe Array": "Four probes on 1-Wire bus with individual ROM addresses measuring hot/cold inlet and outlet temperatures.",
+    "Hall-Effect Flow Rate Sensor": "Mounted on hot-side supply line; pulse count per second converted to L/min for heat duty calculation.",
+    "Relay-Switched Magnetic Stirrer": "Relay repurposed to switch circulation pump ON/OFF; pump keeps both fluid loops moving.",
+    "SD Card Data Logger Module": "Logs t, Th_in, Th_out, Tc_in, Tc_out, flow_L_min, effectiveness, NTU every 5 s."
+  },
+  "element_interactions": [
+    {
+      "from": "DS18B20 1-Wire Temperature Probe Array",
+      "to": "SD Card Data Logger Module",
+      "data": "four_temperatures_C",
+      "description": "Hot/cold inlet/outlet temperatures logged every measurement cycle"
+    },
+    {
+      "from": "Hall-Effect Flow Rate Sensor",
+      "to": "SD Card Data Logger Module",
+      "data": "flow_L_per_min",
+      "description": "Flow rate logged alongside temperatures for heat duty calculation"
+    },
+    {
+      "from": "DS18B20 1-Wire Temperature Probe Array",
+      "to": "Relay-Switched Magnetic Stirrer",
+      "data": "fault_flag",
+      "description": "Temperature cross-over fault triggers pump shutdown via relay"
+    },
+    {
+      "from": "Hall-Effect Flow Rate Sensor",
+      "to": "DS18B20 1-Wire Temperature Probe Array",
+      "data": "flow_state",
+      "description": "Flow confirmation required before temperature readings are trusted for NTU calc"
+    }
+  ],
+  "integration_code": "#include <OneWire.h>\n#include <DallasTemperature.h>\n#include <SD.h>\n#define OW_PIN 2\n#define FLOW_PIN 3\n#define PUMP_RELAY 7\n#define SD_CS 10\n#define LOG_INTERVAL 5000UL\nOneWire ow(OW_PIN); DallasTemperature ds(&ow); File lg;\nvolatile unsigned int flowPulses=0;\nvoid IRAM flowISR(){flowPulses++;}\nfloat ntu_effectiveness_calc(float Thin,float Thout,float Tcin,float Tcout,float*NTU){\n  float dTmax=Thin-Tcin; if(dTmax<0.5f){*NTU=0;return 0;}\n  float eps=constrain((Thin-Thout)/dTmax,0.0f,0.999f);\n  *NTU=-log(1.0f-eps); return eps;\n}\nvoid initHardware(){\n  ds.begin();pinMode(FLOW_PIN,INPUT_PULLUP);pinMode(PUMP_RELAY,OUTPUT);\n  attachInterrupt(digitalPinToInterrupt(FLOW_PIN),flowISR,RISING);\n  SD.begin(SD_CS);lg=SD.open(\"hx.csv\",FILE_WRITE);\n  if(lg)lg.println(\"t_s,Thin,Thout,Tcin,Tcout,Lmin,eps,NTU\");\n  digitalWrite(PUMP_RELAY,HIGH);Serial.begin(9600);\n}\nvoid readAllTemperatures(float*Thin,float*Thout,float*Tcin,float*Tcout){\n  ds.requestTemperatures();\n  *Thin=ds.getTempCByIndex(0);*Thout=ds.getTempCByIndex(1);\n  *Tcin=ds.getTempCByIndex(2);*Tcout=ds.getTempCByIndex(3);\n}\nvoid checkFaultSafety(float Thin,float Thout,float Tcin){\n  if(Thout<Tcin){digitalWrite(PUMP_RELAY,LOW);Serial.println(\"FAULT:CROSSOVER\");while(1);}\n  if(Thin>85.0f){digitalWrite(PUMP_RELAY,LOW);Serial.println(\"FAULT:OVERTEMP\");while(1);}\n}\nvoid logDataSD(unsigned long t,float Thin,float Thout,float Tcin,float Tcout,float flow,float eps,float NTU){\n  if(lg){lg.print(t);lg.print(',');lg.print(Thin,2);lg.print(',');lg.print(Thout,2);lg.print(',');\n  lg.print(Tcin,2);lg.print(',');lg.print(Tcout,2);lg.print(',');\n  lg.print(flow,3);lg.print(',');lg.print(eps,4);lg.print(',');lg.println(NTU,4);lg.flush();}\n  Serial.print(\"eps=\");Serial.print(eps,4);Serial.print(\" NTU=\");Serial.println(NTU,4);\n}\nvoid setup(){initHardware();}\nvoid loop(){\n  static unsigned long prev=0;unsigned long now=millis();\n  if(now-prev<LOG_INTERVAL)return;float dt=(now-prev)/1000.0f;prev=now;\n  float Thin,Thout,Tcin,Tcout;\n  readAllTemperatures(&Thin,&Thout,&Tcin,&Tcout);\n  checkFaultSafety(Thin,Thout,Tcin);\n  noInterrupts();unsigned int p=flowPulses;flowPulses=0;interrupts();\n  float flow=p/(7.5f*dt);\n  float NTU=0;float eps=ntu_effectiveness_calc(Thin,Thout,Tcin,Tcout,&NTU);\n  logDataSD(now/1000,Thin,Thout,Tcin,Tcout,flow,eps,NTU);\n}",
+  "software_artifact_titles": [
+    "ntu_effectiveness_calc"
+  ]
+}

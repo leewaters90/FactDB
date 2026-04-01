@@ -1,0 +1,8 @@
+{
+  "title": "Linear Polarisation Resistance Corrosion Rate Measurement for Steel",
+  "domain": "materials",
+  "category": "material selection",
+  "content": "Stern-Geary method: apply ±10 mV polarisation from open-circuit potential to embedded rebar and measure current response. Polarisation resistance Rp = ΔE/Δi (Ω·cm²). Corrosion current i_corr = B/Rp where B = 26 mV (active steel) or 52 mV (passive). Corrosion rate CR (mm/year) = 0.00327·i_corr·M_eq/(n·ρ); for steel: CR = 0.00327·i_corr·55.85/(2·7.87). Active threshold: i_corr > 0.1 µA/cm²; passive < 0.1 µA/cm². Scan completed in < 60 s per measurement cycle.",
+  "detail_level": "intermediate",
+  "id": "7b8809b7-2951-4f0b-baad-1182fb52790c"
+}

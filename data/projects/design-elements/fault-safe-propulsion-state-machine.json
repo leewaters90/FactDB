@@ -1,0 +1,5 @@
+{
+  "title": "Fault-Safe Propulsion State Machine",
+  "component_category": "control",
+  "selected_approach": "Five-state FSM (INIT, ARMED, FIRING, SAFE_HOLD, FAULT) implemented in MCU firmware. Transitions guarded by pressure bounds, IMU rate limits, and watchdog. All state transitions logged to EEPROM with timestamp. Host MCU receives state over UART JSON heartbeat at 1 Hz."
+}

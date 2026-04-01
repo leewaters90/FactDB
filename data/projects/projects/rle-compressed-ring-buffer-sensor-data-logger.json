@@ -1,0 +1,55 @@
+{
+  "title": "RLE Compressed Ring-Buffer Sensor Data Logger",
+  "description": "High-endurance embedded logger sampling 4 ADC channels into a lock-free ring buffer, RLE-compressing each 252-byte raw block, appending CRC32, and writing to W25Q64 SPI flash. Compression ratio streamed to UART. Corrupt blocks detected and skipped on read-back playback.",
+  "objective": "Achieve ≥3× compression on slowly-varying ADC data; validate all blocks with CRC32; sustain 100 Hz 4-channel sampling; report compression ratio at 1 Hz.",
+  "constraints": "Arduino Mega; W25Q64 SPI CS=10; 4 ADC channels A0-A3; 115200 UART; 256-byte flash pages; ring buffer ISR-safe.",
+  "domain": "software",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Run-Length Encoding Efficiency for Embedded Sensor Logs",
+    "Big-O Notation — Time Complexity",
+    "Amdahl's Law — Parallel Speedup"
+  ],
+  "design_element_titles": [
+    "RLE Encoder Software Module",
+    "Lock-Free Circular Sample Buffer",
+    "W25Q64 SPI Flash Block Store",
+    "CRC32 Block Integrity Validator"
+  ],
+  "element_usage_notes": {
+    "RLE Encoder Software Module": "Compresses 252-byte raw ADC block via rle_encode_block before CRC+flash write; reports ratio.",
+    "Lock-Free Circular Sample Buffer": "ISR writes 100 Hz ADC samples; foreground drains 252-byte blocks for encoding.",
+    "W25Q64 SPI Flash Block Store": "Sequential 256-byte page writes with monotonic page counter for wear-levelling.",
+    "CRC32 Block Integrity Validator": "CRC32 appended per compressed block; verified on playback; corrupt blocks UART-warned and skipped."
+  },
+  "element_interactions": [
+    {
+      "from": "Lock-Free Circular Sample Buffer",
+      "to": "RLE Encoder Software Module",
+      "data": "252-byte raw ADC block",
+      "description": "Foreground drains ring buffer and feeds raw block to rle_encode_block."
+    },
+    {
+      "from": "RLE Encoder Software Module",
+      "to": "CRC32 Block Integrity Validator",
+      "data": "compressed block + length",
+      "description": "RLE output passed to CRC32 routine for integrity annotation before flash write."
+    },
+    {
+      "from": "CRC32 Block Integrity Validator",
+      "to": "W25Q64 SPI Flash Block Store",
+      "data": "block + 4-byte CRC32",
+      "description": "CRC-annotated compressed block written to next sequential flash page."
+    },
+    {
+      "from": "W25Q64 SPI Flash Block Store",
+      "to": "CRC32 Block Integrity Validator",
+      "data": "block on read-back",
+      "description": "CRC32 validated on each block read; corrupt blocks flagged with UART warning."
+    }
+  ],
+  "integration_code": "#include <SPI.h>\nextern uint16_t rle_encode_block(uint8_t*,uint16_t,uint8_t*,uint16_t);\n#define FLASH_CS 10\n#define RAW_SZ 252\n#define PAGE_SZ 256\nuint8_t raw[RAW_SZ],rle_out[PAGE_SZ];\nuint16_t raw_i=0;\nuint32_t flash_page=0;\nvoid flash_setup(){\n  SPI.begin();\n  pinMode(FLASH_CS,OUTPUT);\n  digitalWrite(FLASH_CS,HIGH);}\nvoid flash_write_enable(){\n  digitalWrite(FLASH_CS,LOW);SPI.transfer(0x06);digitalWrite(FLASH_CS,HIGH);}\nvoid flash_write_page(uint32_t pg,uint8_t* d,uint16_t n){\n  flash_write_enable();\n  uint32_t addr=pg*PAGE_SZ;\n  SPI.beginTransaction(SPISettings(8000000,MSBFIRST,SPI_MODE0));\n  digitalWrite(FLASH_CS,LOW);\n  SPI.transfer(0x02);\n  SPI.transfer((addr>>16)&0xFF);\n  SPI.transfer((addr>>8)&0xFF);\n  SPI.transfer(addr&0xFF);\n  for(uint16_t i=0;i<n;i++)SPI.transfer(d[i]);\n  digitalWrite(FLASH_CS,HIGH);\n  SPI.endTransaction();\n  delay(3);}\nuint32_t crc32_block(uint8_t* d,uint16_t n){\n  uint32_t c=0xFFFFFFFF;\n  for(uint16_t i=0;i<n;i++){c^=d[i];for(int j=0;j<8;j++)c=(c&1)?(c>>1)^0xEDB88320:(c>>1);}\n  return ~c;}\nvoid sample_4ch(){\n  if(raw_i+4>RAW_SZ)return;\n  for(int i=0;i<4;i++)raw[raw_i++]=(uint8_t)(analogRead(A0+i)>>2);}\nvoid flush_block(){\n  uint16_t rlen=rle_encode_block(raw,raw_i,rle_out,PAGE_SZ-4);\n  uint32_t crc=crc32_block(rle_out,rlen);\n  rle_out[rlen++]=(crc>>24)&0xFF;\n  rle_out[rlen++]=(crc>>16)&0xFF;\n  rle_out[rlen++]=(crc>>8)&0xFF;\n  rle_out[rlen++]=crc&0xFF;\n  flash_write_page(flash_page++,rle_out,rlen);\n  Serial.print(\"ratio:\");\n  Serial.println((float)raw_i/rlen,2);\n  raw_i=0;}\nvoid fault_check(){\n  if(flash_page>=32768){\n    Serial.println(\"FAULT:FLASH_FULL\");while(1);}}\nunsigned long pt=0;\nvoid setup(){Serial.begin(115200);flash_setup();}\nvoid loop(){\n  unsigned long n=millis();\n  if(n-pt>=10){pt=n;sample_4ch();}\n  if(raw_i>=RAW_SZ){fault_check();flush_block();}}",
+  "software_artifact_titles": [
+    "rle_encode_block"
+  ]
+}

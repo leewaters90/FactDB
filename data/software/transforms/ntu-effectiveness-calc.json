@@ -1,0 +1,17 @@
+{
+  "title": "ntu_effectiveness_calc",
+  "artifact_type": "transform",
+  "language": "arduino",
+  "signature": "float ntu_effectiveness_calc(float Thin, float Thout, float Tcin, float Tcout, float* NTU)",
+  "content": "Computes heat exchanger effectiveness epsilon and NTU from four measured temperatures assuming equal heat capacity rates (balanced flow).",
+  "code": "float ntu_effectiveness_calc(float Thin,float Thout,float Tcin,float Tcout,float*NTU){\n  float dT_max=Thin-Tcin;\n  if(dT_max<0.5f){*NTU=0;return 0;}\n  float eps=(Thin-Thout)/dT_max;\n  eps=constrain(eps,0.0f,0.999f);\n  *NTU=-log(1.0f-eps);\n  return eps;\n}",
+  "tags": [
+    "heat-exchanger",
+    "NTU",
+    "effectiveness",
+    "thermodynamics",
+    "arduino"
+  ],
+  "domain": "software",
+  "category": "transform"
+}

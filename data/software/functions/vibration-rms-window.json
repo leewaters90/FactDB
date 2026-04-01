@@ -1,0 +1,17 @@
+{
+  "title": "vibration_rms_window",
+  "artifact_type": "function",
+  "language": "arduino",
+  "signature": "float vibration_rms_window(float sample, float* buf, int* idx, int n)",
+  "content": "Maintains a circular buffer of squared acceleration samples and returns current windowed RMS in g.",
+  "code": "float vibration_rms_window(float sample, float* buf, int* idx, int n) {\n  buf[(*idx) % n] = sample * sample;\n  (*idx)++;\n  float sum = 0.0f;\n  for (int i = 0; i < n; i++) sum += buf[i];\n  return sqrtf(sum / (float)n);\n}",
+  "tags": [
+    "vibration",
+    "rms",
+    "circular-buffer",
+    "structural",
+    "civil"
+  ],
+  "domain": "software",
+  "category": "function"
+}

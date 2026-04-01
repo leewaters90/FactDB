@@ -1,0 +1,5 @@
+{
+  "title": "DC Motor Driven Tuned Mass Carriage",
+  "component_category": "control",
+  "selected_approach": "500 g steel mass on 160 mm linear ball-rail driven by 12 V DC motor via rack-and-pinion; L298N H-bridge modulates motor PWM at 50 Hz update rate; carriage position measured by 10 kΩ linear potentiometer; end-stops prevent over-travel."
+}

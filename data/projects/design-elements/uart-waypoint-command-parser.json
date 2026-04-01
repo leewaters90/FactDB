@@ -1,0 +1,5 @@
+{
+  "title": "UART Waypoint Command Parser",
+  "component_category": "communication",
+  "selected_approach": "115200 baud; 'W x,y\\n' sets waypoint; 'R\\n' resets odometry; 'P\\n' prints JSON pose; non-blocking ring buffer read."
+}

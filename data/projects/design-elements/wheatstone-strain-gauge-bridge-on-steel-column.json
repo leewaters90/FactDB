@@ -1,0 +1,5 @@
+{
+  "title": "Wheatstone Strain Gauge Bridge on Steel Column",
+  "component_category": "sensing",
+  "selected_approach": "Four 350 Ω foil strain gauges in full Wheatstone bridge on steel column flanges; INA128 instrumentation amplifier at 500× gain; output sampled by 10-bit ADC for axial micro-strain; temperature-compensated by dummy gauge pair."
+}

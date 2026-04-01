@@ -1,0 +1,5 @@
+{
+  "title": "Peltier TEC Thermoelectric Heating Stage",
+  "component_category": "actuation",
+  "selected_approach": "TEC1-12706 Peltier module driven by L298N H-bridge for bidirectional temperature control −10 to 80 °C; 50×50 mm aluminium hotplate; NTC feedback"
+}

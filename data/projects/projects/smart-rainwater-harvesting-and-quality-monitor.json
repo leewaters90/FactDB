@@ -1,0 +1,52 @@
+{
+  "title": "Smart Rainwater Harvesting and Quality Monitor",
+  "description": "A building-mounted civil infrastructure system that automates rooftop rainwater collection by diverting the contaminated first-flush to waste, then continuously monitoring turbidity, pH, and tank fill level before admitting water to a storage cistern. An ESP32 node publishes telemetry over MQTT to a local dashboard and autonomously controls the diversion solenoid valve. Unlike bench-top portable quality monitors, this system is permanently installed in an outdoor weatherproof enclosure and focuses on storage admission decisions rather than point-of-use testing.",
+  "objective": "Automatically harvest and quality-gate rooftop rainwater by measuring turbidity (<5 NTU) and pH (6.5–8.5) before opening the solenoid diversion valve to the cistern; monitor tank fill percentage via ultrasonic sensing; publish all metrics via MQTT every 30 seconds.",
+  "constraints": "5–12 V DC supply (solar + LiFePO4 battery); IP65 outdoor enclosure; Arduino/ESP32 platform; BOM under $80; no mains AC; low-voltage solenoid valve (12 V).",
+  "domain": "civil",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Rainwater First-Flush Diversion",
+    "Water Quality Multi-Parameter Sensing (pH, TDS, DO)",
+    "Solenoid Valve for Pneumatic and Fluid Control"
+  ],
+  "design_element_titles": [
+    "Turbidity NTU Optical Sensor Module",
+    "HC-SR04 Ultrasonic Tank Level Sensor",
+    "Solenoid Diversion Valve Module",
+    "ESP32 WiFi + MQTT IoT Telemetry"
+  ],
+  "element_usage_notes": {
+    "Turbidity NTU Optical Sensor Module": "Installed in a sealed inline tee on the downpipe after the leaf filter. Analog voltage output wired to ESP32 ADC pin 35; NTU calculated via quadratic calibration curve.",
+    "HC-SR04 Ultrasonic Tank Level Sensor": "Mounted at tank lid centre, facing downward. TRIG on GPIO 5, ECHO on GPIO 18 via voltage divider. Fill % updated each measurement cycle.",
+    "Solenoid Diversion Valve Module": "MOSFET gate driven from GPIO 26. Valve energised (flow to cistern) only when pH and turbidity thresholds pass and fill < 95%.",
+    "ESP32 WiFi + MQTT IoT Telemetry": "Connects to local AP; publishes JSON payload to topic rainwater/telemetry every 30 s. Broker address configurable at compile time."
+  },
+  "element_interactions": [
+    {
+      "from": "Turbidity NTU Optical Sensor Module",
+      "to": "Solenoid Diversion Valve Module",
+      "data": "turbidity_ntu float",
+      "description": "If NTU > 5.0 the valve control logic keeps the solenoid de-energised, diverting flow to waste drain."
+    },
+    {
+      "from": "HC-SR04 Ultrasonic Tank Level Sensor",
+      "to": "Solenoid Diversion Valve Module",
+      "data": "fill_pct float 0-100",
+      "description": "Valve is forced closed when tank fill exceeds 95% to prevent overflow regardless of water quality."
+    },
+    {
+      "from": "Turbidity NTU Optical Sensor Module",
+      "to": "ESP32 WiFi + MQTT IoT Telemetry",
+      "data": "turbidity_ntu, ph float",
+      "description": "Sensor readings are packed into the MQTT JSON payload for dashboard visualisation and historical logging."
+    },
+    {
+      "from": "HC-SR04 Ultrasonic Tank Level Sensor",
+      "to": "ESP32 WiFi + MQTT IoT Telemetry",
+      "data": "fill_pct float",
+      "description": "Tank fill percentage included in MQTT telemetry so operators can schedule usage or maintenance remotely."
+    }
+  ],
+  "integration_code": "# Smart Rainwater Harvesting & Quality Monitor\n# ESP32 MicroPython — MQTT telemetry + auto valve control\n\nimport machine, time, network, ujson\nfrom umqtt.simple import MQTTClient\n\n# ── Pin assignments ──────────────────────────────────────\nTRIG      = machine.Pin(5,  machine.Pin.OUT)\nECHO      = machine.Pin(18, machine.Pin.IN)\nPH_ADC    = machine.ADC(machine.Pin(34))\nTURB_ADC  = machine.ADC(machine.Pin(35))\nVALVE     = machine.Pin(26, machine.Pin.OUT)  # MOSFET gate\nLED       = machine.Pin(2,  machine.Pin.OUT)\n\nPH_ADC.atten(machine.ADC.ATTN_11DB)\nTURB_ADC.atten(machine.ADC.ATTN_11DB)\n\n# ── Configuration ────────────────────────────────────────\nTANK_DEPTH_CM = 100\nMQTT_BROKER   = \"192.168.1.100\"\nMQTT_TOPIC    = b\"rainwater/telemetry\"\nSSID          = \"YourSSID\"\nWIFI_PASS     = \"YourPass\"\nINTERVAL_S   = 30\n\n# Quality admit thresholds\nPH_MIN, PH_MAX = 6.5, 8.5\nNTU_MAX        = 5.0\nFILL_CUTOFF    = 95.0\n\n# ── WiFi ─────────────────────────────────────────────────\ndef connect_wifi():\n    wlan = network.WLAN(network.STA_IF)\n    wlan.active(True)\n    wlan.connect(SSID, WIFI_PASS)\n    for _ in range(20):\n        if wlan.isconnected():\n            print(\"WiFi:\", wlan.ifconfig()[0])\n            return True\n        time.sleep(0.5)\n    print(\"WiFi failed — running offline\")\n    return False\n\n# ── Sensors ──────────────────────────────────────────────\ndef read_level_pct():\n    TRIG.value(0); time.sleep_us(2)\n    TRIG.value(1); time.sleep_us(10); TRIG.value(0)\n    timeout = time.ticks_us()\n    while ECHO.value() == 0:\n        if time.ticks_diff(time.ticks_us(), timeout) > 30000:\n            return -1\n    t0 = time.ticks_us()\n    while ECHO.value() == 1:\n        if time.ticks_diff(time.ticks_us(), t0) > 30000:\n            return -1\n    dist_cm = time.ticks_diff(time.ticks_us(), t0) * 0.0343 / 2\n    fill = (1.0 - dist_cm / TANK_DEPTH_CM) * 100.0\n    return round(max(0.0, min(100.0, fill)), 1)\n\ndef read_ph():\n    raw = sum(PH_ADC.read() for _ in range(10)) / 10\n    voltage = raw * 3.3 / 4095.0\n    ph = 3.5 * voltage          # calibrate slope/offset per probe\n    return round(max(0.0, min(14.0, ph)), 2)\n\ndef read_turbidity_ntu():\n    raw = sum(TURB_ADC.read() for _ in range(10)) / 10\n    v = raw * 3.3 / 4095.0\n    ntu = max(0.0, -1120.4 * v * v + 5742.3 * v - 4352.9)\n    return round(ntu, 1)\n\n# ── Valve logic ──────────────────────────────────────────\ndef update_valve(ph, ntu, fill):\n    admit = (PH_MIN <= ph <= PH_MAX) and (ntu < NTU_MAX) and (fill < FILL_CUTOFF)\n    VALVE.value(1 if admit else 0)\n    return admit\n\n# ── Main loop ────────────────────────────────────────────\ndef main():\n    online = connect_wifi()\n    client = None\n    if online:\n        client = MQTTClient(\"rainwater\", MQTT_BROKER)\n        try:\n            client.connect()\n        except Exception as e:\n            print(\"MQTT connect error:\", e)\n            client = None\n\n    while True:\n        fill  = read_level_pct()\n        ph    = read_ph()\n        ntu   = read_turbidity_ntu()\n        admit = update_valve(ph, ntu, fill)\n\n        payload = ujson.dumps({\n            \"fill_pct\": fill,\n            \"ph\": ph,\n            \"turbidity_ntu\": ntu,\n            \"valve_open\": admit\n        })\n        print(payload)\n\n        if client:\n            try:\n                client.publish(MQTT_TOPIC, payload)\n            except Exception as e:\n                print(\"MQTT publish error:\", e)\n\n        LED.value(1); time.sleep_ms(100); LED.value(0)\n        time.sleep(INTERVAL_S)\n\nmain()"
+}

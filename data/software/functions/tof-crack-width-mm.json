@@ -1,0 +1,17 @@
+{
+  "title": "tof_crack_width_mm",
+  "artifact_type": "function",
+  "language": "arduino",
+  "signature": "float tof_crack_width_mm(int tof_mm, int reference_mm)",
+  "content": "Computes apparent crack width in mm as the signed difference between current and baseline VL53L0X TOF distance measurements, clamped to zero for compression.",
+  "code": "float tof_crack_width_mm(int tof_mm, int reference_mm) {\n  float delta = (float)(tof_mm - reference_mm);\n  return (delta < 0.0f) ? 0.0f : delta;\n}",
+  "tags": [
+    "civil",
+    "crack-monitoring",
+    "TOF",
+    "structural-health",
+    "ACI-318"
+  ],
+  "domain": "software",
+  "category": "function"
+}

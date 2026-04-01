@@ -1,0 +1,17 @@
+{
+  "title": "fft_peak_bin",
+  "artifact_type": "function",
+  "language": "arduino",
+  "signature": "uint16_t fft_peak_bin(int16_t* re, uint8_t n, uint8_t* peak_bin)",
+  "content": "Computes in-place radix-2 FFT on n Q15 samples; returns L1-norm magnitude of dominant bin and its index via peak_bin pointer.",
+  "code": "uint16_t fft_peak_bin(int16_t* re,uint8_t n,uint8_t* pb){\n  static int16_t im[64];\n  for(uint8_t i=0;i<n;i++)im[i]=0;\n  uint8_t j=0;\n  for(uint8_t i=1;i<n-1;i++){\n    uint8_t bit=n>>1;\n    for(;j&bit;bit>>=1)j^=bit;\n    j^=bit;\n    if(i<j){int16_t t=re[i];re[i]=re[j];re[j]=t;}}\n  for(uint8_t len=2;len<=n;len<<=1)\n    for(uint8_t i=0;i<n;i+=len)\n      for(uint8_t k=0;k<len/2;k++){\n        int16_t ur=re[i+k+len/2],ui=im[i+k+len/2];\n        re[i+k+len/2]=re[i+k]-ur;\n        im[i+k+len/2]=im[i+k]-ui;\n        re[i+k]+=ur;im[i+k]+=ui;}\n  uint16_t pk=0;*pb=0;\n  for(uint8_t i=1;i<n/2;i++){\n    int16_t ra=abs(re[i]),ia=abs(im[i]);\n    uint16_t mg=(ra>ia)?(ra+(uint16_t)(0.4f*ia)):(ia+(uint16_t)(0.4f*ra));\n    if(mg>pk){pk=mg;*pb=i;}}\n  return pk;\n}",
+  "tags": [
+    "fft",
+    "vibration",
+    "fixed-point",
+    "embedded",
+    "anomaly"
+  ],
+  "domain": "software",
+  "category": "function"
+}

@@ -1,0 +1,5 @@
+{
+  "title": "Dual-Threshold Safety Relay Interlock",
+  "component_category": "control",
+  "selected_approach": "Two independent hardware comparators (LM393) set to WARNING and FAULT temperature thresholds using resistor voltage dividers on a thermistor signal. WARNING threshold drives an LED + buzzer; FAULT threshold directly de-energises a main power relay (SPDT, 10 A) cutting heater supply independent of MCU. Provides fail-safe hardware protection."
+}

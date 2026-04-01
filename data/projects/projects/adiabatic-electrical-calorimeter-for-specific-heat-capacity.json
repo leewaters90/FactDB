@@ -1,0 +1,55 @@
+{
+  "title": "Adiabatic Electrical Calorimeter for Specific Heat Capacity",
+  "description": "Measures the specific heat capacity (Cp) of liquid samples inside a Dewar flask by injecting a precisely timed and metered electrical pulse via a resistance heater and recording the temperature rise with a PT100/MAX31865 module. Arduino controls heater duration, acquires temperature at 2 Hz before and after the heating pulse, then computes Cp using the energy-balance formula. Results are logged to SD card.",
+  "objective": "Measure Cp of an unknown liquid to within ±3 % of the reference value (e.g., water 4.186 J/g·K) using a timed electrical pulse in an insulated Dewar vessel.",
+  "constraints": "Arduino Uno, PT100/MAX31865, Dewar flask, 12V/10W heater, SD logger; sample volume 500 mL; max heater-pulse energy 500 J; max sample temperature 80 °C.",
+  "domain": "chemical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Adiabatic Processes and Heat Capacity Measurement",
+    "First Law of Thermodynamics",
+    "Heat of Reaction and Calorimetry"
+  ],
+  "design_element_titles": [
+    "PT100 RTD Precision Temperature Module",
+    "Thermally Insulated Dewar Vessel",
+    "Resistance Heater with PWM Control",
+    "SD Card Data Logger Module"
+  ],
+  "element_usage_notes": {
+    "PT100 RTD Precision Temperature Module": "Reads baseline and post-heating temperatures at 2 Hz; 0.03 °C resolution essential for accurate Cp.",
+    "Thermally Insulated Dewar Vessel": "Minimises parasitic heat exchange; characterised loss < 2 mW/K subtracted in correction.",
+    "Resistance Heater with PWM Control": "Runs at full duty (255) for a fixed timed pulse; supply voltage and resistance precisely measured for Q calculation.",
+    "SD Card Data Logger Module": "Logs T vs t for full thermal trajectory plus computed Cp and uncertainty estimates."
+  },
+  "element_interactions": [
+    {
+      "from": "Resistance Heater with PWM Control",
+      "to": "Thermally Insulated Dewar Vessel",
+      "data": "heat_energy_J",
+      "description": "Electrical energy deposited into sample in the Dewar"
+    },
+    {
+      "from": "PT100 RTD Precision Temperature Module",
+      "to": "Resistance Heater with PWM Control",
+      "data": "temperature_C",
+      "description": "Heater disabled when post-pulse temperature plateau is detected"
+    },
+    {
+      "from": "PT100 RTD Precision Temperature Module",
+      "to": "SD Card Data Logger Module",
+      "data": "temperature_C",
+      "description": "Full T(t) trajectory logged for drift correction"
+    },
+    {
+      "from": "Thermally Insulated Dewar Vessel",
+      "to": "PT100 RTD Precision Temperature Module",
+      "data": "thermal_environment",
+      "description": "Dewar isolates sample so RTD reads only internal temperature rise"
+    }
+  ],
+  "integration_code": "#include <Wire.h>\n#include <Adafruit_MAX31865.h>\n#include <SD.h>\n#define MAX_CS 8\n#define HEATER_PIN 9\n#define SD_CS 10\n#define SUPPLY_V 12.0f\n#define HEATER_R 14.4f\n#define MASS_G 500.0f\n#define Cv_VESSEL 120.0f\n#define PULSE_MS 60000UL\n#define BASELINE_MS 120000UL\nAdafruit_MAX31865 rtd(MAX_CS); File lg;\nfloat g_T0=0;\nbool pulseDone=false, resultLogged=false;\nunsigned long phaseStart=0;\nfloat heat_capacity_calc(float T0,float T1,float V,float R,unsigned long dur,float m,float Cv){\n  float Q=(V/R)*V*(dur/1000.0f);\n  float dT=T1-T0;\n  if(dT<=0||m<=0) return -1.0f;\n  return (Q-Cv*dT)/m/dT;\n}\nvoid initHardware(){\n  rtd.begin(MAX31865_3WIRE); pinMode(HEATER_PIN,OUTPUT);\n  SD.begin(SD_CS); lg=SD.open(\"cp.csv\",FILE_WRITE);\n  if(lg) lg.println(\"t_s,T_C,phase\");\n  Serial.begin(9600); phaseStart=millis();\n}\nfloat readPT100Temperature(){ return rtd.temperature(100,430.0f); }\nvoid logTempSD(unsigned long t, float T, const char* phase){\n  if(lg){lg.print(t);lg.print(',');lg.print(T,3);lg.print(',');lg.println(phase);lg.flush();}\n}\nvoid checkFaultSafety(float T){\n  if(T>90.0f){digitalWrite(HEATER_PIN,LOW);Serial.println(\"FAULT:OVERTEMP\");while(1);}\n}\nvoid setup(){ initHardware(); }\nvoid loop(){\n  static unsigned long prev=0; unsigned long now=millis();\n  if(now-prev<500) return; prev=now;\n  float T=readPT100Temperature(); checkFaultSafety(T);\n  if(!pulseDone && now-phaseStart<BASELINE_MS){\n    logTempSD(now/1000,T,\"baseline\");\n    if(now-phaseStart>BASELINE_MS-1000) g_T0=T;\n  } else if(!pulseDone){\n    digitalWrite(HEATER_PIN,HIGH); logTempSD(now/1000,T,\"heating\");\n    if(now-phaseStart>BASELINE_MS+PULSE_MS){\n      digitalWrite(HEATER_PIN,LOW); pulseDone=true;\n    }\n  } else if(!resultLogged){\n    logTempSD(now/1000,T,\"cooling\");\n    if(now-phaseStart>BASELINE_MS+PULSE_MS+60000UL){\n      float Cp=heat_capacity_calc(g_T0,T,SUPPLY_V,HEATER_R,PULSE_MS,MASS_G,Cv_VESSEL);\n      Serial.print(\"Cp=\");Serial.print(Cp,4);Serial.println(\"J/gK\");\n      if(lg){lg.print(\"Cp_JgK=\");lg.println(Cp,4);lg.close();}\n      resultLogged=true;\n    }\n  }\n}",
+  "software_artifact_titles": [
+    "heat_capacity_calc"
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "title": "JSN-SR04T Weatherproof Ultrasonic Depth Sensor",
+  "component_category": "sensing",
+  "selected_approach": "Weatherproof JSN-SR04T ultrasonic transducer mounted above channel at known height; TOF measurement at 10 Hz gives water surface depth with ±2 mm accuracy over 0.02–0.6 m range; sensor enclosure rated IP67."
+}

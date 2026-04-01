@@ -1,0 +1,5 @@
+{
+  "title": "24VDC Vacuum Solenoid Valve Driver",
+  "component_category": "actuation",
+  "selected_approach": "3-way NC solenoid valve, 24 VDC coil; driven by IRF540 + ULN2003; connects bag to vacuum pump or atmosphere; fail-safe: closes (bag-to-pump) on power loss"
+}

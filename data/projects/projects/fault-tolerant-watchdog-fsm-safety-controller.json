@@ -1,0 +1,54 @@
+{
+  "title": "Fault-Tolerant Watchdog FSM Safety Controller",
+  "description": "Safety controller implementing NORMAL/DETECT/ISOLATE/RECOVER FSM with CRC16 command validation, triple-sensor median voting, EEPROM transition ring-buffer logging, RGB LED annunciator, and AVR hardware watchdog.",
+  "objective": "Detect sensor anomalies within 100 ms; autonomously isolate and recover; persist all 16 FSM transitions to EEPROM; indicate state via RGB LED.",
+  "constraints": "Arduino Uno; 3 analog sensors on A0-A2; 64-byte EEPROM ring; RGB LED on pins 9-11; 115200 UART.",
+  "domain": "software",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Finite State Machine Fault Recovery Patterns",
+    "Big-O Notation — Time Complexity"
+  ],
+  "design_element_titles": [
+    "CRC16-CCITT Command Validator",
+    "EEPROM Fault Transition Log",
+    "Triple-Sensor Median Voter",
+    "RGB FSM Status LED"
+  ],
+  "element_usage_notes": {
+    "CRC16-CCITT Command Validator": "Guards UART commands; 3 consecutive CRC errors trigger DETECT FSM event.",
+    "EEPROM Fault Transition Log": "Persists 16 transitions for post-mortem analysis; read on boot.",
+    "Triple-Sensor Median Voter": "Median voting; >10% deviation from median triggers fault event.",
+    "RGB FSM Status LED": "Color-coded LED indicates current FSM state; blink rate = severity."
+  },
+  "element_interactions": [
+    {
+      "from": "Triple-Sensor Median Voter",
+      "to": "CRC16-CCITT Command Validator",
+      "data": "fault event",
+      "description": "Voter deviation event dispatched through CRC-validated message path to FSM."
+    },
+    {
+      "from": "CRC16-CCITT Command Validator",
+      "to": "EEPROM Fault Transition Log",
+      "data": "state transition",
+      "description": "Valid transition logged to EEPROM ring buffer via fsm_transition."
+    },
+    {
+      "from": "EEPROM Fault Transition Log",
+      "to": "RGB FSM Status LED",
+      "data": "current state",
+      "description": "LED colour updated on each logged FSM state transition."
+    },
+    {
+      "from": "Triple-Sensor Median Voter",
+      "to": "RGB FSM Status LED",
+      "data": "fault severity",
+      "description": "Voter anomaly severity drives LED blink rate."
+    }
+  ],
+  "integration_code": "#include <EEPROM.h>\n#include <avr/wdt.h>\nextern uint8_t fsm_transition(uint8_t,uint8_t,uint8_t);\nuint8_t state=0;\nuint16_t crc16(uint8_t* d,uint8_t n){\n  uint16_t c=0xFFFF;\n  for(uint8_t i=0;i<n;i++){c^=(uint16_t)d[i]<<8;for(uint8_t j=0;j<8;j++)c=(c&0x8000)?(c<<1)^0x1021:(c<<1);}\n  return c;}\nfloat voter_read(){\n  float v[3];\n  for(int i=0;i<3;i++)v[i]=analogRead(A0+i)*5.0f/1023.0f;\n  if(v[0]>v[1]){float t=v[0];v[0]=v[1];v[1]=t;}\n  if(v[1]>v[2]){float t=v[1];v[1]=v[2];v[2]=t;}\n  if(v[0]>v[1]){float t=v[0];v[0]=v[1];v[1]=t;}\n  float m=v[1];\n  for(int i=0;i<3;i++)if(m>0&&fabsf(v[i]-m)/m>0.1f)return -999.0f;\n  return m;}\nvoid led_update(uint8_t s){\n  const uint8_t c[][3]={{0,255,0},{255,255,0},{255,0,0},{0,0,255}};\n  if(s>3)s=3;\n  analogWrite(9,c[s][0]);analogWrite(10,c[s][1]);analogWrite(11,c[s][2]);}\nstatic uint8_t cerr=0;\nstatic unsigned long rt=0;\nvoid cmd_check(){\n  if(Serial.available()>3){\n    uint8_t buf[8];\n    int n=Serial.readBytesUntil('\\n',(char*)buf,8);\n    if(n<2)return;\n    uint16_t cc=crc16(buf,n-2);\n    uint16_t mc=((uint16_t)buf[n-2]<<8)|buf[n-1];\n    if(cc!=mc){cerr++;if(cerr>=3){state=fsm_transition(state,1,0xCC);cerr=0;}}\n    else{cerr=0;state=fsm_transition(state,buf[0],buf[1]);}}}\nvoid setup(){\n  Serial.begin(115200);\n  for(int p:{9,10,11})pinMode(p,OUTPUT);\n  wdt_enable(WDTO_1S);\n  if(MCUSR&(1<<WDRF)){Serial.println(\"WDT_RESET\");MCUSR=0;}}\nvoid loop(){\n  wdt_reset();\n  float v=voter_read();\n  if(v<-100.0f&&state==0)state=fsm_transition(state,1,0xAA);\n  if(state==1)state=fsm_transition(state,2,0);\n  if(state==2&&(millis()-rt>3000)){rt=millis();state=fsm_transition(state,3,0);}\n  if(state==3)state=fsm_transition(state,0,0);\n  cmd_check();led_update(state);\n  Serial.print(\"S:\");Serial.println(state);\n  delay(100);}",
+  "software_artifact_titles": [
+    "fsm_transition"
+  ]
+}

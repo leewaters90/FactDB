@@ -1,0 +1,55 @@
+{
+  "title": "Polymer Melt Flow Index Automated Tester",
+  "description": "ASTM D1238-compliant MFI tester that heats a polymer barrel to setpoint via PID, monitors piston displacement with LVDT to compute MFI automatically, measures extrudate colour for degradation detection, and logs all data to serial. Differentiates from similar controllers by combining real-time rheological measurement with optical degradation sensing.",
+  "objective": "Heat barrel to 190 °C (PE) ±1 °C; automatically compute MFI from piston displacement over 10 min; detect degradation via yellowness index; fault-cut heater on overtemperature or degradation.",
+  "constraints": "Arduino Mega; ceramic band heater 230 V/300 W; SSR; LVDT; TCS34725 colour sensor; BOM < $85.",
+  "domain": "materials",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Polymer Melt Flow Index and Viscosity Temperature Dependence",
+    "Ashby Material Selection — Property Charts"
+  ],
+  "design_element_titles": [
+    "Heated Barrel Extrusion Die Assembly",
+    "Load Cell 5kg HX711 Amplifier Module",
+    "LVDT Linear Displacement Sensor Interface",
+    "RGB Colour Sensor TCS34725 Degradation Detector"
+  ],
+  "element_usage_notes": [
+    "Band heater PID-controlled via SSR; Type-J TC on barrel OD as process variable",
+    "HX711 verifies 2.16 kg standard mass is correctly applied before test start",
+    "LVDT measures piston displacement every 1 s; displacement/time → MFI",
+    "TCS34725 samples extrudate colour every 30 s; high yellowness index triggers degradation fault"
+  ],
+  "element_interactions": [
+    {
+      "from": "Heated Barrel Extrusion Die Assembly",
+      "to": "LVDT Linear Displacement Sensor Interface",
+      "data": "melt_ready_flag",
+      "description": "PID temperature settled at setpoint for 5 min before LVDT displacement measurement begins"
+    },
+    {
+      "from": "LVDT Linear Displacement Sensor Interface",
+      "to": "RGB Colour Sensor TCS34725 Degradation Detector",
+      "data": "extrusion_active_flag",
+      "description": "LVDT confirms melt flowing; colour sensor samples extrudate strand for yellowing"
+    },
+    {
+      "from": "Load Cell 5kg HX711 Amplifier Module",
+      "to": "Heated Barrel Extrusion Die Assembly",
+      "data": "mass_confirm_g",
+      "description": "Load cell verifies standard mass applied before heater is enabled for test"
+    },
+    {
+      "from": "RGB Colour Sensor TCS34725 Degradation Detector",
+      "to": "Heated Barrel Extrusion Die Assembly",
+      "data": "degradation_fault",
+      "description": "High yellowness index triggers heater cutoff via fault handler"
+    }
+  ],
+  "integration_code": "#include <Wire.h>\n#include <HX711.h>\n#include <Adafruit_TCS34725.h>\n\nextern int pid_heater_control(float sp,float pv,float dt,float kp,float ki,float kd,float* intg,float* lastE);\nextern float mfi_compute(float displacement_mm,float time_s,float orifice_mm2,float density);\n\nHX711 scale;\nAdafruit_TCS34725 tcs;\nconst int SSR_PIN=9,TC_PIN=A0;\nconst float SP=190.0f,KP=3.0f,KI=0.1f,KD=1.5f,ORIFICE=3.44f,DENSITY=0.92f;\nfloat intg=0,lastE=0;\nfloat lvdt_start=0,test_start_s=0;\nbool test_running=false;\n\n// === Barrel Thermocouple ===\nvoid tc_init(){pinMode(TC_PIN,INPUT);}\nfloat tc_read(){return analogRead(TC_PIN)*5.0f/1023.0f*100.0f;}\n\n// === SSR Heater ===\nvoid ssr_init(){pinMode(SSR_PIN,OUTPUT);analogWrite(SSR_PIN,0);}\nvoid ssr_set(int p){analogWrite(SSR_PIN,constrain(p,0,255));}\n\n// === LVDT ===\nvoid lvdt_init(){pinMode(A1,INPUT);}\nfloat lvdt_read(){return analogRead(A1)*10.0f/1023.0f;}\n\n// === Load Cell ===\nvoid scale_init(){scale.begin(5,6);scale.set_scale(2280.0f);scale.tare();}\nfloat scale_read(){return scale.get_units(5);}\n\n// === Colour Sensor ===\nbool colour_init(){return tcs.begin();}\nfloat yellowness_index(){uint16_t r,g,b,c;tcs.getRawData(&r,&g,&b,&c);if(c==0)return 0;return(128.0f*r-106.0f*b)/(float)c;}\n\n// === Fault Handler ===\nbool fault_check(float temp,float yi){if(temp>250.0f){ssr_set(0);Serial.println(\"FAULT:OVERTEMP\");return true;}if(yi>20.0f){ssr_set(0);Serial.println(\"FAULT:DEGRADATION\");return true;}return false;}\n\nvoid setup(){\n  Serial.begin(115200);Wire.begin();\n  tc_init();ssr_init();lvdt_init();scale_init();colour_init();\n  Serial.println(\"t_s,sp,temp,pwm,lvdt,yi,mfi\");\n}\n\nunsigned long lastMs=0,settled_ms=0;\nbool settled=false;\nvoid loop(){\n  unsigned long now=millis();\n  float dt=(now-lastMs)/1000.0f;\n  if(dt<1.0f)return;lastMs=now;\n  float temp=tc_read(),yi=yellowness_index();\n  if(fault_check(temp,yi))return;\n  int pwm=pid_heater_control(SP,temp,dt,KP,KI,KD,&intg,&lastE);\n  ssr_set(pwm);\n  if(!settled&&abs(temp-SP)<1.5f){if(settled_ms==0)settled_ms=now;if(now-settled_ms>300000){settled=true;lvdt_start=lvdt_read();test_start_s=now/1000.0f;}}\n  float mfi=-1;\n  if(settled){float disp=lvdt_read()-lvdt_start;float t_s=now/1000.0f-test_start_s;if(t_s>0)mfi=mfi_compute(disp,t_s,ORIFICE,DENSITY);}\n  Serial.print(now/1000);Serial.print(',');Serial.print(SP,0);Serial.print(',');Serial.print(temp,1);Serial.print(',');Serial.print(pwm);Serial.print(',');Serial.print(lvdt_read(),2);Serial.print(',');Serial.print(yi,2);Serial.print(',');Serial.println(mfi,2);\n}",
+  "software_artifact_titles": [
+    "pid_heater_control",
+    "mfi_compute"
+  ]
+}

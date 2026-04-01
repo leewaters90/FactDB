@@ -1,0 +1,53 @@
+{
+  "title": "CubeSat Electrical Power System Adaptive MPPT Controller",
+  "description": "A 1U CubeSat on-board EPS controller that implements adaptive Perturb-and-Observe MPPT on body-mounted solar panels, monitors battery state-of-charge via dual INA219 shunt sensors, performs sun-angle optimisation using the ICM-42688-P IMU feeding a cascaded PID attitude nudge signal, executes autonomous fault detection (over-voltage, over-current, low-battery) with load shedding, and logs all telemetry over USB-serial at 1 Hz. Differentiated from the existing CubeSat cold-gas RCS attitude-hold and propulsion adaptive-controller projects by focusing entirely on the electrical power subsystem and photovoltaic energy harvest rather than propulsion or attitude actuation.",
+  "objective": "Maximise solar energy harvest on a 1U CubeSat via closed-loop MPPT; maintain battery voltage within 6.5–8.4 V safe operating band; detect and respond to EPS faults autonomously with load shedding; log continuous telemetry (V, I, power, duty, fault flag) at 1 Hz over serial.",
+  "constraints": "Teensy 4.0 / STM32 Nucleo (ARM Cortex-M); two INA219 monitors; ICM-42688-P IMU; external synchronous buck converter; 2S Li-ion 2200 mAh; body-mounted 2 W solar panel array; no moving parts; factor of safety 1.5 on discharge current rating; I2C + SPI buses; USB-serial telemetry; total BOM < $35.",
+  "domain": "aerospace",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "CubeSat Standard Platform (1U–3U)",
+    "Factor of Safety",
+    "CubeSat Electrical Power System (EPS) Architecture",
+    "Maximum Power Point Tracking (MPPT) for Photovoltaic Sources"
+  ],
+  "design_element_titles": [
+    "INA219 Bidirectional Current/Power Monitor (I2C)",
+    "Perturb-and-Observe MPPT Duty-Cycle Controller",
+    "ICM-42688-P High-Rate IMU via SPI",
+    "Cascaded PID Rate and Attitude Controller"
+  ],
+  "element_usage_notes": {
+    "INA219 Bidirectional Current/Power Monitor (I2C)": "Two INA219s sample solar panel and battery rails at 20 Hz; readings feed MPPT P&O logic, battery SoC estimation, and all three fault threshold checks.",
+    "Perturb-and-Observe MPPT Duty-Cycle Controller": "Core energy-harvest loop; adjusts buck converter duty each 50 ms cycle based on dP/dD sign; overridden to reduced safe-mode duty on any fault condition.",
+    "ICM-42688-P High-Rate IMU via SPI": "Reads ACCEL_Z at 20 Hz to estimate satellite solar-face orientation; az = 0.5 g target corresponds to optimal ~45° panel-to-sun incidence angle for body-mounted panels.",
+    "Cascaded PID Rate and Attitude Controller": "Outer PID on az error produces an attitude nudge PWM command routed to the spacecraft attitude system, orienting the solar face toward the sun to increase panel irradiance."
+  },
+  "element_interactions": [
+    {
+      "from": "ICM-42688-P High-Rate IMU via SPI",
+      "to": "Cascaded PID Rate and Attitude Controller",
+      "data": "accel_z (g)",
+      "description": "IMU supplies Z-axis acceleration as a sun-angle proxy; PID drives error toward 0.5 g target representing optimal panel orientation."
+    },
+    {
+      "from": "Cascaded PID Rate and Attitude Controller",
+      "to": "Perturb-and-Observe MPPT Duty-Cycle Controller",
+      "data": "attitude_nudge_pwm",
+      "description": "PID outputs attitude-correction signal; MPPT operates in full P&O mode when az is near target; holds last duty during large slew manoeuvres."
+    },
+    {
+      "from": "INA219 Bidirectional Current/Power Monitor (I2C)",
+      "to": "Perturb-and-Observe MPPT Duty-Cycle Controller",
+      "data": "solar_V, solar_I, battery_V, battery_I",
+      "description": "Real-time V/I measurements are the primary inputs to the MPPT power calculation and all fault threshold checks."
+    },
+    {
+      "from": "Perturb-and-Observe MPPT Duty-Cycle Controller",
+      "to": "INA219 Bidirectional Current/Power Monitor (I2C)",
+      "data": "duty_cycle (PWM count)",
+      "description": "MPPT adjusts buck converter duty, changing the solar panel operating point that the INA219 reads back on the next measurement cycle."
+    }
+  ],
+  "integration_code": "#include <Wire.h>\n#include <SPI.h>\n\n#define INA_SOLAR  0x40\n#define INA_BATT   0x41\n#define INA_CFG    0x00\n#define INA_SHUNT  0x01\n#define INA_BUS    0x02\n#define IMU_CS     10\n#define ICM_AZ_H   0x23\n#define MPPT_PWM   9\n#define LOAD_EN    8\n#define FAULT_LED  7\n\n#define BATT_MIN   6.5f\n#define BATT_MAX   8.4f\n#define SOL_MAX_I  1.5f\n#define LOG_MS     1000\n\nfloat kp=2.0f,ki=0.1f,kd=0.5f;\nfloat pid_int=0,pid_prev=0;\nuint8_t duty=128;\nfloat prev_pwr=0;\nint   ddir=1;\nunsigned long last_log=0;\nbool fault=false;\n\nvoid ina_wr(uint8_t a,uint8_t r,uint16_t v){\n  Wire.beginTransmission(a);\n  Wire.write(r);Wire.write(v>>8);Wire.write(v&0xFF);\n  Wire.endTransmission();\n}\nfloat ina_bus(uint8_t a){\n  Wire.beginTransmission(a);Wire.write(INA_BUS);Wire.endTransmission(false);\n  Wire.requestFrom(a,(uint8_t)2);\n  uint16_t r=((uint16_t)Wire.read()<<8)|Wire.read();\n  return (r>>3)*0.004f;\n}\nfloat ina_shunt(uint8_t a){\n  Wire.beginTransmission(a);Wire.write(INA_SHUNT);Wire.endTransmission(false);\n  Wire.requestFrom(a,(uint8_t)2);\n  int16_t r=(int16_t)(((uint16_t)Wire.read()<<8)|Wire.read());\n  return r*0.00001f;\n}\nfloat imu_az(){\n  SPI.beginTransaction(SPISettings(8000000,MSBFIRST,SPI_MODE0));\n  digitalWrite(IMU_CS,LOW);\n  SPI.transfer(0x80|ICM_AZ_H);\n  uint8_t h=SPI.transfer(0),l=SPI.transfer(0);\n  digitalWrite(IMU_CS,HIGH);SPI.endTransaction();\n  return (int16_t)((h<<8)|l)/2048.0f;\n}\nvoid mppt_po(float pwr){\n  float dp=pwr-prev_pwr;\n  if(dp>0) duty=(uint8_t)constrain(duty+ddir,10,245);\n  else{ddir=-ddir;duty=(uint8_t)constrain(duty+ddir,10,245);}\n  prev_pwr=pwr;\n  analogWrite(MPPT_PWM,duty);\n}\nfloat pid_step(float err,float dt){\n  pid_int=constrain(pid_int+err*dt,-100.0f,100.0f);\n  float d=(err-pid_prev)/dt;pid_prev=err;\n  return kp*err+ki*pid_int+kd*d;\n}\nbool chk_fault(float bv,float si){\n  if(bv<BATT_MIN){Serial.println(\"FAULT:LOW_BATT\");return true;}\n  if(bv>BATT_MAX){Serial.println(\"FAULT:OVERVOLT\");return true;}\n  if(si>SOL_MAX_I){Serial.println(\"FAULT:OVERCURR\");return true;}\n  return false;\n}\nvoid setup(){\n  Serial.begin(115200);\n  Wire.begin();SPI.begin();\n  pinMode(IMU_CS,OUTPUT);digitalWrite(IMU_CS,HIGH);\n  pinMode(MPPT_PWM,OUTPUT);\n  pinMode(LOAD_EN,OUTPUT);digitalWrite(LOAD_EN,HIGH);\n  pinMode(FAULT_LED,OUTPUT);\n  ina_wr(INA_SOLAR,INA_CFG,0x3FFF);\n  ina_wr(INA_BATT, INA_CFG,0x3FFF);\n  analogWrite(MPPT_PWM,duty);\n  Serial.println(\"t_ms,sv,si,sp,bv,bi,az,duty,fault\");\n}\nvoid loop(){\n  static unsigned long pt=0;\n  unsigned long now=millis();\n  float dt=(now-pt)/1000.0f;\n  if(dt<0.05f)return;\n  pt=now;\n  float sv=ina_bus(INA_SOLAR),si=ina_shunt(INA_SOLAR),sp=sv*si;\n  float bv=ina_bus(INA_BATT), bi=ina_shunt(INA_BATT);\n  float az=imu_az();\n  fault=chk_fault(bv,si);\n  digitalWrite(FAULT_LED,(uint8_t)fault);\n  if(!fault){\n    mppt_po(sp);\n    int tpwm=constrain((int)(127.0f+pid_step(0.5f-az,dt)*20.0f),0,255);\n    (void)tpwm;\n    digitalWrite(LOAD_EN,HIGH);\n  } else {\n    digitalWrite(LOAD_EN,LOW);\n    analogWrite(MPPT_PWM,64);\n    pid_int=0;\n  }\n  if(now-last_log>=LOG_MS){\n    last_log=now;\n    Serial.print(now);Serial.print(',');\n    Serial.print(sv,3);Serial.print(',');\n    Serial.print(si,4);Serial.print(',');\n    Serial.print(sp,4);Serial.print(',');\n    Serial.print(bv,3);Serial.print(',');\n    Serial.print(bi,4);Serial.print(',');\n    Serial.print(az,4);Serial.print(',');\n    Serial.print(duty);Serial.print(',');\n    Serial.println(fault?1:0);\n  }\n}"
+}

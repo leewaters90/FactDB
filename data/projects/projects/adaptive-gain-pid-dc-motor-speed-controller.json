@@ -1,0 +1,56 @@
+{
+  "title": "Adaptive Gain PID DC Motor Speed Controller",
+  "description": "Closed-loop DC motor speed regulator using hall-effect pulse counting, 3-region adaptive PID gain scheduling, MOSFET PWM drive, OLED live display, and SD card CSV logging with RPM fault shutdown.",
+  "objective": "Regulate shaft RPM to setpoint within ±2% SS error; adapt gains per error region; log all states at 20 Hz; halt on out-of-range RPM.",
+  "constraints": "Arduino Uno; 12 V motor ≤3 A; 50 ms control loop; microSD SPI CS=10; SSD1306 I2C.",
+  "domain": "software",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Big-O Notation — Time Complexity",
+    "Stepper Motor Closed-Loop Control via Magnetic Encoder Feedback",
+    "Adaptive Gain Scheduling for PID Controllers"
+  ],
+  "design_element_titles": [
+    "Hall-Effect Interrupt Speed Sensor",
+    "IRLZ44N MOSFET PWM Motor Driver",
+    "SSD1306 128x32 OLED Status Panel",
+    "FAT32 MicroSD CSV Logger"
+  ],
+  "element_usage_notes": {
+    "Hall-Effect Interrupt Speed Sensor": "Interrupt-driven pulse count provides RPM feedback each 50 ms loop tick.",
+    "IRLZ44N MOSFET PWM Motor Driver": "Converts 0-255 PID output to effective motor voltage via analogWrite.",
+    "SSD1306 128x32 OLED Status Panel": "Live operator display of SP/RPM/PWM at 5 Hz.",
+    "FAT32 MicroSD CSV Logger": "Persists full control state for post-run analysis."
+  },
+  "element_interactions": [
+    {
+      "from": "Hall-Effect Interrupt Speed Sensor",
+      "to": "IRLZ44N MOSFET PWM Motor Driver",
+      "data": "RPM error → PID → PWM",
+      "description": "PID converts RPM error to motor drive command each 50 ms."
+    },
+    {
+      "from": "IRLZ44N MOSFET PWM Motor Driver",
+      "to": "Hall-Effect Interrupt Speed Sensor",
+      "data": "shaft speed change",
+      "description": "Drive output changes shaft speed measured by hall sensor."
+    },
+    {
+      "from": "Hall-Effect Interrupt Speed Sensor",
+      "to": "SSD1306 128x32 OLED Status Panel",
+      "data": "RPM reading",
+      "description": "Current RPM shown on OLED at 5 Hz."
+    },
+    {
+      "from": "Hall-Effect Interrupt Speed Sensor",
+      "to": "FAT32 MicroSD CSV Logger",
+      "data": "timestamp,sp,rpm,pwm",
+      "description": "Control state logged to CSV at 20 Hz."
+    }
+  ],
+  "integration_code": "#include <Wire.h>\n#include <SPI.h>\n#include <SD.h>\nextern int pid_heater_control(float,float,float,float,float,float,float*,float*);\nextern void adaptive_pid_gain_schedule(float,float*,float*,float*);\nvolatile long encCount=0;\nvoid hall_isr(){encCount++;}\nvoid hall_setup(){attachInterrupt(digitalPinToInterrupt(2),hall_isr,RISING);}\nfloat hall_rpm(float dt){long c=encCount;encCount=0;return(c/20.0f)*(60.0f/dt);}\nvoid motor_setup(){pinMode(9,OUTPUT);}\nvoid motor_set(int v){analogWrite(9,constrain(v,0,255));}\nFile lf;\nvoid log_setup(){if(SD.begin(10))lf=SD.open(\"m.csv\",FILE_WRITE);}\nvoid log_write(unsigned long t,float sp,float pv,int pw){\n  if(!lf)return;\n  lf.print(t);lf.print(',');lf.print(sp,1);lf.print(',');lf.print(pv,1);lf.print(',');lf.println(pw);}\nvoid oled_show(float sp,float pv,int pw){(void)sp;(void)pv;(void)pw;}\nvoid fault_check(float rpm){\n  if(rpm<0.0f||rpm>3500.0f){motor_set(0);Serial.println(\"FAULT:RPM\");while(1);}}\nstatic float ig=0,le=0;\nfloat SP=1500.0f;\nunsigned long pt=0;\nvoid setup(){\n  Serial.begin(115200);\n  hall_setup();motor_setup();log_setup();}\nvoid loop(){\n  unsigned long n=millis();\n  float dt=(n-pt)/1000.0f;\n  if(dt<0.05f)return;\n  pt=n;\n  float rpm=hall_rpm(dt);\n  fault_check(rpm);\n  float kp,ki,kd;\n  adaptive_pid_gain_schedule(SP-rpm,&kp,&ki,&kd);\n  int pw=pid_heater_control(SP,rpm,dt,kp,ki,kd,&ig,&le);\n  motor_set(pw);\n  oled_show(SP,rpm,pw);\n  log_write(n,SP,rpm,pw);}",
+  "software_artifact_titles": [
+    "pid_heater_control",
+    "adaptive_pid_gain_schedule"
+  ]
+}

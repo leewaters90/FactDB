@@ -1,0 +1,17 @@
+{
+  "title": "rankine_active_pressure",
+  "artifact_type": "function",
+  "language": "arduino",
+  "signature": "float rankine_active_pressure(float phi_deg, float gamma_kNm3, float depth_m, float cohesion_kPa)",
+  "content": "Computes Rankine active earth pressure in kPa at a given depth using friction angle, unit weight, depth, and cohesion.",
+  "code": "float rankine_active_pressure(float phi_deg, float gamma_kNm3, float depth_m, float cohesion_kPa) {\n  float phi = phi_deg * PI / 180.0f;\n  float Ka = (1.0f - sin(phi)) / (1.0f + sin(phi));\n  float s = Ka * gamma_kNm3 * depth_m - 2.0f * cohesion_kPa * sqrt(Ka);\n  return (s < 0.0f) ? 0.0f : s;\n}",
+  "tags": [
+    "civil",
+    "retaining-wall",
+    "earth-pressure",
+    "rankine",
+    "geotechnical"
+  ],
+  "domain": "software",
+  "category": "function"
+}

@@ -1,0 +1,8 @@
+{
+  "title": "Fixed-Point FFT for Embedded Vibration Analysis",
+  "domain": "software",
+  "category": "algorithms",
+  "content": "A 64-point radix-2 Cooley-Tukey FFT on 16-bit Q15 integers runs in approximately 0.8 ms at 16 MHz AVR. Magnitude is approximated as max(|Re|,|Im|) + 0.4*min(|Re|,|Im|) — the L1 norm with ~5% error vs true magnitude — eliminating the sqrt() call. The dominant frequency bin identifies machine fault harmonics. Overall complexity is O(N log N) with N=64.",
+  "detail_level": "intermediate",
+  "id": "8192747c-be32-4d2f-9587-fc4235157e6e"
+}

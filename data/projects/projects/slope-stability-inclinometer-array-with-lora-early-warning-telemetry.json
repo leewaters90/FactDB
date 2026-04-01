@@ -1,0 +1,48 @@
+{
+  "title": "Slope Stability Inclinometer Array with LoRa Early-Warning Telemetry",
+  "description": "Deploys a three-sensor borehole MEMS inclinometer array on an unstable hillside, computes real-time factor of safety using the infinite slope equation, transmits FS and tilt data every minute via LoRa to a remote base station, and activates a local alarm when FS drops below 1.5 — targeting earthwork geotechnical failure, distinct from bridge vibration projects.",
+  "objective": "Early landslide warning with FS<1.5 LoRa alert, local alarm, and hourly SD displacement trend log; detect freeze-thaw destabilisation via soil temperature.",
+  "constraints": "Arduino Mega, three MPU-6050 with TCA9548A mux, SX1276 LoRa, DS18B20 probes, SD card; remote hillside, LiPo+solar; φ=30°, c=5 kPa, z=1.5 m.",
+  "domain": "civil",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Factor of Safety for Infinite Slope Stability",
+    "Beam Bending — Flexure Formula"
+  ],
+  "design_element_titles": [
+    "MEMS Tilt and Inclinometer Array via I2C Mux",
+    "LoRa SX1276 Remote Telemetry Node",
+    "Buzzer and LED Fault Annunciator",
+    "DS18B20 1-Wire Temperature Probe Array"
+  ],
+  "element_usage_notes": {
+    "MEMS Tilt and Inclinometer Array via I2C Mux": "Three sensors at 150 mm intervals; mean tilt used as slope angle β input to FS equation.",
+    "LoRa SX1276 Remote Telemetry Node": "Sends FS, tilt array, and soil temperature every 60 s to base station.",
+    "Buzzer and LED Fault Annunciator": "Local on-site warning at FS<1.5; fast beep at FS<1.2 (imminent failure).",
+    "DS18B20 1-Wire Temperature Probe Array": "Soil temperature monitors freeze-thaw cycles that reduce effective cohesion."
+  },
+  "element_interactions": [
+    {
+      "from": "MEMS Tilt and Inclinometer Array via I2C Mux",
+      "to": "LoRa SX1276 Remote Telemetry Node",
+      "data": "tilt_deg[3]",
+      "description": "Tilt angle array and computed FS packaged into LoRa payload."
+    },
+    {
+      "from": "DS18B20 1-Wire Temperature Probe Array",
+      "to": "LoRa SX1276 Remote Telemetry Node",
+      "data": "soil_temp_C",
+      "description": "Soil temperature included in telemetry packet for freeze-thaw correlation."
+    },
+    {
+      "from": "MEMS Tilt and Inclinometer Array via I2C Mux",
+      "to": "Buzzer and LED Fault Annunciator",
+      "data": "FS",
+      "description": "FS below 1.5 triggers warning; below 1.2 triggers critical alarm."
+    }
+  ],
+  "integration_code": "#include <Wire.h>\n#include <MPU6050.h>\n#include <OneWire.h>\n#include <DallasTemperature.h>\n#include <SPI.h>\n#include <LoRa.h>\n#include <SD.h>\n#define MUX 0x70\n#define N_IMU 3\n#define BUZZER 8\n#define LED 9\n#define SD_CS 10\n#define ONE_WIRE_BUS 2\n#define FS_WARN 1.5f\n#define FS_CRIT 1.2f\nOneWire ow(ONE_WIRE_BUS); DallasTemperature ds(&ow);\nMPU6050 imu;\n\nfloat slope_factor_of_safety(float c,float g,float gw,float z,float b,float p){\n  b*=PI/180;p*=PI/180;\n  float num=c+(g-gw)*z*cos(b)*cos(b)*tan(p);\n  float den=g*z*sin(b)*cos(b);\n  return den>0?num/den:99;\n}\n\nvoid mux_sel(int ch){Wire.beginTransmission(MUX);Wire.write(1<<ch);Wire.endTransmission();}\n\nfloat read_tilt(int ch){\n  mux_sel(ch);imu.initialize();\n  int16_t ax,ay,az,gx,gy,gz;\n  imu.getMotion6(&ax,&ay,&az,&gx,&gy,&gz);\n  return atan2((float)ax,(float)az)*180.0f/PI;\n}\n\nvoid send_lora(float*t,float fs,float T){\n  LoRa.beginPacket();\n  LoRa.print(fs);LoRa.print(',');\n  for(int i=0;i<N_IMU;i++){LoRa.print(t[i]);LoRa.print(',');}\n  LoRa.print(T);LoRa.endPacket();\n}\n\nvoid run_alarm(float fs){\n  if(fs<FS_CRIT){tone(BUZZER,2500);analogWrite(LED,255);}\n  else if(fs<FS_WARN){tone(BUZZER,1000);analogWrite(LED,128);}\n  else{noTone(BUZZER);analogWrite(LED,0);}\n}\n\nvoid log_sd(float*t,float fs){\n  File f=SD.open(\"slope.csv\",FILE_WRITE);\n  if(f){f.print(millis());f.print(',');f.print(fs);for(int i=0;i<N_IMU;i++){f.print(',');f.print(t[i]);}f.println();f.close();}\n}\n\nvoid setup(){Wire.begin();Serial.begin(115200);ds.begin();LoRa.begin(915E6);SD.begin(SD_CS);pinMode(BUZZER,OUTPUT);pinMode(LED,OUTPUT);}\n\nvoid loop(){\n  float t[N_IMU];\n  for(int i=0;i<N_IMU;i++) t[i]=read_tilt(i);\n  float beta=t[0];\n  float fs=slope_factor_of_safety(5.0f,18.0f,9.81f,1.5f,beta,30.0f);\n  ds.requestTemperatures();float T=ds.getTempCByIndex(0);\n  run_alarm(fs);log_sd(t,fs);send_lora(t,fs,T);\n  Serial.print(\"FS=\");Serial.println(fs);\n  delay(60000);\n}",
+  "software_artifact_titles": [
+    "slope_factor_of_safety"
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "title": "Resistance Heater with PWM Control",
+  "component_category": "control",
+  "selected_approach": "20 W ceramic resistance element switched by N-channel MOSFET (IRLZ44N) with optocoupler isolation. Arduino analogWrite() varies duty cycle 0–255 at ~490 Hz. Hardware thermal fuse (85 °C) in series for fail-safe. 12 V supply rail."
+}

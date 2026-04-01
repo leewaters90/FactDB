@@ -1,0 +1,5 @@
+{
+  "title": "MCP4725 12-bit I2C DAC Module",
+  "component_category": "control",
+  "selected_approach": "MCP4725 12-bit DAC at I2C 0x60; supplies ±20 mV bias voltage for LPR polarisation scans; biased around OCP measured at scan start"
+}

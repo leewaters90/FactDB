@@ -7,17 +7,23 @@ and their fact dependencies.
 
 from __future__ import annotations
 
+import json
+import logging
 import os
 from collections import defaultdict
 from datetime import datetime, timezone
 
-from flask import Flask, abort, flash, redirect, render_template, request, url_for
+from flask import Flask, abort, flash, jsonify, redirect, render_template, request, url_for
 from sqlalchemy.orm import Session
 
 from factdb.database import get_session_factory, init_db
 from factdb.models import EngineeringDomain, Fact, FactRelationship
 from factdb.project_models import ComponentCategory, DesignElement, Project, ProjectStatus
 from factdb.project_repository import ProjectRepository
+from factdb.web.seeding_worker import get_job_manager
+
+# Ensure UTF-8 encoding for I/O
+os.environ.setdefault("PYTHONIOENCODING", "utf-8")
 
 
 def _parse_date(value: str | None) -> datetime | None:
@@ -447,5 +453,66 @@ def create_app(db_url: str | None = None) -> Flask:
             return render_template("web/convergence.html", chart_data=chart_data, stats=stats)
         finally:
             session.close()
+
+    # -----------------------------------------------------------------------
+    # Seeding — Background project generation via Copilot
+    # -----------------------------------------------------------------------
+
+    @app.get("/seeding")
+    def seeding_dashboard():
+        """Display the seeding dashboard."""
+        job_manager = get_job_manager()
+        recent_jobs = job_manager.get_all_jobs()[:20]  # Last 20 jobs
+        return render_template(
+            "web/seeding.html",
+            recent_jobs=[job.to_dict() for job in recent_jobs],
+        )
+
+    @app.post("/api/seeding/start")
+    def seeding_start():
+        """Start a new seeding job."""
+        try:
+            count = int(request.json.get("count", 1))
+            if count < 1 or count > 100:
+                return jsonify({"error": "count must be between 1 and 100"}), 400
+
+            job_manager = get_job_manager()
+            job = job_manager.create_job(count)
+            job_manager.start_job(job.job_id)
+
+            return jsonify(job.to_dict()), 201
+        except (ValueError, TypeError) as e:
+            return jsonify({"error": f"Invalid request: {e}"}), 400
+
+    @app.get("/api/seeding/jobs")
+    def seeding_list_jobs():
+        """List all seeding jobs."""
+        job_manager = get_job_manager()
+        limit = int(request.args.get("limit", 50))
+        jobs = job_manager.get_all_jobs()[:limit]
+        return jsonify([job.to_dict() for job in jobs])
+
+    @app.get("/api/seeding/jobs/<job_id>")
+    def seeding_get_job(job_id: str):
+        """Get details for a specific job."""
+        job_manager = get_job_manager()
+        job = job_manager.get_job(job_id)
+        if job is None:
+            abort(404)
+        return jsonify(job.to_dict())
+
+    @app.post("/api/seeding/jobs/<job_id>/stop")
+    def seeding_stop_job(job_id: str):
+        """Stop a running seeding job."""
+        job_manager = get_job_manager()
+        job = job_manager.get_job(job_id)
+        if job is None:
+            abort(404)
+
+        success = job_manager.stop_job(job_id)
+        if not success:
+            return jsonify({"error": "Job is not running"}), 400
+
+        return jsonify({"status": "stop requested", "job": job.to_dict()})
 
     return app

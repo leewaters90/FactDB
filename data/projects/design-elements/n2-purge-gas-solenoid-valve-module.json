@@ -1,0 +1,5 @@
+{
+  "title": "N2 Purge Gas Solenoid Valve Module",
+  "component_category": "actuation",
+  "selected_approach": "12 V normally-closed solenoid valve; 1/4 NPT; ULN2003 driver from Arduino; flow confirmed by 5 V reed flowmeter pulse input; purge auto-activates above 400 °C"
+}

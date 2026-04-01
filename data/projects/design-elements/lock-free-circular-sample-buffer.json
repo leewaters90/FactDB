@@ -1,0 +1,5 @@
+{
+  "title": "Lock-Free Circular Sample Buffer",
+  "component_category": "processing",
+  "selected_approach": "Power-of-2 sized ring buffer with atomic 16-bit head/tail indices; ISR writes; foreground reads without disabling interrupts; 256-entry uint8_t ring."
+}

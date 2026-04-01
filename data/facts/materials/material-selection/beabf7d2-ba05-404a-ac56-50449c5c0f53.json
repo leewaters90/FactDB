@@ -1,0 +1,8 @@
+{
+  "title": "Electroplating Current Density and Hull Cell Deposit Quality",
+  "domain": "materials",
+  "category": "material selection",
+  "content": "For Watts nickel bath (NiSO₄ 300 g/L, NiCl₂ 60 g/L, H₃BO₃ 45 g/L), optimal current density is 2–5 A/dm², pH 3.5–4.5, temperature 45–55 °C. Hull cell mapping reveals burnt deposits above 6 A/dm² and pitting below 1 A/dm². pH drift > 0.3 units triggers corrective acid (H₂SO₄) or base (NiCO₃) dosing. Stirring at 30–60 RPM prevents depletion layer build-up. Cathode efficiency 95–98% in this window.",
+  "detail_level": "intermediate",
+  "id": "beabf7d2-ba05-404a-ac56-50449c5c0f53"
+}

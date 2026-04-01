@@ -1,0 +1,8 @@
+{
+  "title": "Wheel Odometry Dead-Reckoning and Kalman Heading Fusion",
+  "domain": "software",
+  "category": "algorithms",
+  "content": "Dead-reckoning integrates wheel encoder deltas: Δx=Δs·cos(θ), Δy=Δs·sin(θ), Δθ=(ΔR-ΔL)/L where L is the wheelbase. Heading error accumulates approximately 0.5°/m driven by wheel slip and unequal radii. A 1D scalar Kalman filter fusing encoder Δθ (process) with IMU yaw (measurement) reduces heading drift by approximately 10× compared to encoder-only heading integration.",
+  "detail_level": "intermediate",
+  "id": "ee3c0101-3ad6-43a0-af6e-45619a64645f"
+}

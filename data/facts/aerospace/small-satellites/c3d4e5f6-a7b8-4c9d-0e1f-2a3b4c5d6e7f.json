@@ -1,0 +1,8 @@
+{
+  "id": "c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f",
+  "title": "Maximum Power Point Tracking (MPPT) for Photovoltaic Sources",
+  "domain": "aerospace",
+  "category": "small satellites",
+  "content": "MPPT algorithms continuously adjust the impedance presented to a solar cell array to extract maximum available power as irradiance and temperature vary. The Perturb-and-Observe (P&O) method increments or decrements a buck converter duty cycle each control period, measures the resulting change in panel power (dP/dD), and reverses direction when power decreases. Convergence time is ~50 ms at 20 Hz update rate. In a CubeSat application, solar panels may be body-mounted or deployable; irradiance varies from 0 W at eclipse to ~1360 W/m^2 at sun-normal incidence. MPPT efficiency gain over fixed-voltage operation is typically 10–25 % depending on panel tilt and cell temperature. Safety constraint: duty cycle clamped to 10–95 % to prevent inductor saturation and converter shoot-through.",
+  "detail_level": "intermediate"
+}

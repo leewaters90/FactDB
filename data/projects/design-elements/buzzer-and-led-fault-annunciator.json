@@ -1,0 +1,5 @@
+{
+  "title": "Buzzer and LED Fault Annunciator",
+  "component_category": "control",
+  "selected_approach": "Passive piezo buzzer plus tri-color LED driven by Arduino digital pins; activates two-tone alarm pattern when measured force exceeds configurable Rankine threshold or a sensor fault is detected."
+}

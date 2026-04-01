@@ -1,0 +1,55 @@
+{
+  "title": "Structural Vibration Fatigue Life Estimator",
+  "description": "Real-time fatigue life estimator that samples structural vibration from an ADXL345 accelerometer and strain gauge, extracts peak amplitudes, accumulates Miner's rule damage using the Basquin S-N model, stores cumulative damage to FRAM, and transmits remaining life estimates via WiFi MQTT with alarm on D ≥ 0.8.",
+  "objective": "Sample vibration at 100 Hz; accumulate Miner's rule damage every 60 s; store D to FRAM; transmit JSON telemetry via WiFi; alarm serial + MQTT when D ≥ 0.8; fault on sensor disconnect.",
+  "constraints": "Arduino Nano + ESP32 UART bridge; ADXL345; INA125 strain amp; FRAM; WiFi MQTT; BOM < $55.",
+  "domain": "materials",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Miner's Rule Cumulative Fatigue Damage and S-N Curve Life Estimation",
+    "Ashby Material Selection — Property Charts",
+    "Fault Detection and Isolation in Embedded Propulsion Controllers"
+  ],
+  "design_element_titles": [
+    "ADXL345 3-Axis I2C Accelerometer Module",
+    "INA125 Strain Gauge Bridge Amplifier",
+    "ESP32 DevKit WiFi Telemetry Node",
+    "FRAM MB85RC256V Non-Volatile Data Store"
+  ],
+  "element_usage_notes": [
+    "Z-axis acceleration sampled at 100 Hz; peak extracted over 1 s windows for damage input",
+    "Strain reading cross-validates acceleration; triggers fault if discrepancy > 500 µε at same load",
+    "Receives cumulative D and alarm state over UART; publishes JSON MQTT every 60 s",
+    "Cumulative damage D and cycle counts written to FRAM every 60 s; loaded at power-on"
+  ],
+  "element_interactions": [
+    {
+      "from": "ADXL345 3-Axis I2C Accelerometer Module",
+      "to": "FRAM MB85RC256V Non-Volatile Data Store",
+      "data": "damage_increment",
+      "description": "Damage computed from each peak amplitude is accumulated and written to FRAM every 60 s"
+    },
+    {
+      "from": "INA125 Strain Gauge Bridge Amplifier",
+      "to": "ADXL345 3-Axis I2C Accelerometer Module",
+      "data": "strain_cross_check",
+      "description": "Strain and acceleration readings cross-validated; discrepancy triggers fault"
+    },
+    {
+      "from": "FRAM MB85RC256V Non-Volatile Data Store",
+      "to": "ESP32 DevKit WiFi Telemetry Node",
+      "data": "cumulative_damage_D",
+      "description": "Arduino reads D from FRAM and sends to ESP32 via UART for MQTT transmission"
+    },
+    {
+      "from": "ESP32 DevKit WiFi Telemetry Node",
+      "to": "FRAM MB85RC256V Non-Volatile Data Store",
+      "data": "sync_ack",
+      "description": "ESP32 acknowledges successful MQTT publish; Arduino logs ack to FRAM event record"
+    }
+  ],
+  "integration_code": "#include <Wire.h>\n#include <SparkFun_ADXL345.h>\n\nextern float miners_rule_damage_per_cycle(float amplitude_g,float C_log10,float m);\n\nSPARKFUN_ADXL345 accel;\nconst int STRAIN_PIN=A0,ESP_TX=3,ESP_RX=4;\nconst float C_LOG=12.0f,M_EXP=3.0f,D_ALARM=0.8f;\nfloat cumulative_D=0.0f;\nlong total_cycles=0;\n\n// === Accelerometer ===\nvoid accel_init(){Wire.begin();accel.begin();accel.setRangeSetting(16);accel.setRate(100);}\nfloat accel_peak(){\n  float pk=0;\n  unsigned long t=millis();\n  while(millis()-t<1000){int x,y,z;accel.readAccel(&x,&y,&z);float a=abs(z)/64.0f;if(a>pk)pk=a;}\n  return pk;}\n\n// === Strain Gauge ===\nvoid strain_init(){pinMode(STRAIN_PIN,INPUT);}\nfloat strain_read(){return (analogRead(STRAIN_PIN)-512)*2000.0f/512.0f;}\n\n// === FRAM Storage ===\nvoid fram_init(){/* I2C FRAM at 0x50 */}\nvoid fram_save(float d,long c){Wire.beginTransmission(0x50);Wire.write(0x00);Wire.write(0x00);uint32_t di;memcpy(&di,&d,4);Wire.write((di>>24)&0xFF);Wire.write((di>>16)&0xFF);Wire.write((di>>8)&0xFF);Wire.write(di&0xFF);Wire.endTransmission();}\nfloat fram_load(){Wire.beginTransmission(0x50);Wire.write(0x00);Wire.write(0x00);Wire.endTransmission(false);Wire.requestFrom(0x50,4);uint32_t v=((uint32_t)Wire.read()<<24)|((uint32_t)Wire.read()<<16)|((uint32_t)Wire.read()<<8)|Wire.read();float d;memcpy(&d,&v,4);return(d>0&&d<2)?d:0;}\n\n// === Telemetry ===\nvoid telemetry_send(float d,bool alarm){Serial1.print(\"{\\\"D\\\":\");Serial1.print(d,5);Serial1.print(\",\\\"life_pct\\\":\");Serial1.print((1.0f-d)*100,1);Serial1.print(\",\\\"alarm\\\":\");Serial1.print(alarm?\"true\":\"false\");Serial1.println(\"}\");}\n\n// === Fault Handler ===\nbool fault_check(){if(!accel.isConnected()){Serial.println(\"FAULT:ACCEL\");return true;}return false;}\n\nvoid setup(){\n  Serial.begin(115200);Serial1.begin(9600);\n  accel_init();strain_init();fram_init();\n  cumulative_D=fram_load();\n  Serial.print(\"Loaded D=\");Serial.println(cumulative_D,4);\n}\n\nunsigned long lastLog=0;\nvoid loop(){\n  if(fault_check())return;\n  float pk=accel_peak();\n  float d_inc=miners_rule_damage_per_cycle(pk,C_LOG,M_EXP);\n  cumulative_D+=d_inc;total_cycles++;\n  unsigned long now=millis();\n  if(now-lastLog>=60000){\n    lastLog=now;\n    fram_save(cumulative_D,total_cycles);\n    bool alarm=(cumulative_D>=D_ALARM);\n    telemetry_send(cumulative_D,alarm);\n    if(alarm)Serial.println(\"ALARM:FATIGUE_D0.8\");\n    Serial.print(\"D=\");Serial.print(cumulative_D,5);Serial.print(\" cyc=\");Serial.println(total_cycles);\n  }\n}",
+  "software_artifact_titles": [
+    "miners_rule_damage_per_cycle"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "id": "fact-fault-detection-isolation",
+  "title": "Fault Detection and Isolation in Embedded Propulsion Controllers",
+  "domain": "aerospace",
+  "category": "system-safety",
+  "content": "FDI monitors sensor residuals against thresholds derived from expected plant model outputs. A thruster fault is declared when: |measured_thrust_proxy - commanded| > epsilon for N consecutive cycles. Upon fault: controller transitions to safe-hold (all valves closed, actuators disabled), logs fault code and timestamp to non-volatile memory, and sets a status flag readable by ground/host. Watchdog timer resets MCU if main loop stalls > 500 ms. Factor of Safety applied to pressure limits: operating pressure <= rated_pressure / FS.",
+  "detail_level": "intermediate"
+}

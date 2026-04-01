@@ -1,0 +1,5 @@
+{
+  "title": "Raspberry Pi Zero W Edge Vision Processor",
+  "component_category": "processing",
+  "selected_approach": "Raspberry Pi Zero W; runs Python OpenCV; receives JPEG from ESP32-CAM via HTTP GET; performs histogram threshold porosity analysis; publishes JSON result via MQTT to broker; USB-powered"
+}

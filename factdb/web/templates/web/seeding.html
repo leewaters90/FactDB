@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seeding Dashboard — FactDB</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        nav {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        nav a {
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        nav a:hover {
+            background: #ecf0f1;
+        }
+
+        nav a.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel h2 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+
+        input[type="number"],
+        input[type="text"],
+        select {
+            width: 100%;
+            max-width: 300px;
+            padding: 8px 12px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        input[type="number"]:focus,
+        input[type="text"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        button:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        button.danger {
+            background: #e74c3c;
+        }
+
+        button.danger:hover {
+            background: #c0392b;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .status-pending {
+            background: #f39c12;
+            color: white;
+        }
+
+        .status-running {
+            background: #3498db;
+            color: white;
+        }
+
+        .status-completed {
+            background: #27ae60;
+            color: white;
+        }
+
+        .status-failed {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .status-cancelled {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .job-card {
+            border: 1px solid #ecf0f1;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f9f9f9;
+            transition: background 0.2s;
+        }
+
+        .job-card:hover {
+            background: #f5f5f5;
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .job-id {
+            font-weight: 600;
+            color: #2c3e50;
+            font-family: monospace;
+        }
+
+        .job-time {
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+
+        .job-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+
+        .stat {
+            color: #7f8c8d;
+        }
+
+        .stat strong {
+            color: #2c3e50;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #ecf0f1;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #3498db;
+            transition: width 0.3s;
+        }
+
+        .output-box {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            font-family: "Courier New", monospace;
+            font-size: 12px;
+            padding: 12px;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .success-message {
+            color: #27ae60;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ecf0f1;
+            border-top-color: #3498db;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #7f8c8d;
+            padding: 40px 20px;
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🚀 FactDB Seeding Dashboard</h1>
+            <p>Autonomously generate new projects with Copilot AI</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <nav>
+            <a href="/" class="nav-link">Dashboard</a>
+            <a href="/projects" class="nav-link">Projects</a>
+            <a href="/elements" class="nav-link">Elements</a>
+            <a href="/facts" class="nav-link">Facts</a>
+            <a href="/chart" class="nav-link">Graph</a>
+            <a href="/convergence" class="nav-link">Convergence</a>
+            <a href="/seeding" class="nav-link active">Seeding</a>
+        </nav>
+
+        <!-- Start Seeding Panel -->
+        <div class="panel">
+            <h2>Start New Seeding Job</h2>
+            <div class="form-group">
+                <label for="count">Number of Projects to Generate:</label>
+                <input type="number" id="count" name="count" value="1" min="1" max="100">
+            </div>
+            <button id="startBtn" onclick="startJob()">Start Seeding</button>
+            <button id="stopBtn" onclick="stopJob()" class="danger hidden">Stop Current Job</button>
+            <div id="feedback"></div>
+        </div>
+
+        <!-- Current Job Status -->
+        <div class="panel hidden" id="jobStatusPanel">
+            <h2>Current Job Status</h2>
+            <div id="jobStatus"></div>
+        </div>
+
+        <!-- Recent Jobs -->
+        <div class="panel">
+            <h2>Recent Jobs</h2>
+            <div id="jobsList"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentJobId = null;
+        let statusRefreshInterval = null;
+
+        async function startJob() {
+            const count = parseInt(document.getElementById("count").value);
+            if (isNaN(count) || count < 1 || count > 100) {
+                showFeedback("Please enter a number between 1 and 100", "error");
+                return;
+            }
+
+            try {
+                const response = await fetch("/api/seeding/start", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ count })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    showFeedback(`Failed: ${error.error}`, "error");
+                    return;
+                }
+
+                const job = await response.json();
+                currentJobId = job.job_id;
+                document.getElementById("startBtn").disabled = true;
+                document.getElementById("stopBtn").classList.remove("hidden");
+                document.getElementById("jobStatusPanel").classList.remove("hidden");
+
+                showFeedback(`Job ${job.job_id} started`, "success");
+                startStatusRefresh();
+                refreshJobsList();
+            } catch (error) {
+                showFeedback(`Error: ${error.message}`, "error");
+            }
+        }
+
+        async function stopJob() {
+            if (!currentJobId) return;
+
+            try {
+                const response = await fetch(`/api/seeding/jobs/${currentJobId}/stop`, {
+                    method: "POST"
+                });
+
+                if (response.ok) {
+                    showFeedback("Stop requested", "success");
+                } else {
+                    showFeedback("Failed to stop job", "error");
+                }
+            } catch (error) {
+                showFeedback(`Error: ${error.message}`, "error");
+            }
+        }
+
+        function startStatusRefresh() {
+            if (statusRefreshInterval) clearInterval(statusRefreshInterval);
+            statusRefreshInterval = setInterval(() => {
+                if (currentJobId) updateJobStatus(currentJobId);
+            }, 500);
+        }
+
+        async function updateJobStatus(jobId) {
+            try {
+                const response = await fetch(`/api/seeding/jobs/${jobId}`);
+                if (!response.ok) return;
+
+                const job = await response.json();
+                displayJobStatus(job);
+
+                // Stop refreshing if job is done
+                if (job.status !== "running" && job.status !== "pending") {
+                    clearInterval(statusRefreshInterval);
+                    document.getElementById("startBtn").disabled = false;
+                    document.getElementById("stopBtn").classList.add("hidden");
+                }
+            } catch (error) {
+                console.error("Error fetching job status:", error);
+            }
+        }
+
+        function displayJobStatus(job) {
+            const panel = document.getElementById("jobStatus");
+            const progress = job.current_iteration > 0 ? Math.round((job.current_iteration / job.count) * 100) : 0;
+
+            panel.innerHTML = `
+                <div class="job-header">
+                    <span class="job-id">${job.job_id}</span>
+                    <span class="status-badge status-${job.status}">${job.status.toUpperCase()}</span>
+                </div>
+                <div class="job-stats">
+                    <div class="stat">Count: <strong>${job.count}</strong></div>
+                    <div class="stat">Progress: <strong>${job.current_iteration}/${job.count}</strong></div>
+                    <div class="stat">Results: <strong>${job.results.length}</strong></div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${progress}%"></div>
+                </div>
+                ${job.output ? `<div class="output-box">${escapeHtml(job.output.slice(-500))}</div>` : ''}
+                ${job.error_message ? `<div class="error-message">Error: ${job.error_message}</div>` : ''}
+            `;
+        }
+
+        async function refreshJobsList() {
+            try {
+                const response = await fetch("/api/seeding/jobs?limit=20");
+                const jobs = await response.json();
+
+                const listEl = document.getElementById("jobsList");
+                if (jobs.length === 0) {
+                    listEl.innerHTML = '<div class="empty-state">No jobs yet. Start one above!</div>';
+                    return;
+                }
+
+                listEl.innerHTML = jobs.map(job => `
+                    <div class="job-card">
+                        <div class="job-header">
+                            <div>
+                                <span class="job-id">${job.job_id}</span>
+                                <span class="status-badge status-${job.status}">${job.status.toUpperCase()}</span>
+                            </div>
+                            <span class="job-time">${formatTime(job.created_at)}</span>
+                        </div>
+                        <div class="job-stats">
+                            <div class="stat">Count: <strong>${job.count}</strong></div>
+                            <div class="stat">Completed: <strong>${job.current_iteration}/${job.count}</strong></div>
+                            <div class="stat">Results: <strong>${job.results.length}</strong></div>
+                        </div>
+                    </div>
+                `).join("");
+            } catch (error) {
+                console.error("Error fetching jobs:", error);
+            }
+        }
+
+        function showFeedback(message, type) {
+            const fb = document.getElementById("feedback");
+            fb.className = `${type}-message`;
+            fb.textContent = message;
+            setTimeout(() => { fb.textContent = ""; }, 5000);
+        }
+
+        function formatTime(dateStr) {
+            const date = new Date(dateStr);
+            return new Intl.DateTimeFormat("en-US", {
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit"
+            }).format(date);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement("div");
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initial load
+        refreshJobsList();
+        setInterval(refreshJobsList, 2000);
+    </script>
+</body>
+</html>

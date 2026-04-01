@@ -1,0 +1,5 @@
+{
+  "title": "DS3231 I2C Real-Time Clock Module",
+  "component_category": "processing",
+  "selected_approach": "I2C DS3231 RTC; battery-backed; ±2 ppm; provides Unix epoch for log file absolute timestamping; address 0x68"
+}

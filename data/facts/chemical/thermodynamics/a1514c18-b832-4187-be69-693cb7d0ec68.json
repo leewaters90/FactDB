@@ -1,0 +1,8 @@
+{
+  "title": "Heat of Reaction and Calorimetry",
+  "domain": "chemical",
+  "category": "thermodynamics",
+  "content": "The heat of reaction (ΔH_rxn) is the enthalpy change when stoichiometric amounts of reactants fully convert to products at constant pressure. Measured via solution calorimetry: q = mcΔT, where m is solution mass, c is specific heat capacity, and ΔT is the temperature change. Exothermic reactions (ΔH<0) release heat; endothermic (ΔH>0) absorb it. Heat transfer rate dQ/dt drives thermal safety constraints. Adiabatic calorimetry eliminates heat loss to surroundings for precise measurement.",
+  "detail_level": "intermediate",
+  "id": "a1514c18-b832-4187-be69-693cb7d0ec68"
+}

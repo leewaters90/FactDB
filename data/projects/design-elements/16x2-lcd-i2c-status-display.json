@@ -1,0 +1,5 @@
+{
+  "title": "16x2 LCD I2C Status Display",
+  "component_category": "processing",
+  "selected_approach": "HD44780 LCD with PCF8574 I2C backpack at 0x27; shows pH, current mA, temperature, fault status; updated every 2 s; no SD required"
+}

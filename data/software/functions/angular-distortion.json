@@ -1,0 +1,18 @@
+{
+  "title": "angular_distortion",
+  "artifact_type": "function",
+  "language": "arduino",
+  "signature": "float angular_distortion(float delta_mm, float span_mm)",
+  "content": "Computes angular distortion (dimensionless ratio δ/L) between two foundation points given differential settlement and their horizontal spacing.",
+  "code": "float angular_distortion(float delta_mm, float span_mm) {\n  if (span_mm <= 0.0f) return 0.0f;\n  return delta_mm / span_mm;\n}",
+  "tags": [
+    "civil",
+    "geotechnical",
+    "settlement",
+    "angular-distortion",
+    "foundation",
+    "Skempton"
+  ],
+  "domain": "software",
+  "category": "function"
+}

@@ -1,0 +1,5 @@
+{
+  "title": "4-Channel ESC PWM Signal Driver",
+  "component_category": "actuation",
+  "selected_approach": "Four Servo library channels; 50 Hz PWM 1000-2000 µs; arm sequence sends 1000 µs for 2 s on boot; disarm on fault flag."
+}

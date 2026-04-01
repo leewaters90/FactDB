@@ -1,0 +1,5 @@
+{
+  "title": "SSD1306 128x32 I2C OLED Display",
+  "component_category": "processing",
+  "selected_approach": "0.91-inch SSD1306 OLED at I2C address 0x3C; displays position setpoint, actual, duty cycle, and fault message; updated at 5 Hz"
+}

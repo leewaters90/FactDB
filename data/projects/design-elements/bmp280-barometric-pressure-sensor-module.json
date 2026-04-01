@@ -1,0 +1,5 @@
+{
+  "title": "BMP280 Barometric Pressure Sensor Module",
+  "component_category": "sensing",
+  "selected_approach": "Bosch BMP280 I2C module; pressure range 300–1100 hPa, ±1.0 hPa accuracy after calibration. Connected to Arduino SDA/SCL. Adafruit_BMP280 library. Oversampling ×8 for noise reduction; sampling at 0.5 Hz during equilibration steps."
+}

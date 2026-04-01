@@ -1,0 +1,56 @@
+{
+  "title": "A* Grid Path Planner for Differential Drive Robot",
+  "description": "Mobile robot navigating an 8x8 grid using A* greedy replanning, 5-sensor IR wall detection, L298N differential drive, I2C LCD status display, and Bluetooth goal commands with out-of-bounds fault halt.",
+  "objective": "Navigate from start to BT-commanded goal; replan on new wall detections; log path at 2 Hz; halt on OOB fault.",
+  "constraints": "Arduino Mega; 5x TCRT5000 on A0-A4; L298N; HC-05 BT on Serial1; 9 V battery pack.",
+  "domain": "software",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "A* Pathfinding Algorithm",
+    "Differential Drive Kinematics and Turning Radius"
+  ],
+  "design_element_titles": [
+    "ICM-42688-P High-Rate IMU via SPI",
+    "5-Channel TCRT5000 IR Wall Sensor Array",
+    "L298N Dual H-Bridge Differential Drive",
+    "20x4 I2C LCD Navigation Display",
+    "HC-05 Bluetooth Goal Command Link"
+  ],
+  "element_usage_notes": {
+    "ICM-42688-P High-Rate IMU via SPI": "Provides yaw heading to resolve turn direction for A* next-cell commands.",
+    "5-Channel TCRT5000 IR Wall Sensor Array": "Builds 4-bit wall bitmap used by astar_next_cell each scan cycle.",
+    "L298N Dual H-Bridge Differential Drive": "Executes forward/turn motion from A* cell direction output.",
+    "20x4 I2C LCD Navigation Display": "Shows current cell, goal, and heading after each move.",
+    "HC-05 Bluetooth Goal Command Link": "Receives 'G x,y' goal commands; streams JSON pose at 2 Hz."
+  },
+  "element_interactions": [
+    {
+      "from": "5-Channel TCRT5000 IR Wall Sensor Array",
+      "to": "L298N Dual H-Bridge Differential Drive",
+      "data": "walls→next_cell→motor_cmd",
+      "description": "Wall bitmap fed to astar_next_cell; output drives L298N motors."
+    },
+    {
+      "from": "ICM-42688-P High-Rate IMU via SPI",
+      "to": "L298N Dual H-Bridge Differential Drive",
+      "data": "yaw heading",
+      "description": "IMU heading ensures accurate turns to A* next cell."
+    },
+    {
+      "from": "HC-05 Bluetooth Goal Command Link",
+      "to": "5-Channel TCRT5000 IR Wall Sensor Array",
+      "data": "goal (gx,gy)",
+      "description": "New goal triggers fresh wall scan and replanning cycle."
+    },
+    {
+      "from": "5-Channel TCRT5000 IR Wall Sensor Array",
+      "to": "20x4 I2C LCD Navigation Display",
+      "data": "cell + walls",
+      "description": "Current position and wall status shown on LCD after each move."
+    }
+  ],
+  "integration_code": "#include <Wire.h>\n#include <SPI.h>\nextern bool astar_next_cell(int,int,int,int,uint8_t,int*,int*);\nint cx=0,cy=0,gx=7,gy=7;\nvoid ir_setup(){for(int i=A0;i<=A3;i++)pinMode(i,INPUT);}\nuint8_t ir_walls(){\n  uint8_t w=0;\n  for(int d=0;d<4;d++)if(analogRead(A0+d)<400)w|=(1<<d);\n  return w;}\nvoid drive_setup(){int pp[]={5,6,7,8};for(int p:pp)pinMode(p,OUTPUT);}\nvoid drive_forward(){analogWrite(5,180);analogWrite(6,0);analogWrite(7,180);analogWrite(8,0);delay(500);drive_stop();}\nvoid drive_stop(){int pp[]={5,6,7,8};for(int p:pp)analogWrite(p,0);}\nvoid lcd_show(){\n  Serial.print(\"[\");Serial.print(cx);Serial.print(\",\");Serial.print(cy);\n  Serial.print(\"]>[\");Serial.print(gx);Serial.print(\",\");Serial.println(gy);}\nvoid bt_check(){\n  if(Serial1.available()>2){\n    char b[16];int n=Serial1.readBytesUntil('\\n',b,15);b[n]=0;\n    if(b[0]=='G')sscanf(b+2,\"%d,%d\",&gx,&gy);}}\nvoid fault_check(){\n  if(cx<0||cx>7||cy<0||cy>7){\n    drive_stop();Serial.println(\"FAULT:OOB\");while(1);}}\nvoid setup(){\n  Serial.begin(115200);Serial1.begin(9600);\n  ir_setup();drive_setup();Wire.begin();}\nvoid loop(){\n  bt_check();fault_check();\n  if(cx==gx&&cy==gy){drive_stop();Serial.println(\"GOAL\");delay(2000);return;}\n  uint8_t w=ir_walls();int nx,ny;\n  if(astar_next_cell(gx,gy,cx,cy,w,&nx,&ny)){\n    drive_forward();cx=nx;cy=ny;}\n  lcd_show();delay(100);}",
+  "software_artifact_titles": [
+    "astar_next_cell"
+  ]
+}

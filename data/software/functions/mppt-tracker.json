@@ -1,0 +1,17 @@
+{
+  "title": "mppt_tracker",
+  "artifact_type": "function",
+  "language": "arduino",
+  "signature": "float mppt_tracker(float V_oc)",
+  "content": "Returns MPPT operating voltage for a TEG as 50% of open-circuit voltage (fractional open-circuit MPPT method).",
+  "code": "float mppt_tracker(float V_oc){\n  return V_oc * 0.50f;\n}",
+  "tags": [
+    "MPPT",
+    "TEG",
+    "thermoelectric",
+    "energy-harvesting",
+    "arduino"
+  ],
+  "domain": "software",
+  "category": "function"
+}

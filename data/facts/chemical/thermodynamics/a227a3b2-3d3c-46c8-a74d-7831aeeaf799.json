@@ -1,0 +1,8 @@
+{
+  "title": "Heat Exchanger Effectiveness — NTU Method",
+  "domain": "chemical",
+  "category": "thermodynamics",
+  "content": "The Number of Transfer Units (NTU) method characterises heat exchanger performance: ε = Q_actual/Q_max, where Q_max = C_min·(T_h,in − T_c,in). For a balanced counter-flow exchanger (C_r = 1): ε = NTU/(1+NTU). In general: NTU = −ln((1−ε(1+C_r))/(1+C_r)). Effectiveness ε and NTU are determined experimentally from four temperature measurements (hot/cold inlet/outlet) and flow rates.",
+  "detail_level": "intermediate",
+  "id": "a227a3b2-3d3c-46c8-a74d-7831aeeaf799"
+}

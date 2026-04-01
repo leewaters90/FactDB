@@ -1,0 +1,54 @@
+{
+  "title": "Thermal Spray Coating Vision QC Inspector",
+  "description": "Automated coating quality inspector that indexes a coated sample on a stepper turntable, fires an 850 nm IR strobe, captures surface images with an ESP32-CAM, streams them to a Raspberry Pi for histogram-based porosity analysis, and publishes pass/fail results via MQTT with fault logging on threshold breach.",
+  "objective": "Inspect full 360° coating circumference; compute porosity at each 10° step; flag coating if porosity > 2% at any sector; publish MQTT JSON report; log all results.",
+  "constraints": "Arduino Uno + ESP32-CAM + Raspberry Pi Zero W; stepper turntable; IR LED strobe; WiFi LAN; BOM < $80.",
+  "domain": "materials",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Thermal Spray WC-Co Coating Porosity and Adhesion Strength Correlation",
+    "Ashby Material Selection — Property Charts"
+  ],
+  "design_element_titles": [
+    "Arduino 3D Scanner — Stepper Turntable + TOF Sensor",
+    "ESP32-CAM OV2640 WiFi Camera Module",
+    "850nm IR Pulsed Strobe LED Array",
+    "Raspberry Pi Zero W Edge Vision Processor"
+  ],
+  "element_usage_notes": [
+    "Stepper turntable indexes sample at 10° steps; TOF sensor confirms sample presence before each capture",
+    "ESP32-CAM captures 320×240 JPEG under IR strobe illumination; serves image via HTTP on port 81",
+    "IR strobe fired 1 ms before shutter; provides oblique illumination for delamination contrast",
+    "RPi Zero W fetches image, runs coating_porosity_histogram, publishes JSON to MQTT broker"
+  ],
+  "element_interactions": [
+    {
+      "from": "Arduino 3D Scanner — Stepper Turntable + TOF Sensor",
+      "to": "850nm IR Pulsed Strobe LED Array",
+      "data": "step_complete_trigger",
+      "description": "Turntable step-complete signal fires IR strobe 50 ms after motor settles"
+    },
+    {
+      "from": "850nm IR Pulsed Strobe LED Array",
+      "to": "ESP32-CAM OV2640 WiFi Camera Module",
+      "data": "illumination_pulse",
+      "description": "1 ms IR strobe illuminates surface; ESP32-CAM shutter triggered simultaneously"
+    },
+    {
+      "from": "ESP32-CAM OV2640 WiFi Camera Module",
+      "to": "Raspberry Pi Zero W Edge Vision Processor",
+      "data": "jpeg_image",
+      "description": "JPEG streamed to RPi via HTTP GET for OpenCV porosity analysis"
+    },
+    {
+      "from": "Raspberry Pi Zero W Edge Vision Processor",
+      "to": "Arduino 3D Scanner — Stepper Turntable + TOF Sensor",
+      "data": "analysis_complete_ack",
+      "description": "RPi sends HTTP ACK to Arduino after analysis; Arduino advances turntable to next step"
+    }
+  ],
+  "integration_code": "// === Arduino controller for turntable + strobe trigger ===\n#include <Stepper.h>\n#include <Wire.h>\n\nconst int STEPS_PER_REV=2048,STROBE_PIN=6,TRIG_PIN=7;\nconst int STEPS_PER_SECTOR=STEPS_PER_REV/36;\nStepper motor(STEPS_PER_REV,8,10,9,11);\nbool sector_done=false;\nint sector=0;\nfloat porosity_results[36];\nbool fault=false;\n\n// === Turntable ===\nvoid turntable_init(){motor.setSpeed(5);}\nvoid turntable_step(){motor.step(STEPS_PER_SECTOR);delay(500);}\n\n// === IR Strobe ===\nvoid strobe_init(){pinMode(STROBE_PIN,OUTPUT);digitalWrite(STROBE_PIN,LOW);}\nvoid strobe_fire(){digitalWrite(STROBE_PIN,HIGH);delay(1);digitalWrite(STROBE_PIN,LOW);}\n\n// === Capture Trigger to ESP32-CAM ===\nvoid cam_trigger_init(){pinMode(TRIG_PIN,OUTPUT);digitalWrite(TRIG_PIN,LOW);}\nvoid cam_capture(){strobe_fire();digitalWrite(TRIG_PIN,HIGH);delay(50);digitalWrite(TRIG_PIN,LOW);}\n\n// === Serial Result Parser from RPi ===\nfloat parse_porosity(){\n  unsigned long t=millis();\n  while(millis()-t<5000){if(Serial.available()){float v=Serial.parseFloat();if(v>=0&&v<=100)return v;}}\n  return -1.0f;}\n\n// === Fault Handler ===\nbool fault_check(float p){if(p<0){Serial.println(\"FAULT:VISION_TIMEOUT\");return true;}if(p>2.0f){Serial.println(\"FAIL:POROSITY\");return true;}return false;}\n\nvoid setup(){\n  Serial.begin(115200);\n  turntable_init();strobe_init();cam_trigger_init();\n  Serial.println(\"Coating QC Inspector Ready\");\n}\n\nvoid loop(){\n  if(sector>=36){Serial.println(\"SCAN_COMPLETE\");delay(60000);sector=0;return;}\n  turntable_step();\n  cam_capture();\n  float p=parse_porosity();\n  fault=fault_check(p);\n  porosity_results[sector]=p;\n  Serial.print(\"SEC:\");Serial.print(sector);Serial.print(\" P=\");Serial.print(p,2);Serial.println(\"%\");\n  sector++;\n}",
+  "software_artifact_titles": [
+    "coating_porosity_histogram"
+  ]
+}

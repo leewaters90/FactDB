@@ -1,0 +1,56 @@
+{
+  "title": "Endothermic Dissolution Thermal Controller",
+  "description": "Closed-loop temperature controller for endothermic dissolution reactions (e.g., ammonium nitrate or potassium nitrate in water). A PWM resistance heater maintains the target dissolution temperature while a relay stirrer homogenises the solution. SD card logs temperature and heater output at 1 Hz. An over-temperature interlock cuts power at 80 °C and halts the system.",
+  "objective": "Sustain a target dissolution temperature within ±1 °C using PID-controlled heating, with full CSV data logging and over-temperature fault shutdown.",
+  "constraints": "Arduino Uno, single DS18B20 probe, 12V/20W ceramic heater, relay stirrer, micro-SD logger; safe aqueous reagents only; hardware thermal fuse at 85 °C; max operating setpoint 70 °C.",
+  "domain": "chemical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Chemical Equilibrium and Le Chatelier's Principle",
+    "Reaction Rate Kinetics — Arrhenius Equation",
+    "Heat of Reaction and Calorimetry",
+    "First Law of Thermodynamics"
+  ],
+  "design_element_titles": [
+    "DS18B20 1-Wire Temperature Probe Array",
+    "Resistance Heater with PWM Control",
+    "Relay-Switched Magnetic Stirrer",
+    "SD Card Data Logger Module"
+  ],
+  "element_usage_notes": {
+    "DS18B20 1-Wire Temperature Probe Array": "Single probe immersed in bulk solution; polled at 1 Hz for PID feedback.",
+    "Resistance Heater with PWM Control": "PWM duty cycle set by PID output; supplies heat to drive endothermic dissolution.",
+    "Relay-Switched Magnetic Stirrer": "Runs continuously to ensure thermal uniformity and minimise probe stratification error.",
+    "SD Card Data Logger Module": "Writes timestamp, temperature (°C), and PWM value to log.csv each second."
+  },
+  "element_interactions": [
+    {
+      "from": "DS18B20 1-Wire Temperature Probe Array",
+      "to": "Resistance Heater with PWM Control",
+      "data": "temperature_C",
+      "description": "PID error drives heater PWM set-point"
+    },
+    {
+      "from": "Resistance Heater with PWM Control",
+      "to": "SD Card Data Logger Module",
+      "data": "pwm_value",
+      "description": "Heater output logged alongside temperature for energy audit"
+    },
+    {
+      "from": "DS18B20 1-Wire Temperature Probe Array",
+      "to": "SD Card Data Logger Module",
+      "data": "temperature_C",
+      "description": "Raw bulk temperature logged every cycle"
+    },
+    {
+      "from": "Relay-Switched Magnetic Stirrer",
+      "to": "DS18B20 1-Wire Temperature Probe Array",
+      "data": "mixing_state",
+      "description": "Continuous stirring ensures probe reads homogeneous bulk temperature"
+    }
+  ],
+  "integration_code": "#include <OneWire.h>\n#include <DallasTemperature.h>\n#include <SD.h>\n#define HEATER_PIN 9\n#define STIRRER_PIN 7\n#define OW_PIN 2\n#define SD_CS 10\n#define SETPOINT 45.0f\n#define KP 8.0f\n#define KI 0.4f\n#define KD 1.2f\n#define FAULT_TEMP 80.0f\nOneWire ow(OW_PIN); DallasTemperature ds(&ow); File lg;\nfloat g_intg=0, g_lastE=0;\nint pid_heater_control(float sp,float pv,float dt,float kp,float ki,float kd,float*intg,float*lastE){\n  float e=sp-pv;\n  *intg=constrain(*intg+e*dt,-100.0f,100.0f);\n  float d=(e-*lastE)/max(dt,0.001f); *lastE=e;\n  return constrain((int)(kp*e+ki*(*intg)+kd*d),0,255);\n}\nvoid initHardware(){\n  pinMode(HEATER_PIN,OUTPUT); pinMode(STIRRER_PIN,OUTPUT);\n  ds.begin(); SD.begin(SD_CS);\n  lg=SD.open(\"log.csv\",FILE_WRITE);\n  if(lg) lg.println(\"t_s,T_C,pwm\");\n  digitalWrite(STIRRER_PIN,HIGH); Serial.begin(9600);\n}\nfloat readTemperatureSensor(){\n  ds.requestTemperatures(); return ds.getTempCByIndex(0);\n}\nvoid logDataSD(unsigned long t, float T, int pwm){\n  if(lg){lg.print(t);lg.print(',');lg.print(T,2);lg.print(',');lg.println(pwm);lg.flush();}\n  Serial.print(\"T=\");Serial.print(T,2);Serial.print(\" PWM=\");Serial.println(pwm);\n}\nvoid checkFaultSafety(float T){\n  if(T>FAULT_TEMP){\n    analogWrite(HEATER_PIN,0); digitalWrite(STIRRER_PIN,LOW);\n    if(lg) lg.println(\"FAULT:OVERTEMP\");\n    Serial.println(\"FAULT:OVERTEMP\"); while(1);\n  }\n}\nvoid setup(){ initHardware(); }\nvoid loop(){\n  static unsigned long prev=0; unsigned long now=millis();\n  float dt=(now-prev)/1000.0f; if(dt<1.0f) return; prev=now;\n  float T=readTemperatureSensor(); checkFaultSafety(T);\n  int pwm=pid_heater_control(SETPOINT,T,dt,KP,KI,KD,&g_intg,&g_lastE);\n  analogWrite(HEATER_PIN,pwm); logDataSD(now/1000,T,pwm);\n}",
+  "software_artifact_titles": [
+    "pid_heater_control"
+  ]
+}

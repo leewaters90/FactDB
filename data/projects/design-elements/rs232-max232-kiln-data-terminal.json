@@ -1,0 +1,5 @@
+{
+  "title": "RS232 MAX232 Kiln Data Terminal",
+  "component_category": "communication",
+  "selected_approach": "MAX232 level shifter; Arduino UART at 9600 baud; sends comma-delimited zone temperatures, setpoints, PWM values, and fault codes to supervisory PC; 9-pin DB9 connector"
+}

@@ -1,0 +1,5 @@
+{
+  "title": "ADXL345 Three-Axis Accelerometer Node Array",
+  "component_category": "sensing",
+  "selected_approach": "Four ADXL345 nodes at quarter-span, mid-span and supports via I2C with TCA9548A multiplexer; 16g range, 3200 Hz ODR; circular-buffer RMS windowed over 32 samples; SPI fallback for noise immunity"
+}

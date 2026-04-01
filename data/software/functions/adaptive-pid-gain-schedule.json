@@ -1,0 +1,17 @@
+{
+  "title": "adaptive_pid_gain_schedule",
+  "artifact_type": "function",
+  "language": "arduino",
+  "signature": "void adaptive_pid_gain_schedule(float err, float* kp, float* ki, float* kd)",
+  "content": "Selects PID gains from 3-region error-magnitude lookup table in O(1) time; large/mid/near-setpoint bands.",
+  "code": "void adaptive_pid_gain_schedule(float err,float* kp,float* ki,float* kd){\n  float ae=fabsf(err);\n  if(ae>200.0f){*kp=2.0f;*ki=0.04f;*kd=0.02f;}\n  else if(ae>50.0f){*kp=1.2f;*ki=0.10f;*kd=0.05f;}\n  else{*kp=0.7f;*ki=0.15f;*kd=0.08f;}\n}",
+  "tags": [
+    "pid",
+    "gain-scheduling",
+    "adaptive",
+    "control",
+    "o1"
+  ],
+  "domain": "software",
+  "category": "function"
+}

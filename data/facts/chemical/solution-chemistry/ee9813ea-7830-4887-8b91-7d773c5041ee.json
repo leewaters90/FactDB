@@ -1,0 +1,8 @@
+{
+  "title": "pH and Buffer Chemistry",
+  "domain": "chemical",
+  "category": "solution-chemistry",
+  "content": "pH = −log₁₀[H⁺]. Buffer solutions resist pH change via conjugate acid-base pairs (Henderson-Hasselbalch: pH = pKa + log([A⁻]/[HA])). pH electrodes exhibit a Nernstian response: E = E₀ + (RT/F)·ln[H⁺], giving ~59.16 mV/pH at 25 °C. Temperature dependence of pH is approximately −0.003 pH units/°C for neutral water, requiring temperature compensation for accurate control.",
+  "detail_level": "intermediate",
+  "id": "ee9813ea-7830-4887-8b91-7d773c5041ee"
+}

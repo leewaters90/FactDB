@@ -1,0 +1,18 @@
+{
+  "title": "joukowsky_surge_pressure",
+  "artifact_type": "function",
+  "language": "arduino",
+  "signature": "float joukowsky_surge_pressure(float rho, float wave_speed_ms, float delta_V_ms)",
+  "content": "Computes Joukowsky water hammer pressure surge in kPa given fluid density (kg/m³), pressure wave speed (m/s), and instantaneous velocity change (m/s).",
+  "code": "float joukowsky_surge_pressure(float rho, float wave_speed_ms, float delta_V_ms) {\n  return (rho * wave_speed_ms * fabs(delta_V_ms)) / 1000.0f;\n}",
+  "tags": [
+    "civil",
+    "hydraulics",
+    "water-hammer",
+    "joukowsky",
+    "pipe",
+    "surge"
+  ],
+  "domain": "software",
+  "category": "function"
+}

@@ -1,0 +1,5 @@
+{
+  "title": "RLE Encoder Software Module",
+  "component_category": "processing",
+  "selected_approach": "Streaming RLE encoder; tracks current run value and count byte; flushes (value,count) pair to output buffer on value change or count=255; O(1) per input sample; O(N) per block."
+}

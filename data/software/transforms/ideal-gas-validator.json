@@ -1,0 +1,17 @@
+{
+  "title": "ideal_gas_validator",
+  "artifact_type": "transform",
+  "language": "arduino",
+  "signature": "float ideal_gas_validator(float P_Pa, float V_cm3, float T_K, float n_mol)",
+  "content": "Computes PV/nRT compressibility factor Z for an ideal gas validation experiment. Z=1 indicates ideal behaviour.",
+  "code": "float ideal_gas_validator(float P_Pa,float V_cm3,float T_K,float n_mol){\n  float V_m3=V_cm3*1e-6f;\n  float nRT=n_mol*8.314f*T_K;\n  if(nRT<=0) return -1.0f;\n  return (P_Pa*V_m3)/nRT;\n}",
+  "tags": [
+    "ideal-gas",
+    "PVT",
+    "compressibility",
+    "thermodynamics",
+    "arduino"
+  ],
+  "domain": "software",
+  "category": "transform"
+}

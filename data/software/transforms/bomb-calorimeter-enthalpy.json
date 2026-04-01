@@ -1,0 +1,17 @@
+{
+  "title": "bomb_calorimeter_enthalpy",
+  "artifact_type": "transform",
+  "language": "arduino",
+  "signature": "float bomb_calorimeter_enthalpy(float T0, float T_peak, float Cv_bomb, float water_mass_g, float Cp_water)",
+  "content": "Computes heat of combustion from bomb calorimeter temperature rise. Returns q_rxn in joules (negative = exothermic).",
+  "code": "float bomb_calorimeter_enthalpy(float T0,float Tpeak,float Cv_bomb,float water_g,float Cp_w){\n  float dT=Tpeak-T0;\n  return -(Cv_bomb + water_g*Cp_w)*dT;\n}",
+  "tags": [
+    "calorimetry",
+    "combustion",
+    "bomb-calorimeter",
+    "enthalpy",
+    "arduino"
+  ],
+  "domain": "software",
+  "category": "transform"
+}

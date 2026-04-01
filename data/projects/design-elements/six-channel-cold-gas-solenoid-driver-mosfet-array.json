@@ -1,0 +1,5 @@
+{
+  "title": "Six-Channel Cold-Gas Solenoid Driver (MOSFET Array)",
+  "component_category": "actuation",
+  "selected_approach": "Six N-channel MOSFETs (IRLZ44N) driven from MCU GPIO pins. Each MOSFET controls a 12 V solenoid valve in the +X/-X/+Y/-Y/+Z/-Z thruster pairs. Flyback diodes clamp inductive spikes. PWM pulse width is clamped to 20 ms max per firing event. A hardware interlock prevents simultaneous activation of opposing axis pairs."
+}

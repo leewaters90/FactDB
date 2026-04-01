@@ -1,0 +1,5 @@
+{
+  "title": "NTC Thermistor Calorimeter Jacket Sensor",
+  "component_category": "sensing",
+  "selected_approach": "10 kΩ NTC thermistor in Wheatstone voltage divider with matched 10 kΩ fixed resistor on 3.3V reference. Arduino ADC reads output voltage; Steinhart-Hart three-coefficient equation converts resistance to temperature with ±0.2°C accuracy 0-80°C. Mounted flush on outer jacket wall for heat-flux estimation."
+}

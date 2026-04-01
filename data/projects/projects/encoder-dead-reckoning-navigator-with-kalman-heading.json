@@ -1,0 +1,57 @@
+{
+  "title": "Encoder Dead-Reckoning Navigator with Kalman Heading",
+  "description": "Indoor mobile robot using quadrature encoder odometry, IMU yaw fusion via 1D Kalman filter, OLED map display, and UART waypoint commands with out-of-bounds fault halt and JSON pose streaming.",
+  "objective": "Navigate to UART waypoints with <5 cm error over 3 m straight runs; reduce heading drift 10× vs encoder-only; halt on OOB fault.",
+  "constraints": "Arduino Mega; 600 PPR encoders on INT0-INT3; ICM-42688-P SPI CS=10; 128x64 OLED I2C; 115200 UART.",
+  "domain": "software",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Wheel Odometry Dead-Reckoning and Kalman Heading Fusion",
+    "A* Pathfinding Algorithm",
+    "Stepper Motor Closed-Loop Control via Magnetic Encoder Feedback"
+  ],
+  "design_element_titles": [
+    "ICM-42688-P High-Rate IMU via SPI",
+    "Quadrature Encoder ISR Decoder",
+    "1D Kalman Heading Filter Module",
+    "128x64 SSD1306 Map Renderer",
+    "UART Waypoint Command Parser"
+  ],
+  "element_usage_notes": {
+    "ICM-42688-P High-Rate IMU via SPI": "Yaw rate integrated to heading measurement for Kalman correction at 50 Hz.",
+    "Quadrature Encoder ISR Decoder": "Provides left/right tick deltas for odometry pose and Kalman heading process input.",
+    "1D Kalman Heading Filter Module": "Fuses encoder Δθ and IMU yaw; corrected heading used for x/y pose integration.",
+    "128x64 SSD1306 Map Renderer": "Renders robot trail and position on 8x8 grid at 1 Hz.",
+    "UART Waypoint Command Parser": "Sets navigation goals; streams JSON pose at 2 Hz; 'R' resets odometry."
+  },
+  "element_interactions": [
+    {
+      "from": "Quadrature Encoder ISR Decoder",
+      "to": "1D Kalman Heading Filter Module",
+      "data": "encoder Δθ",
+      "description": "Encoder heading delta is Kalman process input each 20 ms cycle."
+    },
+    {
+      "from": "ICM-42688-P High-Rate IMU via SPI",
+      "to": "1D Kalman Heading Filter Module",
+      "data": "IMU yaw",
+      "description": "IMU yaw measurement corrects encoder heading drift in Kalman update step."
+    },
+    {
+      "from": "1D Kalman Heading Filter Module",
+      "to": "128x64 SSD1306 Map Renderer",
+      "data": "pose (x,y,θ)",
+      "description": "Corrected pose rendered on OLED map at 1 Hz."
+    },
+    {
+      "from": "UART Waypoint Command Parser",
+      "to": "Quadrature Encoder ISR Decoder",
+      "data": "reset command",
+      "description": "'R' command resets encoder accumulators and full odometry state."
+    }
+  ],
+  "integration_code": "#include <Wire.h>\n#include <SPI.h>\nextern float kalman_heading_update(float,float,float,float,float*);\nvolatile long eL=0,eR=0;\nvoid eL0_isr(){eL++;}\nvoid eR0_isr(){eR++;}\nvoid enc_setup(){\n  attachInterrupt(0,eL0_isr,CHANGE);\n  attachInterrupt(1,eR0_isr,CHANGE);}\nfloat px=0,py=0,hd=0,kP=1.0f;\nvoid imu_setup(){SPI.begin();pinMode(10,OUTPUT);}\nfloat imu_yaw(){return hd;}\nvoid oled_setup(){Wire.begin();}\nvoid oled_draw(float x,float y){(void)x;(void)y;}\nvoid fault_check(){\n  if(fabsf(px)>5.0f||fabsf(py)>5.0f){\n    Serial.println(\"FAULT:OOB\");while(1);}}\nvoid cmd_parse(){\n  if(!Serial.available())return;\n  char c=Serial.peek();\n  if(c=='R'){Serial.read();px=0;py=0;hd=0;eL=0;eR=0;Serial.println(\"RESET\");}\n  else if(c=='P'){Serial.read();\n    Serial.print(\"{\");Serial.print(\"\\\"x\\\":\");Serial.print(px,3);\n    Serial.print(\",\\\"y\\\":\");Serial.print(py,3);Serial.println(\"}\");}}\nunsigned long pt=0;\nvoid setup(){Serial.begin(115200);enc_setup();imu_setup();oled_setup();}\nvoid loop(){\n  unsigned long n=millis();\n  float dt=(n-pt)/1000.0f;\n  if(dt<0.02f)return;pt=n;\n  long dL=eL;eL=0;\n  long dR=eR;eR=0;\n  float ds=(dL+dR)*0.00026f;\n  float dth=(dR-dL)*0.00026f/0.15f;\n  float imu_h=imu_yaw();\n  hd=kalman_heading_update(hd,dth,imu_h,dt,&kP);\n  px+=ds*cosf(hd);py+=ds*sinf(hd);\n  fault_check();cmd_parse();\n  oled_draw(px,py);\n  if(n%500<20){Serial.print(px,2);Serial.print(',');Serial.println(py,2);}}",
+  "software_artifact_titles": [
+    "kalman_heading_update"
+  ]
+}

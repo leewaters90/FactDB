@@ -1,0 +1,5 @@
+{
+  "title": "AVR Hardware Watchdog Supervisor",
+  "component_category": "control",
+  "selected_approach": "WDTO_1S AVR watchdog; wdt_reset() issued by scheduler heartbeat after each dispatch; writes reset cause 0xAB to EEPROM[0] on WDT restart."
+}

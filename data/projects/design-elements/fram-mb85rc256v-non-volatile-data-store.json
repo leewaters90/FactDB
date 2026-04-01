@@ -1,0 +1,5 @@
+{
+  "title": "FRAM MB85RC256V Non-Volatile Data Store",
+  "component_category": "processing",
+  "selected_approach": "Fujitsu MB85RC256V 256 kbit FRAM I2C; stores cumulative damage D, cycle counts, event timestamps; retains data through power loss without write-cycle limit; address 0x50"
+}

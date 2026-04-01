@@ -1,0 +1,17 @@
+{
+  "title": "manning_flow_rate",
+  "artifact_type": "function",
+  "language": "arduino",
+  "signature": "float manning_flow_rate(float n_rough, float R_m, float S_slope, float A_m2)",
+  "content": "Computes open-channel volumetric flow rate in m³/s using Manning's equation given roughness coefficient, hydraulic radius (m), slope (m/m), and cross-sectional flow area (m²).",
+  "code": "float manning_flow_rate(float n_rough, float R_m, float S_slope, float A_m2) {\n  float V = (1.0f / n_rough) * pow(R_m, 2.0f/3.0f) * sqrt(S_slope);\n  return V * A_m2;\n}",
+  "tags": [
+    "civil",
+    "hydraulics",
+    "manning",
+    "open-channel",
+    "stormwater"
+  ],
+  "domain": "software",
+  "category": "function"
+}

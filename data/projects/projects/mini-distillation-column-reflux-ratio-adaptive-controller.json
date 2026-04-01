@@ -1,0 +1,56 @@
+{
+  "title": "Mini Distillation Column Reflux Ratio Adaptive Controller",
+  "description": "Monitors and controls a bench-scale ethanol-water distillation column (6 theoretical plates, 500 mL reboiler) using a six-point DS18B20 axial temperature profile. The Arduino computes the separation efficiency proxy from the reboiler-to-condenser temperature gradient and adapts the reflux ratio (R = 2–8) via timed solenoid valve switching. SSR controls reboiler heater power; all temperatures and valve states are logged to SD card. Fault trips on reboiler over-temperature or condenser temperature collapse.",
+  "objective": "Maintain ethanol distillate purity proxy (condenser temperature ≤ 80 °C) across varying feed rates by adaptive reflux ratio adjustment, with full axial temperature profile logged at 0.2 Hz.",
+  "constraints": "Arduino Uno, six DS18B20 probes, SSR reboiler heater, two solenoid valves, SD logger; max reboiler temperature 100 °C; max reboiler volume 500 mL; ethanol < 40 % v/v feed; ventilated enclosure required.",
+  "domain": "chemical",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Distillation Column Mass and Energy Balance",
+    "Vapor Pressure and Clausius-Clapeyron Equation",
+    "Heat of Reaction and Calorimetry",
+    "First Law of Thermodynamics"
+  ],
+  "design_element_titles": [
+    "Multi-Point 1-Wire Temperature Array for Column Profiling",
+    "Reflux Ratio Solenoid Splitter",
+    "SSR-Controlled Water Cooling Jacket",
+    "SD Card Data Logger Module"
+  ],
+  "element_usage_notes": {
+    "Multi-Point 1-Wire Temperature Array for Column Profiling": "Six DS18B20 probes provide axial T profile; condenser temperature used as purity proxy; reboiler T for heater control.",
+    "Reflux Ratio Solenoid Splitter": "Timed valve switching sets R; increased when condenser T rises above 80 °C setpoint.",
+    "SSR-Controlled Water Cooling Jacket": "SSR repurposed as reboiler heater switch; bang-bang control maintains reboiler at 95 °C.",
+    "SD Card Data Logger Module": "Logs all six temperatures, R, SSR state, and timestamp at each 5 s interval."
+  },
+  "element_interactions": [
+    {
+      "from": "Multi-Point 1-Wire Temperature Array for Column Profiling",
+      "to": "Reflux Ratio Solenoid Splitter",
+      "data": "condenser_temp_C",
+      "description": "Rising condenser temperature triggers increase in reflux ratio to improve separation"
+    },
+    {
+      "from": "Multi-Point 1-Wire Temperature Array for Column Profiling",
+      "to": "SSR-Controlled Water Cooling Jacket",
+      "data": "reboiler_temp_C",
+      "description": "Reboiler temperature controls SSR heater duty via bang-bang logic"
+    },
+    {
+      "from": "Reflux Ratio Solenoid Splitter",
+      "to": "SD Card Data Logger Module",
+      "data": "reflux_ratio",
+      "description": "Current R value logged alongside temperature profile each cycle"
+    },
+    {
+      "from": "Multi-Point 1-Wire Temperature Array for Column Profiling",
+      "to": "SD Card Data Logger Module",
+      "data": "six_temperatures_C",
+      "description": "Full axial temperature profile logged for McCabe-Thiele stage estimation"
+    }
+  ],
+  "integration_code": "#include <OneWire.h>\n#include <DallasTemperature.h>\n#include <SD.h>\n#define OW_PIN 2\n#define SSR_PIN 8\n#define REFLUX_V 6\n#define DIST_V 7\n#define SD_CS 10\n#define REBOIL_SP 95.0f\n#define COND_SP 80.0f\n#define LOG_INTERVAL 5000UL\n#define REFLUX_PERIOD 30000UL\n#define N_PROBES 6\nOneWire ow(OW_PIN); DallasTemperature ds(&ow); File lg;\nfloat g_R=3.0f;\nvoid distillation_reflux_controller(float R,unsigned long period,int rv,int dv){\n  unsigned long tr=(unsigned long)(R/(R+1.0f)*period);\n  unsigned long td=period-tr;\n  digitalWrite(rv,HIGH);digitalWrite(dv,LOW);delay(tr);\n  digitalWrite(rv,LOW);digitalWrite(dv,HIGH);delay(td);\n  digitalWrite(dv,LOW);\n}\nvoid initHardware(){\n  ds.begin();pinMode(SSR_PIN,OUTPUT);pinMode(REFLUX_V,OUTPUT);pinMode(DIST_V,OUTPUT);\n  SD.begin(SD_CS);lg=SD.open(\"col.csv\",FILE_WRITE);\n  if(lg)lg.println(\"t_s,T0,T1,T2,T3,T4,T5,R,SSR\");\n  Serial.begin(9600);\n}\nvoid readColumnProfile(float*T){\n  ds.requestTemperatures();\n  for(int i=0;i<N_PROBES;i++) T[i]=ds.getTempCByIndex(i);\n}\nvoid reboilerSSRControl(float T){\n  digitalWrite(SSR_PIN,(T<REBOIL_SP)?HIGH:LOW);\n}\nfloat adaptRefluxRatio(float T_cond, float R_cur){\n  if(T_cond>COND_SP+1.0f) return min(R_cur+0.5f,8.0f);\n  if(T_cond<COND_SP-2.0f) return max(R_cur-0.5f,2.0f);\n  return R_cur;\n}\nvoid logDataSD(unsigned long t,float*T,float R,int ssr){\n  if(lg){lg.print(t);\n  for(int i=0;i<N_PROBES;i++){lg.print(',');lg.print(T[i],2);}\n  lg.print(',');lg.print(R,2);lg.print(',');lg.println(ssr);lg.flush();}\n}\nvoid checkFaultSafety(float T_reb){\n  if(T_reb>102.0f){digitalWrite(SSR_PIN,LOW);digitalWrite(REFLUX_V,LOW);digitalWrite(DIST_V,LOW);Serial.println(\"FAULT:REBOILER_OT\");while(1);}\n}\nvoid setup(){initHardware();}\nvoid loop(){\n  static unsigned long prev=0;unsigned long now=millis();\n  if(now-prev<LOG_INTERVAL)return;prev=now;\n  float T[N_PROBES]; readColumnProfile(T);\n  checkFaultSafety(T[0]);\n  reboilerSSRControl(T[0]);\n  g_R=adaptRefluxRatio(T[N_PROBES-1],g_R);\n  int ssr=digitalRead(SSR_PIN);\n  logDataSD(now/1000,T,g_R,ssr);\n  Serial.print(\"Treb=\");Serial.print(T[0],1);Serial.print(\" Tcond=\");Serial.print(T[5],1);Serial.print(\" R=\");Serial.println(g_R,2);\n  distillation_reflux_controller(g_R,REFLUX_PERIOD,REFLUX_V,DIST_V);\n}",
+  "software_artifact_titles": [
+    "distillation_reflux_controller"
+  ]
+}

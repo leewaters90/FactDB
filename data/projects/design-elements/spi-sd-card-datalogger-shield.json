@@ -1,0 +1,5 @@
+{
+  "title": "SPI SD Card Datalogger Shield",
+  "component_category": "processing",
+  "selected_approach": "Arduino SD library, CS pin 10; FAT32 8 GB micro-SD; CSV at 10 Hz: millis, RMS-g, damper PWM, fault flag; daily file rotation; immediate flush on fault event"
+}

@@ -1,0 +1,55 @@
+{
+  "title": "Ceramic Kiln Multi-Zone Sintering Profile Controller",
+  "description": "Three-zone alumina kiln controller that executes a programmable multi-segment sintering profile stored in EEPROM. Each zone runs an independent PID loop with a shared profile scheduler. Grain-growth binder-burnout ramp constraints are enforced, faults on TC failure or overtemperature cut all zones, and state is logged via RS232 to supervisory PC.",
+  "objective": "Track three-zone alumina sintering profile (binder burnout → sinter ramp → 1580 °C dwell → cool); maintain ±5 °C zone uniformity; fault-cut all SSRs on TC error or T > 1650 °C; log every 10 s.",
+  "constraints": "Arduino Mega; three AD8495 TC conditioners; three Crydom SSRs; AT24C256 EEPROM; RS232; 240 V three-zone kiln; BOM < $100.",
+  "domain": "materials",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Ceramic Sintering Grain Growth Kinetics and Final Density Evolution",
+    "Ashby Material Selection — Property Charts"
+  ],
+  "design_element_titles": [
+    "AD8495 Type-K Thermocouple Analogue Conditioner",
+    "Three-Zone 40A SSR Kiln Power Rail",
+    "Kiln Profile AT24C256 EEPROM Scheduler",
+    "RS232 MAX232 Kiln Data Terminal"
+  ],
+  "element_usage_notes": [
+    "Three AD8495 modules on A0/A1/A2; 5 mV/°C → temperature computed in firmware",
+    "Each SSR PWM updated independently from its zone PID; all cut to 0 on any fault",
+    "Profile segments loaded from EEPROM at setup; segment pointer shared across zones",
+    "RS232 frame: epoch, sp, T1, T2, T3, pwm1, pwm2, pwm3, fault_code every 10 s"
+  ],
+  "element_interactions": [
+    {
+      "from": "Kiln Profile AT24C256 EEPROM Scheduler",
+      "to": "Three-Zone 40A SSR Kiln Power Rail",
+      "data": "zone_setpoint_C",
+      "description": "Profile scheduler provides current-segment setpoint to each zone PID; SSR duty set accordingly"
+    },
+    {
+      "from": "AD8495 Type-K Thermocouple Analogue Conditioner",
+      "to": "Three-Zone 40A SSR Kiln Power Rail",
+      "data": "zone_temperature_C",
+      "description": "Each zone temperature is the PID process variable for its SSR drive output"
+    },
+    {
+      "from": "AD8495 Type-K Thermocouple Analogue Conditioner",
+      "to": "RS232 MAX232 Kiln Data Terminal",
+      "data": "three_zone_temps",
+      "description": "All three zone temperatures included in RS232 telemetry frame every 10 s"
+    },
+    {
+      "from": "Three-Zone 40A SSR Kiln Power Rail",
+      "to": "RS232 MAX232 Kiln Data Terminal",
+      "data": "pwm_duties",
+      "description": "Three SSR duty cycle values logged in telemetry for energy audit"
+    }
+  ],
+  "integration_code": "extern int pid_heater_control(float sp,float pv,float dt,float kp,float ki,float kd,float* intg,float* lastE);\nextern float kiln_profile_setpoint(unsigned long elapsed_s,const float* temps,const unsigned long* durations,int n_seg);\n\nconst int SSR[3]={9,10,11},TC[3]={A0,A1,A2};\nconst float KP=1.8f,KI=0.04f,KD=2.0f,TEMP_MAX=1650.0f;\nfloat intg[3]={0},lastE[3]={0};\n\nconst float PROF_T[]={25,600,600,1580,1580,25,25};\nconst unsigned long PROF_D[]={3600,3600,7200,7200,10800,3600,0};\nconst int N_SEG=7;\nunsigned long start_ms=0;\n\n// === TC Array ===\nvoid tc_init(){for(int i=0;i<3;i++)pinMode(TC[i],INPUT);}\nfloat tc_read(int z){return analogRead(TC[z])*3.0f/1023.0f*200.0f;}\n\n// === SSR Array ===\nvoid ssr_init(){for(int i=0;i<3;i++){pinMode(SSR[i],OUTPUT);analogWrite(SSR[i],0);}}\nvoid ssr_set(int z,int p){analogWrite(SSR[z],constrain(p,0,255));}\nvoid ssr_cutall(){for(int i=0;i<3;i++)analogWrite(SSR[i],0);}\n\n// === Profile Scheduler ===\nfloat get_setpoint(){return kiln_profile_setpoint((millis()-start_ms)/1000UL,PROF_T,PROF_D,N_SEG);}\n\n// === Fault Handler ===\nbool fault_check(float* temps){for(int i=0;i<3;i++){if(temps[i]>TEMP_MAX||temps[i]<0){ssr_cutall();Serial.print(\"FAULT:TC\");Serial.println(i);return true;}}return false;}\n\n// === RS232 Logger ===\nvoid logger_write(float sp,float* t,int* p){\n  Serial.print(millis()/1000);Serial.print(',');Serial.print(sp,0);\n  for(int i=0;i<3;i++){Serial.print(',');Serial.print(t[i],1);}\n  for(int i=0;i<3;i++){Serial.print(',');Serial.print(p[i]);}\n  Serial.println();}\n\nvoid setup(){\n  Serial.begin(9600);\n  tc_init();ssr_init();\n  start_ms=millis();\n  Serial.println(\"t,sp,T1,T2,T3,P1,P2,P3\");\n}\n\nunsigned long lastMs=0;\nvoid loop(){\n  unsigned long now=millis();\n  float dt=(now-lastMs)/1000.0f;\n  if(dt<0.5f)return;lastMs=now;\n  float temps[3];for(int i=0;i<3;i++)temps[i]=tc_read(i);\n  if(fault_check(temps))return;\n  float sp=get_setpoint();\n  int pwms[3];\n  for(int i=0;i<3;i++){pwms[i]=pid_heater_control(sp,temps[i],dt,KP,KI,KD,&intg[i],&lastE[i]);ssr_set(i,pwms[i]);}\n  if((int)(now/1000)%10==0)logger_write(sp,temps,pwms);\n}",
+  "software_artifact_titles": [
+    "pid_heater_control",
+    "kiln_profile_setpoint"
+  ]
+}

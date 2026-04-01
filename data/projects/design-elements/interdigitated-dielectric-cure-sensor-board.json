@@ -1,0 +1,5 @@
+{
+  "title": "Interdigitated Dielectric Cure Sensor Board",
+  "component_category": "sensing",
+  "selected_approach": "1 mm pitch interdigitated copper electrodes on FR4; excited at 1 kHz from Arduino PWM through 10 kΩ series resistor; phase-sensitive voltage divider output measures ion viscosity change 0–3.3 V"
+}

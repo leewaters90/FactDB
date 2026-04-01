@@ -1,0 +1,5 @@
+{
+  "title": "Hall-Effect Interrupt Speed Sensor",
+  "component_category": "sensing",
+  "selected_approach": "Single hall-effect sensor on 20-pole magnet ring; ISR pulse count on INT0; RPM = (count/20)*(60/dt); reset count each 50 ms window."
+}

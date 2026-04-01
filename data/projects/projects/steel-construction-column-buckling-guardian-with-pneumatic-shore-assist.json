@@ -1,0 +1,49 @@
+{
+  "title": "Steel Construction Column Buckling Guardian with Pneumatic Shore Assist",
+  "description": "Monitors axial compressive strain on a temporary steel construction column using a full Wheatstone bridge, computes the real-time fraction of Euler critical load using the effective-length method, and actuates a pneumatic shore jack via PID control when load exceeds 80% of Pcr, preventing buckling collapse.",
+  "objective": "Automated load-relief actuation with dual-threshold alarm before a steel column (K=0.7 fixed-pin, 3.5 m, 200×200 SHS) reaches critical buckling load.",
+  "constraints": "Arduino Uno, INA128 amp, 350 Ω full Wheatstone bridge, 24 V pneumatic solenoid, MOSFET driver, SD card; column E=200 GPa, I=5210 cm⁴, FS design = 3.",
+  "domain": "civil",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Euler's Column Buckling Formula",
+    "Euler Critical Buckling Load with Effective Length Factor",
+    "Beam Bending — Flexure Formula"
+  ],
+  "design_element_titles": [
+    "Wheatstone Strain Gauge Bridge on Steel Column",
+    "Solenoid Shoring Jack Control Valve",
+    "Cascaded PID Rate and Attitude Controller",
+    "Buzzer and LED Fault Annunciator"
+  ],
+  "element_usage_notes": {
+    "Wheatstone Strain Gauge Bridge on Steel Column": "Axial micro-strain converted to load via E×A; primary process variable.",
+    "Solenoid Shoring Jack Control Valve": "Duty-cycle modulated valve provides variable shore pressure as supplemental load path.",
+    "Cascaded PID Rate and Attitude Controller": "Outer loop: load fraction vs. 0.75 Pcr setpoint; inner loop: jack pressure rate.",
+    "Buzzer and LED Fault Annunciator": "Two-tone alarm at 80% Pcr (warning) and 95% Pcr (critical)."
+  },
+  "element_interactions": [
+    {
+      "from": "Wheatstone Strain Gauge Bridge on Steel Column",
+      "to": "Cascaded PID Rate and Attitude Controller",
+      "data": "load_fraction",
+      "description": "Axial load fraction of Pcr drives outer PID loop process variable."
+    },
+    {
+      "from": "Cascaded PID Rate and Attitude Controller",
+      "to": "Solenoid Shoring Jack Control Valve",
+      "data": "valve_duty",
+      "description": "PID output modulates solenoid PWM duty to proportion shore jack pressure."
+    },
+    {
+      "from": "Cascaded PID Rate and Attitude Controller",
+      "to": "Buzzer and LED Fault Annunciator",
+      "data": "load_fraction",
+      "description": "Threshold crossing at 0.80 and 0.95 of Pcr drives alarm levels."
+    }
+  ],
+  "integration_code": "#include <math.h>\n#include <SD.h>\n#define STRAIN_PIN A0\n#define SOL_PIN 6\n#define BUZZER 8\n#define LED 9\n#define SD_CS 10\n#define GAIN 500.0f\n#define GF 2.1f\n#define A_M2 6.56e-3f\n#define E_GPA 200.0f\n#define I_CM4 5210.0f\n#define L_M 3.5f\n#define K_EFF 0.7f\n#define DT 0.1f\nfloat intg=0,lastE=0;\n\nfloat euler_critical_load(float E,float I,float L,float K){\n  float Ef=E*1e6f,If=I*1e-8f,KL=K*L;\n  return PI*PI*Ef*If/(KL*KL)/1000.0f;\n}\n\nfloat read_load_kN(){\n  float V=(analogRead(STRAIN_PIN)/1023.0f)*5.0f;\n  float eps=(V/(GAIN*5.0f))*2.0f/GF;\n  return eps*(E_GPA*1e9f)*A_M2/1000.0f;\n}\n\nvoid run_pid_shore(float frac){\n  float sp=0.75f,e=frac-sp;\n  intg+=e*DT; intg=constrain(intg,-1,1);\n  float d=(e-lastE)/DT; lastE=e;\n  int duty=(int)constrain((80.0f*e+30.0f*intg+5.0f*d)*255,0,255);\n  analogWrite(SOL_PIN,duty);\n}\n\nvoid run_alarm(float frac){\n  if(frac>=0.95f){tone(BUZZER,2000);analogWrite(LED,255);}\n  else if(frac>=0.80f){tone(BUZZER,1000);analogWrite(LED,128);}\n  else{noTone(BUZZER);analogWrite(LED,0);}\n}\n\nvoid log_sd(float load,float pcr){\n  File f=SD.open(\"column.csv\",FILE_WRITE);\n  if(f){f.print(millis());f.print(',');f.print(load);f.print(',');f.println(pcr);f.close();}\n}\n\nvoid setup(){Serial.begin(115200);pinMode(SOL_PIN,OUTPUT);pinMode(BUZZER,OUTPUT);pinMode(LED,OUTPUT);SD.begin(SD_CS);}\n\nvoid loop(){\n  float load=read_load_kN();\n  float pcr=euler_critical_load(E_GPA,I_CM4,L_M,K_EFF);\n  float frac=load/pcr;\n  run_pid_shore(frac);\n  run_alarm(frac);\n  log_sd(load,pcr);\n  Serial.print(\"f=\");Serial.println(frac);\n  delay(100);\n}",
+  "software_artifact_titles": [
+    "euler_critical_load"
+  ]
+}

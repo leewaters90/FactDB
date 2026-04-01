@@ -1,0 +1,8 @@
+{
+  "title": "Vapor Pressure and Clausius-Clapeyron Equation",
+  "domain": "chemical",
+  "category": "thermodynamics",
+  "content": "The vapor pressure P of a pure liquid increases with temperature T according to the Clausius-Clapeyron equation: d(ln P)/dT = ΔHvap/(RT²), or in integrated form ln(P2/P1) = −ΔHvap/R · (1/T2 − 1/T1). Plotting ln P vs 1/T yields a straight line with slope −ΔHvap/R, enabling enthalpy of vaporization to be determined experimentally at low cost.",
+  "detail_level": "intermediate",
+  "id": "90d8e641-1d4d-45d5-8f25-d45560aa2a25"
+}

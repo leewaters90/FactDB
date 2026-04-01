@@ -1,0 +1,17 @@
+{
+  "title": "pid_heater_control",
+  "artifact_type": "function",
+  "language": "arduino",
+  "signature": "int pid_heater_control(float sp, float pv, float dt, float kp, float ki, float kd, float* intg, float* lastE)",
+  "content": "Discrete PID controller returning heater PWM value 0-255. Anti-windup integrator clamp at ±100. State (intg, lastE) held by caller.",
+  "code": "int pid_heater_control(float sp,float pv,float dt,float kp,float ki,float kd,float*intg,float*lastE){\n  float e=sp-pv;\n  *intg=constrain(*intg+e*dt,-100.0f,100.0f);\n  float d=(e-*lastE)/max(dt,0.001f); *lastE=e;\n  return constrain((int)(kp*e+ki*(*intg)+kd*d),0,255);\n}",
+  "tags": [
+    "pid",
+    "heater",
+    "control",
+    "chemical",
+    "arduino"
+  ],
+  "domain": "software",
+  "category": "function"
+}

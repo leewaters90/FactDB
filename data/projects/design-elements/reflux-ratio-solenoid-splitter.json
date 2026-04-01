@@ -1,0 +1,5 @@
+{
+  "title": "Reflux Ratio Solenoid Splitter",
+  "component_category": "actuation",
+  "selected_approach": "Two solenoid valves on the condenser outlet: one routes condensate back to column (reflux) and one routes to distillate receiver. Arduino sets ON-time ratio to achieve target reflux ratio R = t_reflux/(t_reflux + t_distillate) in a timed cycle of 30 s period. 12 V, 5 W valves with flyback protection."
+}

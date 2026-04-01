@@ -1,0 +1,58 @@
+{
+  "title": "Bridge Deck Vibration Adaptive Damper Controller",
+  "description": "Closed-loop adaptive magnetorheological damper system that monitors bridge deck acceleration via a distributed ADXL345 array, computes real-time RMS using a windowed buffer, and drives a PWM-controlled MR damper through a PID loop to suppress resonance and keep DAF below 1.5 under pedestrian and wind excitation.",
+  "objective": "Maintain bridge deck RMS acceleration below 0.5 g and reduce dynamic amplification factor toward 1.0; log all events to SD and alarm on >2.5 g structural exceedance.",
+  "constraints": "Arduino Mega 2560; 12 V 5 A supply; MR coil ≤2 A; FoS ≥2.0 on structural members; SD logging mandatory; BOM <$80",
+  "domain": "civil",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Structural Resonance and Dynamic Amplification Factor",
+    "Beam Bending — Flexure Formula",
+    "Factor of Safety"
+  ],
+  "design_element_titles": [
+    "ADXL345 Three-Axis Accelerometer Node Array",
+    "PWM-Driven Magnetorheological Damper",
+    "SPI SD Card Datalogger Shield",
+    "16x2 I2C LCD Status Panel",
+    "Cascaded PID Rate and Attitude Controller"
+  ],
+  "element_usage_notes": {
+    "ADXL345 Three-Axis Accelerometer Node Array": "Provides per-node RMS-g as process variable to the outer PID loop",
+    "PWM-Driven Magnetorheological Damper": "Receives PID output as 0-255 PWM; higher duty increases fluid viscosity and damping force",
+    "SPI SD Card Datalogger Shield": "10 Hz CSV logging; fault events trigger immediate sync to prevent data loss on power failure",
+    "16x2 I2C LCD Status Panel": "Operator HMI; top row live RMS, bottom row damper duty and fault state",
+    "Cascaded PID Rate and Attitude Controller": "Outer loop regulates RMS against 0.5 g setpoint; inner loop regulates rate-of-change of acceleration"
+  },
+  "element_interactions": [
+    {
+      "from": "ADXL345 Three-Axis Accelerometer Node Array",
+      "to": "Cascaded PID Rate and Attitude Controller",
+      "data": "rms_g_float",
+      "description": "Windowed RMS acceleration fed as outer-loop process variable"
+    },
+    {
+      "from": "Cascaded PID Rate and Attitude Controller",
+      "to": "PWM-Driven Magnetorheological Damper",
+      "data": "pwm_0_255",
+      "description": "PID output clipped to 0-255 sets MR coil current via PWM"
+    },
+    {
+      "from": "ADXL345 Three-Axis Accelerometer Node Array",
+      "to": "SPI SD Card Datalogger Shield",
+      "data": "accel_rms_csv",
+      "description": "Raw and RMS acceleration logged at 10 Hz"
+    },
+    {
+      "from": "Cascaded PID Rate and Attitude Controller",
+      "to": "16x2 I2C LCD Status Panel",
+      "data": "pid_status_string",
+      "description": "Setpoint, PV, output percent displayed for operator"
+    }
+  ],
+  "integration_code": "#include <Wire.h>\n#include <LiquidCrystal_I2C.h>\n#include <SPI.h>\n#include <SD.h>\n#define MR_PWM 9\n#define SD_CS 8\n#define ALARM_PIN 7\nLiquidCrystal_I2C lcd(0x27,16,2);\nFile lg;\nfloat intg=0,lastE=0;\nfloat rmsB[32]; int rmsI=0;\n\nfloat vibration_rms_window(float s,float*b,int*i,int n){\n  b[(*i)%n]=s*s; (*i)++;\n  float sum=0; for(int j=0;j<n;j++) sum+=b[j];\n  return sqrtf(sum/n);\n}\nint pid_heater_control(float sp,float pv,float dt,float kp,float ki,float kd,float*ig,float*le){\n  float e=sp-pv; *ig+=e*dt;\n  float d=(e-*le)/(dt>0?dt:0.05f); *le=e;\n  float o=kp*e+ki*(*ig)+kd*d;\n  return constrain((int)o,0,255);\n}\n\nvoid init_hw(){\n  Wire.begin(); lcd.init(); lcd.backlight();\n  pinMode(MR_PWM,OUTPUT); analogWrite(MR_PWM,0);\n  pinMode(ALARM_PIN,OUTPUT);\n  SD.begin(SD_CS);\n  lg=SD.open(\"vib.csv\",FILE_WRITE);\n  if(lg){lg.println(\"t,rms,pwm,fault\");lg.close();}\n}\n\nfloat read_accel(){\n  float raw=(analogRead(A0)*0.00488f-2.5f);\n  return vibration_rms_window(raw,rmsB,&rmsI,32);\n}\n\nint compute_damper(float rms,float dt){\n  int pwm=pid_heater_control(0.5f,rms,dt,80.0f,5.0f,2.0f,&intg,&lastE);\n  analogWrite(MR_PWM,pwm); return pwm;\n}\n\nbool check_faults(float rms){\n  bool f=(rms>2.5f);\n  digitalWrite(ALARM_PIN,f); return f;\n}\n\nvoid log_status(float rms,int pwm,bool fault){\n  lg=SD.open(\"vib.csv\",FILE_WRITE);\n  if(lg){lg.print(millis());lg.print(',');lg.print(rms,3);lg.print(',');lg.print(pwm);lg.print(',');lg.println(fault?1:0);lg.close();}\n  lcd.setCursor(0,0);lcd.print(\"RMS:\");lcd.print(rms,3);lcd.print(\"g \");\n  lcd.setCursor(0,1);lcd.print(\"PWM:\");lcd.print(pwm);lcd.print(fault?\" FLT\":\"    \");\n}\n\nvoid setup(){Serial.begin(9600);init_hw();}\nvoid loop(){\n  static unsigned long lt=0;\n  float dt=(millis()-lt)/1000.0f; if(dt<0.001f)dt=0.05f; lt=millis();\n  float rms=read_accel();\n  int pwm=compute_damper(rms,dt);\n  bool fault=check_faults(rms);\n  log_status(rms,pwm,fault);\n  delay(50);\n}",
+  "software_artifact_titles": [
+    "vibration_rms_window",
+    "pid_heater_control"
+  ]
+}

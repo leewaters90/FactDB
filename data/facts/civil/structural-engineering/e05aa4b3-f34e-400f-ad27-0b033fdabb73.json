@@ -1,0 +1,8 @@
+{
+  "title": "Euler Critical Buckling Load with Effective Length Factor",
+  "domain": "civil",
+  "category": "structural engineering",
+  "content": "Real column end conditions are modelled with effective length factor K: Pcr = π²EI/(KL)². K=0.5 (fixed-fixed), K=0.7 (fixed-pinned), K=1.0 (pin-pin), K=2.0 (cantilever). A design safety factor ≥ 3 is recommended for temporary construction columns. Monitoring axial strain with micro-strain gauges allows real-time tracking of the load-to-buckling ratio during construction loading.",
+  "detail_level": "intermediate",
+  "id": "e05aa4b3-f34e-400f-ad27-0b033fdabb73"
+}

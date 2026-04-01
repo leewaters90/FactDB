@@ -1,0 +1,48 @@
+{
+  "title": "Retaining Wall Lateral Earth Pressure Monitor and Alarm System",
+  "description": "Continuously monitors lateral earth pressure on a 3 m retaining wall via four embedded HX711 load cells, computes Rankine active pressure limits, cross-checks with soil temperature drift, logs to SD card, and triggers an audible and visual alarm when measured force approaches 90% of the design limit.",
+  "objective": "Real-time safety monitoring with closed-loop fault annunciation and SD data logging for a retaining wall subject to saturated backfill loading.",
+  "constraints": "Arduino Mega, four 50 kg load cells, HX711 modules, passive buzzer, SD module; wall height ≤ 3 m; 12 V DC supply; soil φ=30°, γ=18 kN/m³, c=5 kPa.",
+  "domain": "civil",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Rankine Earth Pressure Theory",
+    "Beam Bending — Flexure Formula"
+  ],
+  "design_element_titles": [
+    "HX711 Load Cell Amplifier Array",
+    "Buzzer and LED Fault Annunciator",
+    "Cascaded PID Rate and Attitude Controller",
+    "DS18B20 1-Wire Temperature Probe Array"
+  ],
+  "element_usage_notes": {
+    "HX711 Load Cell Amplifier Array": "Primary sensing; four cells read sequentially, forces summed for total lateral load estimate.",
+    "Buzzer and LED Fault Annunciator": "Alarm output; activates on force >90% of Rankine limit or sensor open-circuit fault.",
+    "Cascaded PID Rate and Attitude Controller": "Repurposed as rate-of-change guard: inner loop tracks load rate, outer loop tracks absolute load vs. 0.85×limit setpoint.",
+    "DS18B20 1-Wire Temperature Probe Array": "Monitors soil/ambient temperature to apply zero-drift thermal compensation to load cell output."
+  },
+  "element_interactions": [
+    {
+      "from": "HX711 Load Cell Amplifier Array",
+      "to": "Cascaded PID Rate and Attitude Controller",
+      "data": "force_N",
+      "description": "Measured lateral force fed as outer-loop process variable."
+    },
+    {
+      "from": "DS18B20 1-Wire Temperature Probe Array",
+      "to": "HX711 Load Cell Amplifier Array",
+      "data": "temp_C",
+      "description": "Temperature reading used to apply zero-drift compensation to HX711 outputs."
+    },
+    {
+      "from": "Cascaded PID Rate and Attitude Controller",
+      "to": "Buzzer and LED Fault Annunciator",
+      "data": "alarm_flag",
+      "description": "PID outer-loop error exceeding threshold triggers annunciator."
+    }
+  ],
+  "integration_code": "#include <HX711.h>\n#include <OneWire.h>\n#include <DallasTemperature.h>\n#include <SD.h>\n#include <math.h>\n#define NUM_CELLS 4\n#define ONE_WIRE_BUS 2\n#define BUZZER_PIN 8\n#define LED_PIN 9\n#define SD_CS 10\n#define WALL_H 3.0f\n#define PHI_DEG 30.0f\n#define GAMMA 18.0f\n#define COHESION 5.0f\n#define ALARM_R 0.90f\nHX711 cells[NUM_CELLS];\nconst int DOUT[]={A0,A1,A2,A3},CLK[]={A4,A5,4,5};\nOneWire ow(ONE_WIRE_BUS); DallasTemperature ds(&ow);\nfloat intg=0,lastE=0;\n\nfloat rankine_active_pressure(float phi_deg,float gamma_kNm3,float depth_m,float cohesion_kPa){\n  float phi=phi_deg*PI/180.0f;\n  float Ka=(1.0f-sin(phi))/(1.0f+sin(phi));\n  float s=Ka*gamma_kNm3*depth_m-2.0f*cohesion_kPa*sqrt(Ka);\n  return s<0?0:s;\n}\n\nvoid setup_sensors(){\n  for(int i=0;i<NUM_CELLS;i++){cells[i].begin(DOUT[i],CLK[i]);cells[i].set_scale(420.0f);cells[i].tare();}\n  ds.begin();\n}\n\nfloat read_total_force(){\n  ds.requestTemperatures();\n  float drift=(ds.getTempCByIndex(0)-25.0f)*0.05f;\n  float tot=0;\n  for(int i=0;i<NUM_CELLS;i++) tot+=cells[i].get_units(3)-drift;\n  return tot;\n}\n\nfloat compute_limit(){\n  float sigma=rankine_active_pressure(PHI_DEG,GAMMA,WALL_H,COHESION);\n  return sigma*WALL_H*1000.0f;\n}\n\nvoid run_pid_guard(float force,float limit){\n  float sp=0.80f*limit,e=force-sp;\n  intg+=e*0.1f; intg=constrain(intg,-1000,1000);\n  float d=(e-lastE)/0.1f; lastE=e;\n  float out=0.5f*e+0.1f*intg+0.05f*d;\n  if(out>0&&force>ALARM_R*limit){digitalWrite(BUZZER_PIN,HIGH);analogWrite(LED_PIN,255);}\n  else{digitalWrite(BUZZER_PIN,LOW);analogWrite(LED_PIN,(int)(force/limit*200));}\n}\n\nvoid log_data(float force,float limit){\n  File f=SD.open(\"retwall.csv\",FILE_WRITE);\n  if(f){f.print(millis());f.print(',');f.print(force);f.print(',');f.println(limit);f.close();}\n}\n\nvoid setup(){Serial.begin(115200);pinMode(BUZZER_PIN,OUTPUT);pinMode(LED_PIN,OUTPUT);SD.begin(SD_CS);setup_sensors();}\n\nvoid loop(){\n  float force=read_total_force();\n  float limit=compute_limit();\n  run_pid_guard(force,limit);\n  log_data(force,limit);\n  Serial.print(\"F=\");Serial.print(force);Serial.print(\" Lim=\");Serial.println(limit);\n  delay(100);\n}",
+  "software_artifact_titles": [
+    "rankine_active_pressure"
+  ]
+}

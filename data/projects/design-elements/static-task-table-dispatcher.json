@@ -1,0 +1,5 @@
+{
+  "title": "Static Task Table Dispatcher",
+  "component_category": "processing",
+  "selected_approach": "Fixed array of {period_ms, last_ms, fn_ptr, maxLat_us} entries; loop() dispatches highest-priority overdue task per pass; supports up to 8 tasks; O(N) scan."
+}

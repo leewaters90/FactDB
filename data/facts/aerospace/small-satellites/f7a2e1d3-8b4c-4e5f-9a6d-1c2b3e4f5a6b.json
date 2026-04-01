@@ -1,0 +1,8 @@
+{
+  "id": "f7a2e1d3-8b4c-4e5f-9a6d-1c2b3e4f5a6b",
+  "title": "CubeSat Electrical Power System (EPS) Architecture",
+  "domain": "aerospace",
+  "category": "small satellites",
+  "content": "A CubeSat EPS manages energy flow between solar panels, battery pack, and bus loads. Key sub-blocks are: solar input with reverse-blocking diode, battery charge regulator (LTC4162 or BQ25570), 3.3 V/5 V regulated rails, and a load-switch fabric for non-essential loads. Battery voltage thresholds define operating modes: nominal (7.4 V Li-ion 2S), low-power (< 6.8 V), and safe-mode/load-shed (< 6.5 V). Fault isolation uses hardware over-current latching plus software watchdog. A shunt monitor on each rail (INA219) provides real-time V/I telemetry at 12-bit resolution. Design constraint: total quiescent draw < 15 mA so eclipse periods do not drain a 2200 mAh pack below safe-mode threshold within one 90-minute LEO orbit.",
+  "detail_level": "intermediate"
+}

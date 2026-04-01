@@ -1,0 +1,5 @@
+{
+  "title": "Linear Actuator Penstock Gate Drive",
+  "component_category": "control",
+  "selected_approach": "12 V DC linear actuator (200 mm stroke) drives a 300 mm penstock gate via L298N H-bridge; three-position control: closed (dry/first-flush), half-open (normal), full-open (flood bypass); actuator position confirmed by limit switches."
+}

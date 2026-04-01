@@ -1,0 +1,5 @@
+{
+  "title": "MEMS Tilt and Inclinometer Array via I2C Mux",
+  "component_category": "sensing",
+  "selected_approach": "Three MPU-6050 IMUs daisy-chained via TCA9548A I2C multiplexer at 150 mm depth intervals in borehole casing; measures tilt to ±0.1° resolution; differential profile detects shear displacement across potential slip planes."
+}

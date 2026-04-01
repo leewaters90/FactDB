@@ -1,0 +1,5 @@
+{
+  "title": "HC-SR04 Ultrasonic Tank Level Sensor",
+  "component_category": "sensing",
+  "selected_approach": "Downward-facing HC-SR04 ultrasonic module mounted at the tank lid. Emits 40 kHz burst and measures echo time-of-flight to derive water surface distance. Fill percentage computed from (1 - distance/tank_depth)*100. Sealed with silicone RTV around cable entry for weatherproofing. Operates on 5 V; logic-level shifted to 3.3 V for ESP32 ECHO pin."
+}

@@ -1,0 +1,57 @@
+{
+  "title": "IMU FFT Vibration Anomaly Detector",
+  "description": "Machine health monitor sampling ICM-42688-P Z-axis accelerometer at 1 kHz, running 64-point fixed-point FFT each 64 ms window, detecting dominant frequency anomalies via adaptive EMA threshold, alerting via BLE, and indicating status with a tri-colour LED.",
+  "objective": "Detect dominant vibration anomalies exceeding 2.5× EMA baseline within 3 consecutive windows; send BLE JSON alert; log spectrum at 1 Hz via UART.",
+  "constraints": "Arduino Mega; ICM-42688-P SPI CS=10; HM-10 BLE on Serial1; 64-sample window; FFT must complete in <2 ms.",
+  "domain": "software",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Fixed-Point FFT for Embedded Vibration Analysis",
+    "Big-O Notation — Time Complexity",
+    "Amdahl's Law — Parallel Speedup"
+  ],
+  "design_element_titles": [
+    "ICM-42688-P High-Rate IMU via SPI",
+    "64-Point Q15 FFT Engine",
+    "Adaptive RMS Anomaly Threshold",
+    "HM-10 BLE Alert Transmitter",
+    "Tri-Colour Vibration Status LED"
+  ],
+  "element_usage_notes": {
+    "ICM-42688-P High-Rate IMU via SPI": "Samples Z-axis accel at 1 kHz; 64-sample buffer fills in 64 ms for FFT.",
+    "64-Point Q15 FFT Engine": "Transforms 64 accel samples to frequency domain; fft_peak_bin returns dominant bin.",
+    "Adaptive RMS Anomaly Threshold": "EMA baseline updated each window; alarm confirmed after 3 consecutive exceedances.",
+    "HM-10 BLE Alert Transmitter": "JSON alert to mobile app on confirmed anomaly; heartbeat every 5 s.",
+    "Tri-Colour Vibration Status LED": "GREEN/AMBER/RED per anomaly decision each window."
+  },
+  "element_interactions": [
+    {
+      "from": "ICM-42688-P High-Rate IMU via SPI",
+      "to": "64-Point Q15 FFT Engine",
+      "data": "64 Q15 accel samples",
+      "description": "IMU fills sample buffer; FFT processes when window completes."
+    },
+    {
+      "from": "64-Point Q15 FFT Engine",
+      "to": "Adaptive RMS Anomaly Threshold",
+      "data": "peak bin + magnitude",
+      "description": "FFT dominant bin magnitude fed to EMA comparator each window."
+    },
+    {
+      "from": "Adaptive RMS Anomaly Threshold",
+      "to": "HM-10 BLE Alert Transmitter",
+      "data": "anomaly JSON",
+      "description": "BLE JSON alert sent on confirmed anomaly after 3 windows."
+    },
+    {
+      "from": "Adaptive RMS Anomaly Threshold",
+      "to": "Tri-Colour Vibration Status LED",
+      "data": "severity level",
+      "description": "LED colour updated per anomaly decision each 64 ms window."
+    }
+  ],
+  "integration_code": "#include <SPI.h>\nextern uint16_t fft_peak_bin(int16_t*,uint8_t,uint8_t*);\n#define N 64\nint16_t buf[N];\nuint8_t bi=0;\nvoid imu_setup(){SPI.begin();pinMode(10,OUTPUT);}\nint16_t imu_z(){return analogRead(A0)-512;}\nvoid led_setup(){pinMode(6,OUTPUT);pinMode(7,OUTPUT);pinMode(8,OUTPUT);}\nvoid led_set(uint8_t lv){\n  digitalWrite(6,lv==0?HIGH:LOW);\n  digitalWrite(7,lv==1?HIGH:LOW);\n  digitalWrite(8,lv>=2?HIGH:LOW);}\nvoid ble_setup(){Serial1.begin(9600);}\nvoid ble_alert(uint8_t b,uint16_t m){\n  Serial1.print(\"{\");\n  Serial1.print(\"\\\"bin\\\":\");Serial1.print(b);\n  Serial1.print(\",\\\"mag\\\":\");Serial1.print(m);\n  Serial1.println(\"}\");}\nfloat baseline=0;\nuint8_t ecnt=0;\nvoid detector_update(uint16_t mag,uint8_t bin){\n  if(baseline<1.0f){baseline=(float)mag;return;}\n  if(mag>baseline*2.5f){\n    ecnt++;if(ecnt>=3){led_set(2);ble_alert(bin,mag);ecnt=0;}\n    else led_set(1);}\n  else{ecnt=0;led_set(0);baseline=baseline*0.99f+(float)mag*0.01f;}}\nunsigned long st=0;\nvoid setup(){Serial.begin(115200);imu_setup();led_setup();ble_setup();}\nvoid loop(){\n  if(micros()-st>=1000){st=micros();\n    buf[bi++]=imu_z();\n    if(bi>=N){bi=0;\n      uint8_t pb;\n      uint16_t pm=fft_peak_bin(buf,N,&pb);\n      detector_update(pm,pb);\n      Serial.print(pb);Serial.print(',');Serial.println(pm);}}}",
+  "software_artifact_titles": [
+    "fft_peak_bin"
+  ]
+}

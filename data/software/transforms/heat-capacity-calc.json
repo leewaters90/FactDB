@@ -1,0 +1,17 @@
+{
+  "title": "heat_capacity_calc",
+  "artifact_type": "transform",
+  "language": "arduino",
+  "signature": "float heat_capacity_calc(float T0, float T1, float V, float R_ohm, unsigned long duration_ms, float mass_g, float Cv_vessel)",
+  "content": "Computes specific heat capacity Cp from electrical energy input and temperature rise in an adiabatic calorimeter.",
+  "code": "float heat_capacity_calc(float T0,float T1,float V,float R_ohm,unsigned long dur_ms,float mass_g,float Cv_vessel){\n  float I=V/R_ohm;\n  float Q=I*V*(dur_ms/1000.0f);\n  float dT=T1-T0;\n  if(dT<=0||mass_g<=0) return -1.0f;\n  return (Q-Cv_vessel*dT)/mass_g/dT;\n}",
+  "tags": [
+    "heat-capacity",
+    "calorimetry",
+    "adiabatic",
+    "thermodynamics",
+    "arduino"
+  ],
+  "domain": "software",
+  "category": "transform"
+}

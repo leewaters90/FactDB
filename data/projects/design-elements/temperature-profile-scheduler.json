@@ -1,0 +1,5 @@
+{
+  "title": "Temperature Profile Scheduler",
+  "component_category": "control",
+  "selected_approach": "Software finite-state machine storing an array of (target_temp, hold_time_ms) pairs. Each state executes a P-only or bang-bang thermal controller until the setpoint is reached within tolerance, then holds for the specified dwell period before advancing. Encoded in PROGMEM for Arduino memory efficiency."
+}

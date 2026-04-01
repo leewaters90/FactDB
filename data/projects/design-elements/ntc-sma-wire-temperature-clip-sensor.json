@@ -1,0 +1,5 @@
+{
+  "title": "NTC SMA Wire Temperature Clip Sensor",
+  "component_category": "sensing",
+  "selected_approach": "Glass-bead NTC 10 kΩ clipped directly to Nitinol wire segment; monitors wire temperature to prevent cycling above 150 °C; Steinhart-Hart linearisation in firmware"
+}

@@ -1,0 +1,54 @@
+{
+  "title": "Embedded Rebar Corrosion Rate Monitor",
+  "description": "Electrochemical corrosion monitor for steel rebar embedded in concrete. Performs periodic LPR polarisation scans using a potentiostat circuit, computes corrosion rate via the Stern-Geary equation, classifies active/passive state, transmits results over Modbus RTU, and raises fault alarms on sensor disconnection or active corrosion threshold breach.",
+  "objective": "Measure rebar corrosion rate every 15 min; classify active (> 0.1 µA/cm²) vs passive; transmit Modbus RTU frame; alarm on active threshold; log to serial.",
+  "constraints": "Arduino Pro Mini 3.3 V; potentiostat on PCB; Modbus RTU RS-485; IP68 enclosure; powered from 3.7 V LiPo; BOM < $45.",
+  "domain": "materials",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Linear Polarisation Resistance Corrosion Rate Measurement for Steel",
+    "Concrete Hydration Exotherm and Thermal Gradient Limits"
+  ],
+  "design_element_titles": [
+    "Three-Electrode TL072 Potentiostat Circuit",
+    "MCP4725 12-bit I2C DAC Module",
+    "MAX485 RS-485 Modbus RTU Gateway",
+    "Silicone-Potted IP68 Sensor Enclosure"
+  ],
+  "element_usage_notes": [
+    "Potentiostat applies ±20 mV polarisation; INA128 shunt reads current µA for LPR calculation",
+    "DAC sets OCP-relative bias voltage for each polarisation step in LPR scan",
+    "Transmits Modbus holding register frame with corrosion rate and status every 15 min",
+    "Entire electronics assembly potted inside enclosure; electrode leads exit via M12 connectors"
+  ],
+  "element_interactions": [
+    {
+      "from": "MCP4725 12-bit I2C DAC Module",
+      "to": "Three-Electrode TL072 Potentiostat Circuit",
+      "data": "bias_voltage_mV",
+      "description": "DAC sets polarisation voltage applied to rebar working electrode"
+    },
+    {
+      "from": "Three-Electrode TL072 Potentiostat Circuit",
+      "to": "MAX485 RS-485 Modbus RTU Gateway",
+      "data": "corrosion_rate_mm_per_yr",
+      "description": "Computed CR and active/passive flag packed into Modbus holding registers"
+    },
+    {
+      "from": "Silicone-Potted IP68 Sensor Enclosure",
+      "to": "Three-Electrode TL072 Potentiostat Circuit",
+      "data": "protection",
+      "description": "Enclosure shields potentiostat electronics from concrete moisture and alkalinity"
+    },
+    {
+      "from": "Three-Electrode TL072 Potentiostat Circuit",
+      "to": "MCP4725 12-bit I2C DAC Module",
+      "data": "OCP_mV",
+      "description": "Open-circuit potential measured before scan; DAC bias referenced to OCP"
+    }
+  ],
+  "integration_code": "#include <Wire.h>\n#include <Adafruit_MCP4725.h>\n\nextern float lpr_corrosion_rate(float dV,float dI,float area,float B);\n\nAdafruit_MCP4725 dac;\nconst int INA_PIN=A0,DE_PIN=2;\nconst float AREA_CM2=10.0f,B_ACTIVE=26.0f,B_PASSIVE=52.0f;\nconst float CR_ACTIVE_THRESH=0.01f;\n\n// === DAC Bias ===\nvoid dac_init(){Wire.begin();dac.begin(0x60);}\nvoid dac_set_mV(float mV){uint16_t v=(uint16_t)((mV+1000.0f)/2000.0f*4095);dac.setVoltage(v,false);}\n\n// === Current Readback ===\nfloat current_uA_read(){return (analogRead(INA_PIN)-512)*5000.0f/1023.0f;}\n\n// === LPR Scan ===\nfloat lpr_scan(){\n  dac_set_mV(0);delay(2000);\n  float i0=current_uA_read();\n  dac_set_mV(10);delay(500);\n  float ip=current_uA_read();\n  dac_set_mV(-10);delay(500);\n  float im=current_uA_read();\n  dac_set_mV(0);\n  float dI=(ip-im)/2.0f-i0;\n  float B=(abs(dI)>0.1f)?B_ACTIVE:B_PASSIVE;\n  return lpr_corrosion_rate(10.0f,abs(dI),AREA_CM2,B);}\n\n// === Modbus RTU Transmit ===\nvoid modbus_init(){Serial.begin(9600);pinMode(DE_PIN,OUTPUT);digitalWrite(DE_PIN,HIGH);}\nvoid modbus_send(float cr,bool active){\n  uint16_t cr_enc=(uint16_t)(cr*1000);\n  uint8_t frame[]={0x01,0x04,0x00,0x01,0x00,0x02,(uint8_t)(cr_enc>>8),(uint8_t)(cr_enc&0xFF),active?0x01:0x00,0x00};\n  Serial.write(frame,10);}\n\n// === Fault Handler ===\nbool fault_check(float cr){if(cr<0){Serial.println(\"FAULT:SENSOR\");return true;}return false;}\n\nvoid setup(){\n  dac_init();modbus_init();\n  Serial.println(\"Rebar Corrosion Monitor Ready\");\n}\n\nvoid loop(){\n  float cr=lpr_scan();\n  if(fault_check(cr)){delay(60000);return;}\n  bool active=(cr>CR_ACTIVE_THRESH);\n  modbus_send(cr,active);\n  if(active)Serial.println(\"ALARM:ACTIVE_CORROSION\");\n  Serial.print(\"CR=\");Serial.print(cr,4);Serial.println(\" mm/yr\");\n  delay(900000);\n}",
+  "software_artifact_titles": [
+    "lpr_corrosion_rate"
+  ]
+}

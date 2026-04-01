@@ -1,0 +1,17 @@
+{
+  "title": "electroplating_quality_check",
+  "artifact_type": "function",
+  "language": "arduino",
+  "signature": "bool electroplating_quality_check(float ph, float current_mA, float temp_C)",
+  "content": "Returns true when bath pH, current density, and temperature are all within the Watts nickel process window.",
+  "code": "bool electroplating_quality_check(float ph,float current_mA,float temp_C){\n  return (ph>=3.5f && ph<=4.5f && current_mA>=200.0f && current_mA<=500.0f && temp_C>=45.0f && temp_C<=55.0f);\n}",
+  "tags": [
+    "electroplating",
+    "nickel",
+    "quality",
+    "bath-control",
+    "materials"
+  ],
+  "domain": "software",
+  "category": "function"
+}

@@ -1,0 +1,5 @@
+{
+  "title": "Heated Barrel Extrusion Die Assembly",
+  "component_category": "actuation",
+  "selected_approach": "Ceramic band heater 230 V/300 W clamped to 12 mm steel barrel; Type-J thermocouple welded to barrel OD; PID-controlled via SSR; die orifice 2.095 mm for ASTM D1238 load"
+}

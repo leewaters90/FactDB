@@ -1,0 +1,55 @@
+{
+  "title": "SMA Nitinol Actuator Closed-Loop Position Controller",
+  "description": "Closed-loop position controller for a Joule-heated Nitinol SMA wire actuator. Uses asymmetric PID gains to compensate for martensite/austenite transformation hysteresis, monitors wire temperature to prevent degradation, displays state on OLED, and logs position and duty cycle to serial.",
+  "objective": "Track position setpoint within ±1 mm over 0–40 mm stroke; maintain wire temperature ≤ 120 °C; log position, wire temp, and PWM every 100 ms; fault-cut drive on overtemperature.",
+  "constraints": "Arduino Nano; DRV8833 driver; 0.5 mm Nitinol wire; linear potentiometer; OLED display; BOM < $30.",
+  "domain": "materials",
+  "status": "completed",
+  "supporting_fact_titles": [
+    "Nitinol Shape Memory Alloy Transformation Temperature and Actuation Hysteresis",
+    "Ashby Material Selection — Property Charts"
+  ],
+  "design_element_titles": [
+    "SMA Nitinol Wire DRV8833 H-Bridge Driver",
+    "Linear Potentiometer 50mm Position Sensor",
+    "NTC SMA Wire Temperature Clip Sensor",
+    "SSD1306 128x32 I2C OLED Display"
+  ],
+  "element_usage_notes": [
+    "PWM duty from sma_hysteresis_pid fed to DRV8833 IN1; IN2 tied low for single-direction Joule heating",
+    "Potentiometer ADC reading averaged over 10 samples for position feedback",
+    "Wire NTC reading passed to sma_hysteresis_pid for overtemperature cutout logic",
+    "OLED updated at 5 Hz showing SP, PV in mm, duty %, and fault code"
+  ],
+  "element_interactions": [
+    {
+      "from": "Linear Potentiometer 50mm Position Sensor",
+      "to": "SMA Nitinol Wire DRV8833 H-Bridge Driver",
+      "data": "position_mm",
+      "description": "Position feedback used by hysteresis PID to set SMA wire drive duty cycle"
+    },
+    {
+      "from": "NTC SMA Wire Temperature Clip Sensor",
+      "to": "SMA Nitinol Wire DRV8833 H-Bridge Driver",
+      "data": "wire_temp_C",
+      "description": "Wire temperature fed to PID function for thermal cutout; duty forced to 0 above 120 °C"
+    },
+    {
+      "from": "Linear Potentiometer 50mm Position Sensor",
+      "to": "SSD1306 128x32 I2C OLED Display",
+      "data": "position_mm",
+      "description": "Actual position displayed alongside setpoint on OLED"
+    },
+    {
+      "from": "SMA Nitinol Wire DRV8833 H-Bridge Driver",
+      "to": "SSD1306 128x32 I2C OLED Display",
+      "data": "pwm_duty_pct",
+      "description": "Drive duty cycle displayed on OLED for operator monitoring"
+    }
+  ],
+  "integration_code": "#include <Wire.h>\n#include <Adafruit_SSD1306.h>\n\nextern int pid_heater_control(float sp,float pv,float dt,float kp,float ki,float kd,float* intg,float* lastE);\nextern int sma_hysteresis_pid(float sp,float pv,float dt,float wire_temp,float* intg,float* lastE);\n\nAdafruit_SSD1306 oled(128,32,&Wire,-1);\nconst int SMA_PIN=9,POT_PIN=A0,NTC_PIN=A1;\nconst float R_NTC=10000.0f,B_NTC=3950.0f;\nfloat intg=0,lastE=0;\nfloat sp_mm=20.0f;\n\n// === Potentiometer ===\nvoid pot_init(){pinMode(POT_PIN,INPUT);}\nfloat pot_read(){float s=0;for(int i=0;i<10;i++)s+=analogRead(POT_PIN);return s/10.0f*50.0f/1023.0f;}\n\n// === NTC Wire Temp ===\nvoid ntc_init(){pinMode(NTC_PIN,INPUT);}\nfloat ntc_read(){float v=analogRead(NTC_PIN)*3.3f/1023.0f;float r=R_NTC*v/(3.3f-v);return 1.0f/(1.0f/298.15f+(1.0f/B_NTC)*log(r/R_NTC))-273.15f;}\n\n// === SMA Driver ===\nvoid sma_init(){pinMode(SMA_PIN,OUTPUT);analogWrite(SMA_PIN,0);}\nvoid sma_set(int p){analogWrite(SMA_PIN,constrain(p,0,255));}\n\n// === OLED Display ===\nvoid display_update(float sp,float pv,float wt,int pwm,bool fault){\n  oled.clearDisplay();oled.setTextSize(1);oled.setTextColor(SSD1306_WHITE);\n  oled.setCursor(0,0);oled.print(\"SP:\");oled.print(sp,1);oled.print(\" PV:\");oled.print(pv,1);oled.println(\"mm\");\n  oled.setCursor(0,12);if(fault){oled.print(\"!! FAULT OVERTEMP\");}else{oled.print(\"Tw:\");oled.print(wt,0);oled.print(\"C D:\");oled.print(pwm*100/255);oled.print(\"%\");}\n  oled.display();}\n\n// === Fault Handler ===\nbool fault_check(float wt){if(wt>130.0f){sma_set(0);Serial.println(\"FAULT:WIRE_HOT\");return true;}return false;}\n\nvoid setup(){\n  Serial.begin(115200);Wire.begin();\n  pot_init();ntc_init();sma_init();\n  oled.begin(SSD1306_SWITCHCAPVCC,0x3C);oled.clearDisplay();oled.display();\n  Serial.println(\"t_ms,sp,pv,wire_C,pwm\");\n}\n\nunsigned long lastMs=0;\nvoid loop(){\n  unsigned long now=millis();\n  float dt=(now-lastMs)/1000.0f;\n  if(dt<0.1f)return;lastMs=now;\n  float pv=pot_read(),wt=ntc_read();\n  bool fault=fault_check(wt);\n  int pwm=0;\n  if(!fault)pwm=sma_hysteresis_pid(sp_mm,pv,dt,wt,&intg,&lastE);\n  sma_set(pwm);\n  display_update(sp_mm,pv,wt,pwm,fault);\n  Serial.print(now);Serial.print(',');Serial.print(sp_mm,1);Serial.print(',');Serial.print(pv,2);Serial.print(',');Serial.print(wt,1);Serial.print(',');Serial.println(pwm);\n}",
+  "software_artifact_titles": [
+    "pid_heater_control",
+    "sma_hysteresis_pid"
+  ]
+}

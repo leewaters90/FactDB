@@ -1,0 +1,5 @@
+{
+  "title": "FAT32 MicroSD CSV Logger",
+  "component_category": "processing",
+  "selected_approach": "SPI microSD on CS=10; writes timestamp,sp,pv,pwm CSV rows each control tick; flush every 100 records; SD.h driver."
+}
