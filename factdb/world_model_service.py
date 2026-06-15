@@ -33,6 +33,20 @@ def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
 
+# Baseline prior scores and residual multipliers used for anomaly diagnosis.
+_ANOMALY_CAUSE_WEIGHTS: dict[str, tuple[float, float]] = {
+    "sensor_fault": (0.25, 0.35),
+    "model_gap": (0.25, 0.25),
+    "environment_change": (0.2, 0.2),
+    "bad_calibration": (0.1, 0.2),
+    "unmodeled_physics": (0.1, 0.2),
+}
+
+# Ranking policy constants for hierarchical planner skill selection.
+_SKILL_COST_WEIGHT = 0.1
+_SKILL_LATENCY_NORMALIZER_MS = 10000.0
+
+
 @dataclass
 class ObservationInput:
     entity_id: str
@@ -217,12 +231,10 @@ class WorldModelService:
         if anomaly is None:
             raise ValueError(f"Anomaly not found: {anomaly_id!r}")
 
+        normalized_residual = min(anomaly.residual_score, 1.0)
         scores = {
-            "sensor_fault": 0.25 + min(anomaly.residual_score, 1.0) * 0.35,
-            "model_gap": 0.25 + min(anomaly.residual_score, 1.0) * 0.25,
-            "environment_change": 0.2 + min(anomaly.residual_score, 1.0) * 0.2,
-            "bad_calibration": 0.1 + min(anomaly.residual_score, 1.0) * 0.2,
-            "unmodeled_physics": 0.1 + min(anomaly.residual_score, 1.0) * 0.2,
+            cause: baseline + normalized_residual * multiplier
+            for cause, (baseline, multiplier) in _ANOMALY_CAUSE_WEIGHTS.items()
         }
 
         diagnosis = sorted(
@@ -280,11 +292,15 @@ class WorldModelService:
             raise ValueError(f"Objective not found: {objective_id!r}")
 
         active_skills = self.session.execute(
-            select(SkillFunction).where(SkillFunction.is_active == True)  # noqa: E712
+            select(SkillFunction).where(SkillFunction.is_active.is_(True))
         ).scalars().all()
         ranked = sorted(
             active_skills,
-            key=lambda skill: (skill.reliability_score - skill.cost_score * 0.1 - skill.latency_ms / 10000.0),
+            key=lambda skill: (
+                skill.reliability_score
+                - skill.cost_score * _SKILL_COST_WEIGHT
+                - skill.latency_ms / _SKILL_LATENCY_NORMALIZER_MS
+            ),
             reverse=True,
         )
 
