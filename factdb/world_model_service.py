@@ -151,7 +151,12 @@ class WorldModelService:
         values = [obs.get_value() for obs in observations]
         confidences = [obs.confidence for obs in observations]
         fused_value = self._fuse_values(values=values, confidences=confidences)
-        fused_confidence = sum(confidences) / len(confidences)
+        total_confidence = sum(confidences)
+        fused_confidence = (
+            sum(confidence * confidence for confidence in confidences) / total_confidence
+            if total_confidence > 0
+            else 0.0
+        )
 
         estimate = StateEstimate(
             entity_id=entity_id,
@@ -364,7 +369,9 @@ class WorldModelService:
         if not values:
             return None
         if all(isinstance(value, (int, float)) for value in values):
-            total_weight = sum(confidences) or 1.0
+            total_weight = sum(confidences)
+            if total_weight == 0.0:
+                total_weight = 1.0
             return sum(value * confidence for value, confidence in zip(values, confidences)) / total_weight
 
         weighted: dict[str, float] = {}

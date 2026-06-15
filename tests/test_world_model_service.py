@@ -118,7 +118,7 @@ class TestWorldModelService:
     def test_assumption_fact_linking(self, db_session):
         fact = Fact(
             title="Gravity affects unsupported masses",
-            content="Objects accelerate downward at 9.81 m/s^2 near Earth.",
+            content="Objects accelerate downward at 9.81 m/s² near Earth.",
             domain=EngineeringDomain.SYSTEMS,
             detail_level=DetailLevel.FUNDAMENTAL,
             status=FactStatus.VERIFIED,
