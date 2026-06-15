@@ -45,6 +45,7 @@ _ANOMALY_CAUSE_WEIGHTS: dict[str, tuple[float, float]] = {
 # Ranking policy constants for hierarchical planner skill selection.
 _SKILL_COST_WEIGHT = 0.1
 _SKILL_LATENCY_NORMALIZER_MS = 10000.0
+_EPSILON = 1e-9
 
 
 @dataclass
@@ -156,7 +157,7 @@ class WorldModelService:
         # high-confidence sensors while damping low-confidence outliers.
         fused_confidence = (
             sum(confidence * confidence for confidence in confidences) / total_confidence
-            if total_confidence > 0
+            if total_confidence > _EPSILON
             else 0.0
         )
 
@@ -304,9 +305,12 @@ class WorldModelService:
         ranked = sorted(
             active_skills,
             key=lambda skill: (
-                skill.reliability_score
-                - skill.cost_score * _SKILL_COST_WEIGHT
-                - skill.latency_ms / _SKILL_LATENCY_NORMALIZER_MS
+                max(
+                    0.0,
+                    skill.reliability_score
+                    - skill.cost_score * _SKILL_COST_WEIGHT
+                    - skill.latency_ms / _SKILL_LATENCY_NORMALIZER_MS,
+                )
             ),
             reverse=True,
         )
@@ -372,7 +376,7 @@ class WorldModelService:
             return None
         if all(isinstance(value, (int, float)) for value in values):
             total_weight = sum(confidences)
-            if total_weight == 0.0:
+            if total_weight <= _EPSILON:
                 return sum(values) / len(values)
             return sum(value * confidence for value, confidence in zip(values, confidences)) / total_weight
 

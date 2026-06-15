@@ -1,3 +1,5 @@
+import pytest
+
 from factdb.models import Fact, FactStatus, EngineeringDomain, DetailLevel
 from factdb.world_model import (
     AnomalyStatus,
@@ -44,7 +46,7 @@ class TestWorldModelService:
         estimate = service.fuse_state(entity_id=robot.id, property_name="x_position")
         assert estimate is not None
         assert estimate.confidence > 0.0
-        assert estimate.get_value() == 10.8
+        assert estimate.get_value() == pytest.approx(10.8)
         assert len(estimate.get_source_observation_ids()) == 2
 
         residual, anomaly = service.align_expected_state(
