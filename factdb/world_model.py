@@ -103,7 +103,12 @@ class WorldEntity(Base):
 
     parent = relationship("WorldEntity", remote_side=[id], back_populates="children")
     children = relationship("WorldEntity", back_populates="parent")
-    observations = relationship("ObservationEvent", back_populates="entity", cascade="all, delete-orphan")
+    observations = relationship(
+        "ObservationEvent",
+        foreign_keys="ObservationEvent.entity_id",
+        back_populates="entity",
+        cascade="all, delete-orphan",
+    )
     state_estimates = relationship("StateEstimate", back_populates="entity", cascade="all, delete-orphan")
 
     def get_metadata(self) -> dict[str, Any]:
@@ -322,4 +327,3 @@ class SkillFunction(Base):
     created_at: datetime = Column(DateTime(timezone=True), nullable=False, default=_utcnow)
     updated_at: datetime = Column(DateTime(timezone=True), nullable=False, default=_utcnow, onupdate=_utcnow)
     last_used_at: datetime | None = Column(DateTime(timezone=True), nullable=True)
-
