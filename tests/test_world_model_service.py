@@ -46,6 +46,7 @@ class TestWorldModelService:
         estimate = service.fuse_state(entity_id=robot.id, property_name="x_position")
         assert estimate is not None
         assert estimate.confidence > 0.0
+        # Weighted average: 10.0*0.8 + 14.0*0.2 = 10.8
         assert estimate.get_value() == pytest.approx(10.8)
         assert len(estimate.get_source_observation_ids()) == 2
 

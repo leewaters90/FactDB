@@ -153,8 +153,9 @@ class WorldModelService:
         confidences = [obs.confidence for obs in observations]
         fused_value = self._fuse_values(values=values, confidences=confidences)
         total_confidence = sum(confidences)
-        # Confidence-weighted confidence: emphasizes broad agreement among
-        # high-confidence sensors while damping low-confidence outliers.
+        # Confidence-weighted confidence score:
+        # sum(c_i^2) / sum(c_i), equivalent to a confidence self-weighted mean
+        # that increases when more mass sits on high-confidence observations.
         fused_confidence = (
             sum(confidence * confidence for confidence in confidences) / total_confidence
             if total_confidence > _EPSILON
@@ -239,7 +240,7 @@ class WorldModelService:
         if anomaly is None:
             raise ValueError(f"Anomaly not found: {anomaly_id!r}")
 
-        normalized_residual = min(anomaly.residual_score, 1.0)
+        normalized_residual = max(0.0, min(anomaly.residual_score, 1.0))
         scores = {
             cause: baseline + normalized_residual * multiplier
             for cause, (baseline, multiplier) in _ANOMALY_CAUSE_WEIGHTS.items()
