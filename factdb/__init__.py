@@ -31,6 +31,25 @@ from factdb.project_repository import ProjectRepository
 from factdb.search import FactSearch
 from factdb.verification import VerificationWorkflow
 from factdb.reasoning import ReasoningEngine
+from factdb.world_model import (
+    WorldEntity,
+    WorldEntityType,
+    Modality,
+    ObservationEvent,
+    StateEstimate,
+    StateHypothesis,
+    SensorHealth,
+    ModelAssumption,
+    ModelAssumptionFactLink,
+    ModelLinkType,
+    AnomalyCase,
+    AnomalyStatus,
+    ObjectiveRecord,
+    ObjectiveStatus,
+    SkillFunction,
+    SkillKind,
+)
+from factdb.world_model_service import WorldModelService, ObservationInput
 
 __all__ = [
     "get_engine",
@@ -55,4 +74,22 @@ __all__ = [
     "FactSearch",
     "VerificationWorkflow",
     "ReasoningEngine",
+    "WorldEntity",
+    "WorldEntityType",
+    "Modality",
+    "ObservationEvent",
+    "StateEstimate",
+    "StateHypothesis",
+    "SensorHealth",
+    "ModelAssumption",
+    "ModelAssumptionFactLink",
+    "ModelLinkType",
+    "AnomalyCase",
+    "AnomalyStatus",
+    "ObjectiveRecord",
+    "ObjectiveStatus",
+    "SkillFunction",
+    "SkillKind",
+    "WorldModelService",
+    "ObservationInput",
 ]

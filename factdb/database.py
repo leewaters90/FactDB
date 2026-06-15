@@ -11,6 +11,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from factdb.models import Base
 import factdb.project_models   # noqa: F401 — registers Project/DesignElement tables with Base.metadata
 import factdb.software_models  # noqa: F401 — registers SoftwareArtifact/BenchmarkTest/ProjectPackage tables
+import factdb.world_model      # noqa: F401 — registers world-model tables
 
 # Default database path — can be overridden via the FACTDB_DATABASE_URL env var.
 _DEFAULT_DB_PATH = os.path.join(
