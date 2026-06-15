@@ -229,7 +229,7 @@ class ModelAssumption(Base):
     )
 
     id: str = Column(String(36), primary_key=True, default=_new_uuid)
-    title: str = Column(String(300), nullable=False, unique=True)
+    title: str = Column(String(300), nullable=False)
     description: str = Column(Text, nullable=False)
     confidence: float = Column(Float, nullable=False, default=0.5)
     created_at: datetime = Column(DateTime(timezone=True), nullable=False, default=_utcnow)
