@@ -1559,6 +1559,53 @@ document.getElementById("reset").addEventListener("click",()=>svg.transition().d
     click.echo(f"  {stats['facts']} facts · {stats['elements']} elements · {stats['projects']} projects · {stats['edges']} edges")
 
 
+@cli.command("simulate-robotics")
+@click.option("--iterations", default=1, show_default=True, type=int, help="Number of simulation/refill loops.")
+@click.option("--max-steps", default=64, show_default=True, type=int, help="Max steps per episode.")
+@click.option("--scenario", default="arena-alpha", show_default=True, help="Scenario/map name.")
+@click.option(
+    "--inject-loss/--no-inject-loss",
+    default=True,
+    show_default=True,
+    help="Inject missing/invalid records before refill to validate recovery.",
+)
+@click.option("--json", "as_json", is_flag=True, help="Output full report JSON.")
+@click.pass_context
+def simulate_robotics_cmd(ctx, iterations, max_steps, scenario, inject_loss, as_json):
+    """Run FPS-style robotics simulation with ingest, validation, refill, and replay."""
+    from factdb.robotics_simulation import RoboticsSimulationWorkflow
+
+    reset_engine()
+    init_db(ctx.obj.get("db"))
+    session = _make_session(ctx.obj.get("db"))
+    try:
+        workflow = RoboticsSimulationWorkflow(session, scenario_name=scenario)
+        report = workflow.run_iterations(
+            iterations=max(1, iterations),
+            max_steps=max(1, max_steps),
+            inject_loss=inject_loss,
+        )
+        session.commit()
+    finally:
+        session.close()
+
+    if as_json:
+        click.echo(json.dumps(report, indent=2))
+        return
+
+    click.echo(f"Scenario: {scenario}")
+    click.echo(f"Iterations: {len(report['iterations'])}")
+    click.echo(f"All successful: {report['all_successful']}")
+    for idx, iteration in enumerate(report["iterations"], start=1):
+        click.echo(
+            f"  Iteration {idx}: "
+            f"episode_success={iteration['episode']['success']} "
+            f"replay_success={iteration['replay']['success']} "
+            f"invalid_after_refill={iteration['refill']['post_validation']['invalid_count']} "
+            f"facts={iteration['baseline_fact_count']}→{iteration['final_fact_count']}"
+        )
+
+
 @cli.command("web")
 @click.option("--host", default="127.0.0.1", show_default=True, help="Host to bind to.")
 @click.option("--port", default=5000, show_default=True, type=int, help="Port to listen on.")

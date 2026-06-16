@@ -61,6 +61,9 @@ factdb export --domain mechanical --output mechanical_facts.json
 # 10. Verification workflow
 factdb verify <fact-id> --action submit --by alice
 factdb verify <fact-id> --action approve --by bob --notes "Verified against reference"
+
+# 11. FPS-style robotics simulation loop
+factdb simulate-robotics --iterations 1 --max-steps 64 --inject-loss --json
 ```
 
 The database path defaults to `data/factdb.sqlite`. Override via the
@@ -259,6 +262,7 @@ related = search.suggest_related_by_tags(fact_id)
 | `factdb export` | Export verified facts as JSON |
 | `factdb web` | Launch the web UI (projects, elements, facts, review) |
 | `factdb seed-copilot` | Run autonomous Copilot seeder for new projects |
+| `factdb simulate-robotics` | Run FPS-style robotics sim → ingest → validate → refill → replay loop |
 
 ---
 
@@ -314,6 +318,25 @@ factdb seed-copilot --count 10
 
 # Dry-run prompt inspection
 factdb seed-copilot --dry-run
+```
+
+### Robotics simulation (FPS-style loop)
+
+`factdb simulate-robotics` runs a deterministic first-person style robotics
+scenario and uses each episode as a data source for FactDB. The command runs:
+
+1. Episode simulation (navigation, obstacle avoidance, target interaction)
+2. Step-wise ingestion into draft facts + relationship chaining
+3. Validation (schema, dedupe, confidence, relationship integrity)
+4. Refill/recovery for missing or degraded records
+5. Scenario reset + replay to compare stability and integrity
+
+```bash
+# Single validation loop with corruption injection and full JSON report
+factdb simulate-robotics --iterations 1 --max-steps 64 --inject-loss --json
+
+# Multi-iteration run without injected corruption
+factdb simulate-robotics --iterations 3 --no-inject-loss
 ```
 
 Intent generation defaults to **Copilot-generated intent** for both terminal

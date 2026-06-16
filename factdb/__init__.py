@@ -50,6 +50,7 @@ from factdb.world_model import (
     SkillKind,
 )
 from factdb.world_model_service import WorldModelService, ObservationInput
+from factdb.robotics_simulation import FPSGridSimulator, RoboticsSimulationWorkflow
 
 __all__ = [
     "get_engine",
@@ -92,4 +93,6 @@ __all__ = [
     "SkillKind",
     "WorldModelService",
     "ObservationInput",
+    "FPSGridSimulator",
+    "RoboticsSimulationWorkflow",
 ]
