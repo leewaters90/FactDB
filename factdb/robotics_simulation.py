@@ -30,6 +30,11 @@ _DIRECTION_VECTORS = {
 }
 _SUCCESS_CONFIDENCE = 0.9
 _FAILURE_CONFIDENCE = 0.35
+_REFILL_MIN_CONFIDENCE = 0.8
+
+
+def _escape_like(value: str) -> str:
+    return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
 
 @dataclass
@@ -451,7 +456,7 @@ class RoboticsSimulationWorkflow:
                     detail_level=DetailLevel.INTERMEDIATE,
                     source="robotics-fps-sim",
                     source_url=step.source_url,
-                    confidence_score=max(0.8, step.confidence),
+                    confidence_score=max(_REFILL_MIN_CONFIDENCE, step.confidence),
                     status=FactStatus.DRAFT,
                     tags=["robotics-sim", "fps-sim", "refilled", episode.scenario_name],
                     created_by="robotics-refill",
@@ -465,7 +470,7 @@ class RoboticsSimulationWorkflow:
                 fact.is_active = True
                 changed = True
             if fact.confidence_score < 0.6:
-                fact.confidence_score = max(0.8, step.confidence)
+                fact.confidence_score = max(_REFILL_MIN_CONFIDENCE, step.confidence)
                 changed = True
             if fact.status != FactStatus.VERIFIED.value:
                 fact.status = FactStatus.DRAFT
@@ -476,10 +481,15 @@ class RoboticsSimulationWorkflow:
 
         self.session.flush()
 
+        scenario = _escape_like(episode.scenario_name)
+        episode_id = _escape_like(episode.episode_id)
         active_step_facts = self.session.execute(
             select(Fact)
             .where(
-                Fact.source_url.like(f"sim://fps/{episode.scenario_name}/{episode.episode_id}/step/%"),
+                Fact.source_url.like(
+                    f"sim://fps/{scenario}/{episode_id}/step/%",
+                    escape="\\",
+                ),
                 Fact.is_active.is_(True),
             )
             .order_by(Fact.source_url.asc())
