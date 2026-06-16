@@ -30,6 +30,7 @@ _DIRECTION_VECTORS = {
 }
 _SUCCESS_CONFIDENCE = 0.9
 _FAILURE_CONFIDENCE = 0.35
+_VALIDATION_MIN_CONFIDENCE = 0.6
 _REFILL_MIN_CONFIDENCE = 0.8
 
 
@@ -363,7 +364,12 @@ class RoboticsSimulationWorkflow:
         self.session.flush()
         return fact_ids
 
-    def _validate_fact_batch(self, fact_ids: list[str], *, min_confidence: float = 0.6) -> dict[str, Any]:
+    def _validate_fact_batch(
+        self,
+        fact_ids: list[str],
+        *,
+        min_confidence: float = _VALIDATION_MIN_CONFIDENCE,
+    ) -> dict[str, Any]:
         valid_ids: list[str] = []
         invalid: dict[str, list[str]] = {}
 
@@ -469,7 +475,7 @@ class RoboticsSimulationWorkflow:
             if not fact.is_active:
                 fact.is_active = True
                 changed = True
-            if fact.confidence_score < 0.6:
+            if fact.confidence_score < _VALIDATION_MIN_CONFIDENCE:
                 fact.confidence_score = max(_REFILL_MIN_CONFIDENCE, step.confidence)
                 changed = True
             if fact.status != FactStatus.VERIFIED.value:
