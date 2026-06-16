@@ -28,6 +28,8 @@ _DIRECTION_VECTORS = {
     "S": (0, 1),
     "W": (-1, 0),
 }
+_SUCCESS_CONFIDENCE = 0.9
+_FAILURE_CONFIDENCE = 0.35
 
 
 @dataclass
@@ -62,9 +64,9 @@ class FPSGridSimulator:
         "#########",
     )
 
-    def __init__(self, scenario_name: str = "arena-alpha", grid_map: tuple[str, ...] | None = None) -> None:
+    def __init__(self, scenario_name: str = "arena-alpha", grid_layout: tuple[str, ...] | None = None) -> None:
         self.scenario_name = scenario_name
-        self.grid_map = grid_map or self.DEFAULT_MAP
+        self.grid_map = grid_layout or self.DEFAULT_MAP
         self._episode_counter = 0
         self.start = self._find_marker("S")
         self.target = self._find_marker("T")
@@ -146,7 +148,7 @@ class FPSGridSimulator:
         )
 
     def _make_step(self, *, episode_id: str, step_index: int, action: str, outcome: str) -> EpisodeStep:
-        confidence = 0.9 if outcome in {"ok", "target_interacted"} else 0.35
+        confidence = _SUCCESS_CONFIDENCE if outcome in {"ok", "target_interacted"} else _FAILURE_CONFIDENCE
         source_url = f"sim://fps/{self.scenario_name}/{episode_id}/step/{step_index}"
         return EpisodeStep(
             step_index=step_index,

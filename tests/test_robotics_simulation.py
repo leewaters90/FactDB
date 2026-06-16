@@ -1,4 +1,4 @@
-from factdb.models import Fact
+from factdb.models import Fact, FactStatus
 from factdb.robotics_simulation import RoboticsSimulationWorkflow
 
 
@@ -27,4 +27,4 @@ class TestRoboticsSimulationWorkflow:
             if fact.source_url and fact.source_url.startswith("sim://fps/")
         ]
         assert len(sim_facts) > 0
-        assert all(fact.status == "verified" for fact in sim_facts)
+        assert all(fact.status == FactStatus.VERIFIED.value for fact in sim_facts)
